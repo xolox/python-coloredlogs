@@ -12,6 +12,7 @@ setup(name='coloredlogs',
       version='0.1',
       description='Colored stream handler for the logging module',
       long_description=readme_text,
+      url='https://pypi.python.org/pypi/coloredlogs',
       author='Peter Odding',
       author_email='peter@peterodding.com',
       py_modules=['coloredlogs'])
