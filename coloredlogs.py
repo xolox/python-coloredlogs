@@ -5,6 +5,7 @@ Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
 Last Change: May 16, 2013
+URL: https://pypi.python.org/pypi/coloredlogs
 
 The ColoredStreamHandler class enables colored terminal output for a logger
 created with Python's logging module. The log handler formats log messages
