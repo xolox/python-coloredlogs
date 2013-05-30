@@ -9,7 +9,7 @@ readme_file = join(dirname(abspath(__file__)), 'README.rst')
 readme_text = open(readme_file, 'r').read()
 
 setup(name='coloredlogs',
-      version='0.1',
+      version='0.2',
       description='Colored stream handler for the logging module',
       long_description=readme_text,
       url='https://pypi.python.org/pypi/coloredlogs',
