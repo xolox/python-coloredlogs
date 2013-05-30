@@ -76,6 +76,10 @@ class ColoredStreamHandler(logging.StreamHandler):
             message = self.wrap_color('red', message)
         elif severity == 'WARNING':
             message = self.wrap_color('yellow', message)
+        elif severity == 'VERBOSE':
+            # The "VERBOSE" logging level is not defined by Python's logging
+            # module; I've extended the logging module to support this level.
+            message = self.wrap_color('blue', message)
         elif severity == 'DEBUG':
             message = self.wrap_color('green', message)
         severity = self.wrap_color('black', severity, bold=True)
@@ -109,17 +113,29 @@ class ColoredStreamHandler(logging.StreamHandler):
 
 if __name__ == '__main__':
 
-    # Print some examples.
-    import logging
-    log = logging.getLogger('coloredlogs')
-    log.addHandler(ColoredStreamHandler())
-    log.setLevel(logging.DEBUG)
-    for level in ['debug', 'info', 'warn', 'error', 'critical']:
-        getattr(log, level)("level %s message", level)
-        time.sleep(1)
+    # If my verbose logger is installed, we'll use that for the demo.
     try:
-        assert False, "Example exception"
-    except AssertionError, e:
-        log.exception(e)
-    log.info("Done, exiting ..")
+        from verboselogs import VerboseLogger as DemoLogger
+    except ImportError:
+        from logging import getLogger as DemoLogger
+
+    # Initialize the logger.
+    logger = DemoLogger('coloredlogs-demo')
+    logger.addHandler(ColoredStreamHandler())
+    logger.setLevel(logging.DEBUG)
+
+    # Print some examples with different timestamps.
+    for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
+        if hasattr(logger, level):
+            getattr(logger, level)("message with level %r", level)
+            time.sleep(1)
+
+    # Show how exceptions are logged.
+    try:
+        class RandomException(Exception):
+            pass
+        raise RandomException, "Something went horribly wrong!"
+    except Exception, e:
+        logger.exception(e)
+    logger.info("Done, exiting ..")
     sys.exit(0)
