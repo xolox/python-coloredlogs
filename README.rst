@@ -3,7 +3,7 @@ coloredlogs: Colored stream handler for the logging module
 
 The ``ColoredStreamHandler`` class defined in the ``coloredlogs`` module is a simple logging handler that inherits from `logging.StreamHandler`_ but adds `ANSI escape sequences`_ to render your logging messages in color. It uses only standard colors so it should work on any UNIX terminal. Currently this module does not support non-UNIX terminals (e.g. the Windows console).
 
-The log handler formats log messages including timestamps, logger names and severity levels. It uses ANSI escape sequences to highlight timestamps and debug messages in green and error and warning messages in red. The handler does not use ANSI escape sequences when output redirection applies, for example when the standard error stream is being redirected to a file. Here's an example of its use:
+The log handler formats log messages including timestamps, logger names and severity levels. It uses ANSI escape sequences to highlight timestamps and debug messages in green and error and warning messages in red. The handler does not use ANSI escape sequences when output redirection applies, for example when the standard error stream is being redirected to a file.
 
 Here's a small demonstration of the logging handler::
 
