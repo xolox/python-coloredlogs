@@ -54,7 +54,8 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.show_name = show_name
         self.show_severity = show_severity
         self.isatty = isatty if isatty is not None else stream.isatty()
-        self.hostname = re.sub('\.local$', '', socket.gethostname())
+        if show_hostname:
+            self.hostname = re.sub('\.local$', '', socket.gethostname())
         self.pid = os.getpid()
 
     def render_timestamp(self, created):
