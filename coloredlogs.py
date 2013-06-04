@@ -60,6 +60,9 @@ class ColoredStreamHandler(logging.StreamHandler):
 
     def render_timestamp(self, created):
         return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
+
+    def render_name(self, name):
+        return '%s[%s]' % (name, self.pid)
         
     def emit(self, record):
         """
@@ -72,8 +75,9 @@ class ColoredStreamHandler(logging.StreamHandler):
         severity = record.levelname
         message = str(record.msg)
         # Apply escape sequences to color the fields?
-        name = self.wrap_color('blue', '%s[%s]' % (name, self.pid))
+        name = self.wrap_color('blue', self.render_name(name))
         timestamp = self.wrap_color('green', timestamp)
+
         if severity == 'CRITICAL':
             message = self.wrap_color('red', message, bold=True)
         elif severity == 'ERROR':
