@@ -54,22 +54,30 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.show_name = show_name
         self.show_severity = show_severity
         self.isatty = isatty if isatty is not None else stream.isatty()
-        self.hostname = re.sub('\.local$', '', socket.gethostname())
+        if show_hostname:
+            self.hostname = re.sub('\.local$', '', socket.gethostname())
         self.pid = os.getpid()
 
+    def render_timestamp(self, created):
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
+
+    def render_name(self, name):
+        return '%s[%s]' % (name, self.pid)
+        
     def emit(self, record):
         """
         Called by the logging module for each log record. Formats the log
         message and passes it onto logging.StreamHandler.emit().
         """
         # The plain-text fields of the formatted log message.
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(record.created))
+        timestamp = self.render_timestamp(record.created)
         name = record.name
         severity = record.levelname
         message = str(record.msg)
         # Apply escape sequences to color the fields?
-        name = self.wrap_color('blue', '%s[%s]' % (name, self.pid))
+        name = self.wrap_color('blue', self.render_name(name))
         timestamp = self.wrap_color('green', timestamp)
+
         if severity == 'CRITICAL':
             message = self.wrap_color('red', message, bold=True)
         elif severity == 'ERROR':
