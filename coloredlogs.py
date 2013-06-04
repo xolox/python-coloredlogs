@@ -57,13 +57,16 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.hostname = re.sub('\.local$', '', socket.gethostname())
         self.pid = os.getpid()
 
+    def render_timestamp(self, created):
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
+        
     def emit(self, record):
         """
         Called by the logging module for each log record. Formats the log
         message and passes it onto logging.StreamHandler.emit().
         """
         # The plain-text fields of the formatted log message.
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(record.created))
+        timestamp = self.render_timestamp(record.created)
         name = record.name
         severity = record.levelname
         message = str(record.msg)
