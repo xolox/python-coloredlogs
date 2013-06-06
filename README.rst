@@ -17,7 +17,7 @@ required to use ``coloredlogs``).
 
 The logging handler does not use ANSI escape sequences when output redirection
 applies (for example when the standard error stream is being redirected to a
-file or another program) so if you like the format (see below), you can use it
+file or another program) so if you like the format (see below) you can use it
 for your log files as well.
 
 Format of log messages
@@ -57,6 +57,11 @@ Here's an example of how you would use the logging handler::
    logger.fatal("this is a fatal message")
    logger.critical("this is a critical message")
 
+You can change the formatting of the output to a limited amount by subclassing
+``ColoredStreamHandler`` and overriding the method(s) of your choice. For
+details take a look at the `source code`_ (it's only +/- 160 lines of code,
+including documentation).
+
 For people who like Vim
 -----------------------
 
@@ -90,5 +95,6 @@ This software is licensed under the `MIT license`_.
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPi: https://pypi.python.org/pypi/coloredlogs
+.. _source code: https://github.com/xolox/python-coloredlogs/blob/master/coloredlogs.py
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
 .. _Vim: http://www.vim.org/

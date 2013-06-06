@@ -4,7 +4,7 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: May 30, 2013
+Last Change: June 6, 2013
 URL: https://pypi.python.org/pypi/coloredlogs
 
 The ColoredStreamHandler class enables colored terminal output for a logger
@@ -54,22 +54,19 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.show_name = show_name
         self.show_severity = show_severity
         self.isatty = isatty if isatty is not None else stream.isatty()
-        self.hostname = re.sub('\.local$', '', socket.gethostname())
-        self.pid = os.getpid()
+        if show_hostname:
+            self.hostname = re.sub('\.local$', '', socket.gethostname())
+        if show_name:
+            self.pid = os.getpid()
 
     def emit(self, record):
         """
         Called by the logging module for each log record. Formats the log
         message and passes it onto logging.StreamHandler.emit().
         """
-        # The plain-text fields of the formatted log message.
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(record.created))
-        name = record.name
+        # Colorize the log message text.
         severity = record.levelname
         message = str(record.msg)
-        # Apply escape sequences to color the fields?
-        name = self.wrap_color('blue', '%s[%s]' % (name, self.pid))
-        timestamp = self.wrap_color('green', timestamp)
         if severity == 'CRITICAL':
             message = self.wrap_color('red', message, bold=True)
         elif severity == 'ERROR':
@@ -82,18 +79,18 @@ class ColoredStreamHandler(logging.StreamHandler):
             message = self.wrap_color('blue', message)
         elif severity == 'DEBUG':
             message = self.wrap_color('green', message)
-        severity = self.wrap_color('black', severity, bold=True)
         # Compose the formatted log message as:
-        # timestamp hostname name severity message
+        #   timestamp hostname name severity message
+        # Everything except the message text is optional.
         parts = []
         if self.show_timestamps:
-            parts.append(timestamp)
+            parts.append(self.wrap_color('green', self.render_timestamp(record.created)))
         if self.show_hostname:
             parts.append(self.wrap_color('magenta', self.hostname))
         if self.show_name:
-            parts.append(name)
+            parts.append(self.wrap_color('blue', self.render_name(record.name)))
         if self.show_severity:
-            parts.append(severity)
+            parts.append(self.wrap_color('black', severity, bold=True))
         parts.append(message)
         message = ' '.join(parts)
         # Copy the original record so we don't break other handlers.
@@ -102,9 +99,26 @@ class ColoredStreamHandler(logging.StreamHandler):
         # Use the built-in stream handler to handle output.
         logging.StreamHandler.emit(self, record)
 
+    def render_timestamp(self, created):
+        """
+        Format the time stamp of the log record. Receives the time when the
+        LogRecord was created (as returned by time.time()). By default this
+        returns a string in the format "YYYY-MM-DD HH:MM:SS".
+        """
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
+
+    def render_name(self, name):
+        """
+        Format the name of the logger. Receives the name of the logger used to
+        log the call. By default this returns a string in the format
+        "NAME[PID]" (where PID is the process ID reported by os.getpid()).
+        """
+        return '%s[%s]' % (name, self.pid)
+
     def wrap_color(self, colorname, message, bold=False):
         """
-        Wrap text in escape sequences for the given color [and style].
+        Wrap text in ANSI escape sequences for the given color [and optionally
+        to enable bold font].
         """
         if self.isatty:
             return ansi_text(message, color=colorname, bold=bold)
@@ -121,7 +135,7 @@ if __name__ == '__main__':
 
     # Initialize the logger.
     logger = DemoLogger('coloredlogs-demo')
-    logger.addHandler(ColoredStreamHandler())
+    logger.addHandler(ColoredStreamHandler(show_name=True))
     logger.setLevel(logging.DEBUG)
 
     # Print some examples with different timestamps.
