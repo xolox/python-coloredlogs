@@ -4,7 +4,7 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: June 6, 2013
+Last Change: July 1, 2013
 URL: https://pypi.python.org/pypi/coloredlogs
 
 The ColoredStreamHandler class enables colored terminal output for a logger
@@ -55,7 +55,7 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.show_severity = show_severity
         self.isatty = isatty if isatty is not None else stream.isatty()
         if show_hostname:
-            self.hostname = re.sub('\.local$', '', socket.gethostname())
+            self.hostname = re.sub(r'\.local$', '', socket.gethostname())
         if show_name:
             self.pid = os.getpid()
 
