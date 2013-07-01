@@ -64,9 +64,12 @@ class ColoredStreamHandler(logging.StreamHandler):
         Called by the logging module for each log record. Formats the log
         message and passes it onto logging.StreamHandler.emit().
         """
+        # Make sure the message is a string.
+        message = record.msg
+        if not isinstance(message, basestring):
+            message = unicode(message)
         # Colorize the log message text.
         severity = record.levelname
-        message = str(record.msg)
         if severity == 'CRITICAL':
             message = self.wrap_color('red', message, bold=True)
         elif severity == 'ERROR':
