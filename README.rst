@@ -74,6 +74,30 @@ git repository:
 
 .. image:: https://peterodding.com/code/python/coloredlogs/screenshots/vim.png
 
+For people who like cron
+------------------------
+
+When ``coloredlogs`` is used in a cron_ job, the output that's e-mailed to you
+by cron won't contain any ANSI escape sequences because ``coloredlogs``
+realizes that it's not attached to an interactive terminal. If you'd like to
+have colors e-mailed to you by cron there's a simple way to set it up::
+
+    MAILTO="your-email-address@here"
+    CONTENT_TYPE="text/html"
+    * * * * * root ansi2html your-command
+
+The ``ansi2html`` program is installed when you install ``coloredlogs``. It
+runs ``your-command`` under the external program ``script`` (you need to have
+this installed to get ``ansi2html`` working). This makes ``your-command`` think
+that it's attached to an interactive terminal which means it will output ANSI
+escape sequences and ``ansi2html`` converts these to HTML. Yes, this is a bit
+convoluted, but it works great :-)
+
+You can use ``ansi2html`` without ``coloredlogs``, but please note that it only
+supports normal text, bold text and text with one of the foreground colors
+black, red, green, yellow, blue, magenta, cyan and white (these are the
+portable ANSI color codes).
+
 Contact
 -------
 
@@ -90,11 +114,12 @@ This software is licensed under the `MIT license`_.
 
 .. External references:
 .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+.. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
 .. _logging.StreamHandler: http://docs.python.org/2/library/logging.handlers.html#streamhandler
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPi: https://pypi.python.org/pypi/coloredlogs
-.. _source code: https://github.com/xolox/python-coloredlogs/blob/master/coloredlogs.py
+.. _source code: https://github.com/xolox/python-coloredlogs/blob/master/coloredlogs/__init__.py
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
 .. _Vim: http://www.vim.org/

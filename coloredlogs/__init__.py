@@ -1,19 +1,17 @@
-#!/usr/bin/env python
-
 """
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: July 1, 2013
-URL: https://pypi.python.org/pypi/coloredlogs
+Last Change: July 20, 2013
+URL: https://github.com/xolox/python-coloredlogs
 
-The ColoredStreamHandler class enables colored terminal output for a logger
-created with Python's logging module. The log handler formats log messages
-including timestamps, logger names and severity levels. It uses ANSI escape
-sequences to highlight timestamps and debug messages in green and error and
-warning messages in red. The handler does not use ANSI escape sequences when
-output redirection applies, for example when the standard error stream is being
-redirected to a file. Here's an example of its use:
+The :py:class:`ColoredStreamHandler` class enables colored terminal output for
+a logger created with Python's :py:mod:`logging` module. The log handler
+formats log messages including timestamps, logger names and severity levels. It
+uses `ANSI escape sequences`_ to highlight timestamps and debug messages in
+green and error and warning messages in red. The handler does not use ANSI
+escape sequences when output redirection applies, for example when the standard
+error stream is being redirected to a file. Here's an example of its use::
 
     # Configure your logger.
     import logging, coloredlogs
@@ -28,8 +26,14 @@ redirected to a file. Here's an example of its use:
     log.error("this is an error message")
     log.fatal("this is a fatal message")
     log.critical("this is a critical message")
+
+.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 """
 
+# Semi-standard module versioning.
+__version__ = '0.4'
+
+# Standard library modules.
 import copy
 import logging
 import os
@@ -62,7 +66,7 @@ class ColoredStreamHandler(logging.StreamHandler):
     def emit(self, record):
         """
         Called by the logging module for each log record. Formats the log
-        message and passes it onto logging.StreamHandler.emit().
+        message and passes it onto :py:func:`logging.StreamHandler.emit()`.
         """
         # Make sure the message is a string.
         message = record.msg
@@ -105,8 +109,8 @@ class ColoredStreamHandler(logging.StreamHandler):
     def render_timestamp(self, created):
         """
         Format the time stamp of the log record. Receives the time when the
-        LogRecord was created (as returned by time.time()). By default this
-        returns a string in the format "YYYY-MM-DD HH:MM:SS".
+        LogRecord was created (as returned by :py:func:`time.time()`). By
+        default this returns a string in the format ``YYYY-MM-DD HH:MM:SS``.
         """
         return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
 
@@ -114,7 +118,8 @@ class ColoredStreamHandler(logging.StreamHandler):
         """
         Format the name of the logger. Receives the name of the logger used to
         log the call. By default this returns a string in the format
-        "NAME[PID]" (where PID is the process ID reported by os.getpid()).
+        ``NAME[PID]`` (where PID is the process ID reported by
+        :py:func:`os.getpid()`).
         """
         return '%s[%s]' % (name, self.pid)
 
@@ -156,3 +161,5 @@ if __name__ == '__main__':
         logger.exception(e)
     logger.info("Done, exiting ..")
     sys.exit(0)
+
+# vim: ts=4 sw=4 et
