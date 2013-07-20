@@ -34,8 +34,9 @@ def main():
     interactive terminal), intercepts the output of the command and converts
     ANSI escape sequences in the output to HTML.
     """
-    command = ['script', '-qec']
-    command.append(' '.join(pipes.quote(a) for a in sys.argv[1:]))
+    command = ['script', '-qe']
+    command.extend(['-c', ' '.join(pipes.quote(a) for a in sys.argv[1:])])
+    command.append('/dev/null')
     program = subprocess.Popen(command, stdout=subprocess.PIPE)
     text = program.communicate()[0]
     print convert(text)

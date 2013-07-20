@@ -31,7 +31,7 @@ error stream is being redirected to a file. Here's an example of its use::
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4'
+__version__ = '0.4.1'
 
 # Standard library modules.
 import copy
