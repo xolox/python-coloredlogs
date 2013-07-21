@@ -2,36 +2,12 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: July 20, 2013
+Last Change: July 21, 2013
 URL: https://github.com/xolox/python-coloredlogs
-
-The :py:class:`ColoredStreamHandler` class enables colored terminal output for
-a logger created with Python's :py:mod:`logging` module. The log handler
-formats log messages including timestamps, logger names and severity levels. It
-uses `ANSI escape sequences`_ to highlight timestamps and debug messages in
-green and error and warning messages in red. The handler does not use ANSI
-escape sequences when output redirection applies, for example when the standard
-error stream is being redirected to a file. Here's an example of its use::
-
-    # Configure your logger.
-    import logging, coloredlogs
-    log = logging.getLogger('your-module')
-    log.addHandler(coloredlogs.ColoredStreamHandler())
-
-    # Some examples.
-    log.setLevel(logging.DEBUG)
-    log.debug("this is a debugging message")
-    log.info("this is an informational message")
-    log.warn("this is a warning message")
-    log.error("this is an error message")
-    log.fatal("this is a fatal message")
-    log.critical("this is a critical message")
-
-.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 
 # Standard library modules.
 import copy
@@ -46,10 +22,57 @@ import time
 ansi_color_codes = dict(black=0, red=1, green=2, yellow=3, blue=4, magenta=5, cyan=6, white=7)
 
 def ansi_text(message, color='black', bold=False):
-    """ Wrap text in escape sequences for the given color and/or style. """
+    """
+    Wrap text in ANSI escape sequences for the given color and/or style.
+
+    :param message: The text message (a string).
+    :param color: The name of a color (one of the strings black, red, green,
+                  yellow, blue, magenta, cyan or white).
+    :param bold: ``True`` if the text should be bold, ``False`` otherwise.
+    :returns: The text message wrapped in ANSI escape sequences.
+    """
     return '\x1b[%i;3%im%s\x1b[0m' % (bold and 1 or 0, ansi_color_codes[color], message)
 
+def install(**kw):
+    """
+    Install a :py:class:`ColoredStreamHandler` for the root logger. Calling
+    this function multiple times will never install more than one handler.
+
+    :param kw: Optional keyword arguments for :py:class:`ColoredStreamHandler`.
+    """
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    if not any(isinstance(h, ColoredStreamHandler) for h in logger.handlers):
+        logger.addHandler(ColoredStreamHandler(**kw))
+
 class ColoredStreamHandler(logging.StreamHandler):
+
+    """
+    The :py:class:`ColoredStreamHandler` class enables colored terminal output
+    for a logger created with Python's :py:mod:`logging` module. The log
+    handler formats log messages including timestamps, logger names and
+    severity levels. It uses `ANSI escape sequences`_ to highlight timestamps
+    and debug messages in green and error and warning messages in red. The
+    handler does not use ANSI escape sequences when output redirection applies,
+    for example when the standard error stream is being redirected to a file.
+    Here's an example of its use::
+
+        # Configure your logger.
+        import logging, coloredlogs
+        log = logging.getLogger('your-module')
+        log.addHandler(coloredlogs.ColoredStreamHandler())
+
+        # Some examples.
+        log.setLevel(logging.DEBUG)
+        log.debug("this is a debugging message")
+        log.info("this is an informational message")
+        log.warn("this is a warning message")
+        log.error("this is an error message")
+        log.fatal("this is a fatal message")
+        log.critical("this is a critical message")
+
+    .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+    """
 
     def __init__(self, stream=sys.stderr, isatty=None, show_name=False, show_severity=True, show_timestamps=True, show_hostname=True):
         logging.StreamHandler.__init__(self, stream)
