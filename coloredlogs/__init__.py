@@ -7,7 +7,7 @@ URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 
 # Standard library modules.
 import copy
@@ -74,7 +74,7 @@ class ColoredStreamHandler(logging.StreamHandler):
     .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     """
 
-    def __init__(self, stream=sys.stderr, isatty=None, show_name=False, show_severity=True, show_timestamps=True, show_hostname=True):
+    def __init__(self, stream=sys.stderr, isatty=None, show_name=True, show_severity=True, show_timestamps=True, show_hostname=True):
         logging.StreamHandler.__init__(self, stream)
         self.show_timestamps = show_timestamps
         self.show_hostname = show_hostname

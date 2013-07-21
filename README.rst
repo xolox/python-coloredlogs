@@ -32,8 +32,8 @@ fields in every logged message by default:
 2. The hostname of the system on which the event was logged. This field is
    visible by default. To hide it you can pass the keyword argument
    ``show_hostname=False`` when you create the handler.
-3. The name of the logger that logged the event. This field is hidden by
-   default. To show it you can pass the keyword argument ``show_name=True``
+3. The name of the logger that logged the event. This field is visible by
+   default. To hide it you can pass the keyword argument ``show_name=False``
    when you create the handler.
 4. The human friendly name of the log level / severity.
 5. The message that was logged.
