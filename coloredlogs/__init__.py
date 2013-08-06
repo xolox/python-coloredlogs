@@ -2,12 +2,12 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: July 21, 2013
+Last Change: August 7, 2013
 URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 
 # Standard library modules.
 import copy
@@ -80,7 +80,15 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.show_hostname = show_hostname
         self.show_name = show_name
         self.show_severity = show_severity
-        self.isatty = isatty if isatty is not None else stream.isatty()
+        if isatty is not None:
+            self.isatty = isatty
+        else:
+            try:
+                self.isatty = stream.isatty()
+            except Exception:
+                # The sys.stderr defined by the Python Interface to Vim doesn't
+                # have an isatty() method.
+                self.isatty = False
         if show_hostname:
             self.hostname = re.sub(r'\.local$', '', socket.gethostname())
         if show_name:
