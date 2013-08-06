@@ -7,7 +7,7 @@ URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.5'
+__version__ = '0.4.6'
 
 # Standard library modules.
 import copy
@@ -18,8 +18,18 @@ import socket
 import sys
 import time
 
+# Check if my verbose logger is installed.
+try:
+    __import__('verboselogs')
+    HAS_VERBOSELOGS = True
+except ImportError:
+    HAS_VERBOSELOGS = False
+
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 ansi_color_codes = dict(black=0, red=1, green=2, yellow=3, blue=4, magenta=5, cyan=6, white=7)
+
+# The logging handler attached to the root logger (initialized by install()).
+root_handler = None
 
 def ansi_text(message, color='black', bold=False):
     """
@@ -33,17 +43,65 @@ def ansi_text(message, color='black', bold=False):
     """
     return '\x1b[%i;3%im%s\x1b[0m' % (bold and 1 or 0, ansi_color_codes[color], message)
 
-def install(**kw):
+def install(level=logging.INFO, **kw):
     """
     Install a :py:class:`ColoredStreamHandler` for the root logger. Calling
     this function multiple times will never install more than one handler.
 
+    :param level: The logging level to filter on (defaults to ``INFO``).
     :param kw: Optional keyword arguments for :py:class:`ColoredStreamHandler`.
     """
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    if not any(isinstance(h, ColoredStreamHandler) for h in logger.handlers):
-        logger.addHandler(ColoredStreamHandler(**kw))
+    global root_handler
+    if not root_handler:
+        # Create the root handler.
+        root_handler = ColoredStreamHandler(level=level, **kw)
+        # Install the root handler.
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.NOTSET)
+        root_logger.addHandler(root_handler)
+
+# TODO Move these functions into ColoredStreamHandler?
+
+def increase_verbosity():
+    """
+    Increase the verbosity of the root handler by one defined level.
+    Understands custom logging levels like defined by my ``verboselogs``
+    module.
+    """
+    defined_levels = find_defined_levels()
+    current_level = get_level()
+    closest_level = min(defined_levels, key=lambda l: abs(l - current_level))
+    set_level(defined_levels[max(0, defined_levels.index(closest_level) - 1)])
+
+def get_level():
+    """
+    Get the logging level of the root handler.
+
+    :returns: The logging level of the root handler (an integer).
+    """
+    install()
+    return root_handler.level
+
+def set_level(level):
+    """
+    Set the logging level of the root handler.
+
+    :param level: The logging level to filter on (an integer).
+    """
+    install()
+    root_handler.level = level
+
+def find_defined_levels():
+    """
+    Find the defined logging levels.
+    """
+    defined_levels = set()
+    for name in dir(logging):
+        if name.isupper():
+            value = getattr(logging, name)
+            if isinstance(value, int):
+                defined_levels.add(value)
+    return sorted(defined_levels)
 
 class ColoredStreamHandler(logging.StreamHandler):
 
@@ -57,19 +115,22 @@ class ColoredStreamHandler(logging.StreamHandler):
     for example when the standard error stream is being redirected to a file.
     Here's an example of its use::
 
-        # Configure your logger.
-        import logging, coloredlogs
-        log = logging.getLogger('your-module')
-        log.addHandler(coloredlogs.ColoredStreamHandler())
+        # Create a logger object.
+        import logging
+        logger = logging.getLogger('your-module')
+
+        # Initialize coloredlogs.
+        import coloredlogs
+        coloredlogs.install()
+        coloredlogs.set_level(logging.DEBUG)
 
         # Some examples.
-        log.setLevel(logging.DEBUG)
-        log.debug("this is a debugging message")
-        log.info("this is an informational message")
-        log.warn("this is a warning message")
-        log.error("this is an error message")
-        log.fatal("this is a fatal message")
-        log.critical("this is a critical message")
+        logger.debug("this is a debugging message")
+        logger.info("this is an informational message")
+        logger.warn("this is a warning message")
+        logger.error("this is an error message")
+        logger.fatal("this is a fatal message")
+        logger.critical("this is a critical message")
 
     .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     """
@@ -97,8 +158,8 @@ class ColoredStreamHandler(logging.StreamHandler):
 
     def emit(self, record):
         """
-        Called by the logging module for each log record. Formats the log
-        message and passes it onto :py:func:`logging.StreamHandler.emit()`.
+        Called by the :py:mod:`logging` module for each log record. Formats the
+        log message and passes it onto :py:func:`logging.StreamHandler.emit()`.
         """
         # If the message doesn't need to be rendered we take a shortcut.
         if record.levelno < self.level:
@@ -171,15 +232,14 @@ class ColoredStreamHandler(logging.StreamHandler):
 if __name__ == '__main__':
 
     # If my verbose logger is installed, we'll use that for the demo.
-    try:
+    if HAS_VERBOSELOGS:
         from verboselogs import VerboseLogger as DemoLogger
-    except ImportError:
+    else:
         from logging import getLogger as DemoLogger
 
-    # Initialize the logger.
+    # Initialize the logger and handler.
     logger = DemoLogger('coloredlogs-demo')
-    logger.addHandler(ColoredStreamHandler(show_name=True))
-    logger.setLevel(logging.DEBUG)
+    install(level=logging.DEBUG)
 
     # Print some examples with different timestamps.
     for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:

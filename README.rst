@@ -43,13 +43,15 @@ Usage
 
 Here's an example of how you would use the logging handler::
 
-   # Configure your logger.
-   import logging, coloredlogs
+   # Create a logger object.
+   import logging
    logger = logging.getLogger('your-module')
-   logger.addHandler(coloredlogs.ColoredStreamHandler())
+
+   # Initialize coloredlogs.
+   import coloredlogs
+   coloredlogs.install(level=logging.DEBUG)
 
    # Some examples.
-   logger.setLevel(logging.DEBUG)
    logger.debug("this is a debugging message")
    logger.info("this is an informational message")
    logger.warn("this is a warning message")
