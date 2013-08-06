@@ -7,7 +7,7 @@ URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.4'
+__version__ = '0.4.5'
 
 # Standard library modules.
 import copy
@@ -74,8 +74,9 @@ class ColoredStreamHandler(logging.StreamHandler):
     .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     """
 
-    def __init__(self, stream=sys.stderr, isatty=None, show_name=True, show_severity=True, show_timestamps=True, show_hostname=True):
+    def __init__(self, stream=sys.stderr, level=logging.NOTSET, isatty=None, show_name=True, show_severity=True, show_timestamps=True, show_hostname=True):
         logging.StreamHandler.__init__(self, stream)
+        self.level = level
         self.show_timestamps = show_timestamps
         self.show_hostname = show_hostname
         self.show_name = show_name
@@ -83,11 +84,11 @@ class ColoredStreamHandler(logging.StreamHandler):
         if isatty is not None:
             self.isatty = isatty
         else:
+            # Protect against sys.stderr.isatty() not being defined (e.g. in
+            # the Python Interface to Vim).
             try:
                 self.isatty = stream.isatty()
             except Exception:
-                # The sys.stderr defined by the Python Interface to Vim doesn't
-                # have an isatty() method.
                 self.isatty = False
         if show_hostname:
             self.hostname = re.sub(r'\.local$', '', socket.gethostname())
@@ -99,6 +100,9 @@ class ColoredStreamHandler(logging.StreamHandler):
         Called by the logging module for each log record. Formats the log
         message and passes it onto :py:func:`logging.StreamHandler.emit()`.
         """
+        # If the message doesn't need to be rendered we take a shortcut.
+        if record.levelno < self.level:
+            return
         # Make sure the message is a string.
         message = record.msg
         if not isinstance(message, basestring):
