@@ -2,12 +2,12 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: August 7, 2013
+Last Change: September 29, 2013
 URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.6'
+__version__ = '0.4.7'
 
 # Standard library modules.
 import copy
@@ -72,6 +72,14 @@ def increase_verbosity():
     current_level = get_level()
     closest_level = min(defined_levels, key=lambda l: abs(l - current_level))
     set_level(defined_levels[max(0, defined_levels.index(closest_level) - 1)])
+
+def is_verbose():
+    """
+    Check whether the log level of the root handler is set to a verbose level.
+
+    :returns: ``True`` if the root handler is verbose, ``False`` if not.
+    """
+    return get_level() < logging.INFO
 
 def get_level():
     """
