@@ -2,12 +2,12 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: September 29, 2013
+Last Change: October 19, 2013
 URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.7'
+__version__ = '0.4.8'
 
 # Standard library modules.
 import copy
@@ -143,7 +143,9 @@ class ColoredStreamHandler(logging.StreamHandler):
     .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     """
 
-    def __init__(self, stream=sys.stderr, level=logging.NOTSET, isatty=None, show_name=True, show_severity=True, show_timestamps=True, show_hostname=True):
+    def __init__(self, stream=sys.stderr, level=logging.NOTSET, isatty=None,
+                 show_name=True, show_severity=True, show_timestamps=True,
+                 show_hostname=True, use_chroot=True):
         logging.StreamHandler.__init__(self, stream)
         self.level = level
         self.show_timestamps = show_timestamps
@@ -160,7 +162,12 @@ class ColoredStreamHandler(logging.StreamHandler):
             except Exception:
                 self.isatty = False
         if show_hostname:
-            self.hostname = re.sub(r'\.local$', '', socket.gethostname())
+            chroot_file = '/etc/debian_chroot'
+            if use_chroot and os.path.isfile(chroot_file):
+                with open(chroot_file) as handle:
+                    self.hostname = handle.read().strip()
+            else:
+                self.hostname = re.sub(r'\.local$', '', socket.gethostname())
         if show_name:
             self.pid = os.getpid()
 
