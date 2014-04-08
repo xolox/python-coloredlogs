@@ -39,7 +39,7 @@ def main():
     command.append('/dev/null')
     program = subprocess.Popen(command, stdout=subprocess.PIPE)
     text = program.communicate()[0]
-    print convert(text)
+    print(convert(text))
 
 def convert(text):
     """
