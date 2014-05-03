@@ -2,7 +2,7 @@
 Program to convert text with ANSI escape sequences to HTML.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: July 20, 2013
+Last Change: May 3, 2014
 URL: https://github.com/xolox/python-coloredlogs
 """
 
@@ -11,6 +11,8 @@ import pipes
 import re
 import subprocess
 import sys
+import tempfile
+import webbrowser
 
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 EIGHT_COLOR_PALETTE = ('black',
@@ -38,8 +40,15 @@ def main():
     command.extend(['-c', ' '.join(pipes.quote(a) for a in sys.argv[1:])])
     command.append('/dev/null')
     program = subprocess.Popen(command, stdout=subprocess.PIPE)
-    text = program.communicate()[0]
-    print convert(text)
+    raw_output = program.communicate()[0]
+    html_output = convert(raw_output)
+    if sys.stdout.isatty():
+        fd, filename = tempfile.mkstemp(suffix='.html')
+        with open(filename, 'w') as handle:
+            handle.write(html_output)
+        webbrowser.open(filename)
+    else:
+        print html_output
 
 def convert(text):
     """

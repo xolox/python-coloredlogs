@@ -2,12 +2,12 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: October 19, 2013
+Last Change: May 3, 2014
 URL: https://github.com/xolox/python-coloredlogs
 """
 
 # Semi-standard module versioning.
-__version__ = '0.4.8'
+__version__ = '0.4.9'
 
 # Standard library modules.
 import copy
