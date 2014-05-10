@@ -7,10 +7,10 @@ coloredlogs: Colored stream handler for Python's logging module
 The ``coloredlogs.ColoredStreamHandler`` class is a simple logging handler that
 inherits from `logging.StreamHandler`_ and uses `ANSI escape sequences`_ to
 render your logging messages in color. It uses only standard colors so it
-should work on any UNIX terminal. Currently this module does not support
-non-UNIX terminals (e.g. the Windows console). Here is a screen shot of the
-demo that is printed when the command ``python -m coloredlogs.demo`` is
-executed:
+should work on any UNIX terminal. It's currently tested on Python 2.6, 2.7 and
+3.4. This module does not support non-UNIX terminals (e.g. the Windows
+console). Here is a screen shot of the demo that is printed when the command
+``python -m coloredlogs.demo`` is executed:
 
 .. image:: https://peterodding.com/code/python/coloredlogs/screenshots/terminal.png
 
