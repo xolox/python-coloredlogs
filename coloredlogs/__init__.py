@@ -2,7 +2,7 @@
 Colored terminal output for Python's logging module.
 
 Author: Peter Odding <peter@peterodding.com>
-Last Change: May 3, 2014
+Last Change: May 10, 2014
 URL: https://github.com/xolox/python-coloredlogs
 """
 
@@ -17,13 +17,6 @@ import re
 import socket
 import sys
 import time
-
-# Check if my verbose logger is installed.
-try:
-    __import__('verboselogs')
-    HAS_VERBOSELOGS = True
-except ImportError:
-    HAS_VERBOSELOGS = False
 
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 ansi_color_codes = dict(black=0, red=1, green=2, yellow=3, blue=4, magenta=5, cyan=6, white=7)
@@ -247,33 +240,5 @@ class ColoredStreamHandler(logging.StreamHandler):
             return ansi_text(message, color=colorname, bold=bold)
         else:
             return message
-
-if __name__ == '__main__':
-
-    # If my verbose logger is installed, we'll use that for the demo.
-    if HAS_VERBOSELOGS:
-        from verboselogs import VerboseLogger as DemoLogger
-    else:
-        from logging import getLogger as DemoLogger
-
-    # Initialize the logger and handler.
-    logger = DemoLogger('coloredlogs-demo')
-    install(level=logging.DEBUG)
-
-    # Print some examples with different timestamps.
-    for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
-        if hasattr(logger, level):
-            getattr(logger, level)("message with level %r", level)
-            time.sleep(1)
-
-    # Show how exceptions are logged.
-    try:
-        class RandomException(Exception):
-            pass
-        raise RandomException("Something went horribly wrong!")
-    except Exception as e:
-        logger.exception(e)
-    logger.info("Done, exiting ..")
-    sys.exit(0)
 
 # vim: ts=4 sw=4 et
