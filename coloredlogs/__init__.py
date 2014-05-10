@@ -181,8 +181,12 @@ class ColoredStreamHandler(logging.StreamHandler):
             return
         # Make sure the message is a string.
         message = record.msg
-        if not isinstance(message, basestring):
-            message = unicode(message)
+        try:
+            if not isinstance(message, basestring):
+                message = unicode(message)
+        except NameError:
+            if not isinstance(message, str):
+                message = str(message)
         # Colorize the log message text.
         severity = record.levelname
         if severity == 'CRITICAL':
@@ -266,8 +270,8 @@ if __name__ == '__main__':
     try:
         class RandomException(Exception):
             pass
-        raise RandomException, "Something went horribly wrong!"
-    except Exception, e:
+        raise RandomException("Something went horribly wrong!")
+    except Exception as e:
         logger.exception(e)
     logger.info("Done, exiting ..")
     sys.exit(0)
