@@ -18,7 +18,7 @@ except ImportError:
     from logging import getLogger as DemoLogger
 
 # Initialize the logger and handler.
-logger = DemoLogger(__name__)
+logger = DemoLogger('coloredlogs')
 
 def main():
 
@@ -40,3 +40,6 @@ def main():
         logger.exception(e)
 
     logger.info("Done, exiting ..")
+
+if __name__ == '__main__':
+    main()
