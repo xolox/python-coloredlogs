@@ -4,6 +4,9 @@ coloredlogs: Colored stream handler for Python's logging module
 .. image:: https://travis-ci.org/xolox/python-coloredlogs.svg?branch=master
    :target: https://travis-ci.org/xolox/python-coloredlogs
 
+.. image:: https://coveralls.io/repos/xolox/python-coloredlogs/badge.png?branch=master
+   :target: https://coveralls.io/r/xolox/python-coloredlogs?branch=master
+
 The ``coloredlogs.ColoredStreamHandler`` class is a simple logging handler that
 inherits from `logging.StreamHandler`_ and uses `ANSI escape sequences`_ to
 render your logging messages in color. It uses only standard colors so it
