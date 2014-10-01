@@ -9,8 +9,15 @@ import logging
 import random
 import re
 import string
-import StringIO
 import unittest
+
+# StringIO.StringIO() vs io.StringIO().
+try:
+    # Python 2.x.
+    from StringIO import StringIO
+except ImportError:
+    # Python 3.x.
+    from io import StringIO
 
 # The module we're testing.
 import coloredlogs
@@ -39,7 +46,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         coloredlogs.install()
         coloredlogs.set_level(logging.INFO)
         # Reset local state.
-        self.stream = StringIO.StringIO()
+        self.stream = StringIO()
         self.handler = coloredlogs.ColoredStreamHandler(stream=self.stream, isatty=False)
         self.logger_name = ''.join(random.choice(string.ascii_letters) for i in range(25))
         self.logger = verboselogs.VerboseLogger(self.logger_name)
