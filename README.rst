@@ -107,7 +107,7 @@ portable ANSI color codes).
 Contact
 -------
 
-The latest version of ``coloredlogs`` is available on PyPi_ and GitHub_. For
+The latest version of ``coloredlogs`` is available on PyPI_ and GitHub_. For
 bug reports please create an issue on GitHub_. If you have questions,
 suggestions, etc. feel free to send me an e-mail at `peter@peterodding.com`_.
 
@@ -116,7 +116,7 @@ License
 
 This software is licensed under the `MIT license`_.
 
-© 2013 Peter Odding.
+© 2014 Peter Odding.
 
 .. External references:
 .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -125,7 +125,7 @@ This software is licensed under the `MIT license`_.
 .. _logging.StreamHandler: http://docs.python.org/2/library/logging.handlers.html#streamhandler
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _peter@peterodding.com: peter@peterodding.com
-.. _PyPi: https://pypi.python.org/pypi/coloredlogs
+.. _PyPI: https://pypi.python.org/pypi/coloredlogs
 .. _source code: https://github.com/xolox/python-coloredlogs/blob/master/coloredlogs/__init__.py
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
 .. _Vim: http://www.vim.org/

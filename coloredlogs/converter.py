@@ -1,9 +1,12 @@
-"""
-Program to convert text with ANSI escape sequences to HTML.
+# Program to convert text with ANSI escape sequences to HTML.
+#
+# Author: Peter Odding <peter@peterodding.com>
+# Last Change: October 2, 2014
+# URL: https://github.com/xolox/python-coloredlogs
 
-Author: Peter Odding <peter@peterodding.com>
-Last Change: May 10, 2014
-URL: https://github.com/xolox/python-coloredlogs
+"""
+``coloredlogs.converter`` - Convert text with ANSI escape sequences to HTML
+===========================================================================
 """
 
 # Standard library modules.
@@ -36,12 +39,7 @@ def main():
     interactive terminal), intercepts the output of the command and converts
     ANSI escape sequences in the output to HTML.
     """
-    command = ['script', '-qe']
-    command.extend(['-c', ' '.join(pipes.quote(a) for a in sys.argv[1:])])
-    command.append('/dev/null')
-    program = subprocess.Popen(command, stdout=subprocess.PIPE)
-    stdout, stderr = program.communicate()
-    html_output = convert(stdout)
+    html_output = convert(capture(sys.argv[1:]))
     if sys.stdout.isatty():
         fd, filename = tempfile.mkstemp(suffix='.html')
         with open(filename, 'w') as handle:
@@ -49,6 +47,24 @@ def main():
         webbrowser.open(filename)
     else:
         print(html_output)
+
+def capture(command):
+    """
+    Capture the output of an external program as if it runs in an interactive terminal.
+
+    This function runs an external program under ``script`` (emulating an
+    interactive terminal) to capture the output of the program as if it was
+    running in an interactive terminal (including ANSI escape sequences).
+
+    :param command: The program name and its arguments (a list of strings).
+    :returns: The output of the command.
+    """
+    script_command = ['script', '-qe']
+    script_command.extend(['-c', ' '.join(pipes.quote(a) for a in command)])
+    script_command.append('/dev/null')
+    script_process = subprocess.Popen(script_command, stdout=subprocess.PIPE)
+    stdout, stderr = script_process.communicate()
+    return stdout
 
 def convert(text):
     """
@@ -113,5 +129,3 @@ def html_encode(text):
     text = text.replace('>', '&gt;')
     text = text.replace('"', '&quot;')
     return text
-
-# vim: ts=4 sw=4 et

@@ -1,13 +1,16 @@
-"""
-Colored terminal output for Python's logging module.
+# Colored terminal output for Python's logging module.
+#
+# Author: Peter Odding <peter@peterodding.com>
+# Last Change: October 2, 2014
+# URL: https://github.com/xolox/python-coloredlogs
 
-Author: Peter Odding <peter@peterodding.com>
-Last Change: September 21, 2014
-URL: https://github.com/xolox/python-coloredlogs
+"""
+``coloredlogs`` - Colored terminal output for Python's logging module
+=====================================================================
 """
 
 # Semi-standard module versioning.
-__version__ = '0.6'
+__version__ = '0.7'
 
 # Standard library modules.
 import copy
@@ -251,5 +254,3 @@ class ColoredStreamHandler(logging.StreamHandler):
             return ansi_text(message, color=colorname, bold=bold)
         else:
             return message
-
-# vim: ts=4 sw=4 et

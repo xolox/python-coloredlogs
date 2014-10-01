@@ -26,4 +26,6 @@ setup(name='coloredlogs',
       author='Peter Odding',
       author_email='peter@peterodding.com',
       packages=find_packages(),
-      entry_points={'console_scripts': ['ansi2html = coloredlogs.converter:main']})
+      entry_points=dict(console_scripts=['ansi2html = coloredlogs.converter:main']),
+      test_suite='coloredlogs.tests',
+      tests_require=['verboselogs'])
