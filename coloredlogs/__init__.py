@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 2, 2014
+# Last Change: October 3, 2014
 # URL: https://github.com/xolox/python-coloredlogs
 
 """
@@ -10,7 +10,7 @@
 """
 
 # Semi-standard module versioning.
-__version__ = '0.7.1'
+__version__ = '0.8'
 
 # Standard library modules.
 import copy
@@ -27,24 +27,52 @@ ansi_color_codes = dict(black=0, red=1, green=2, yellow=3, blue=4, magenta=5, cy
 # The logging handler attached to the root logger (initialized by install()).
 root_handler = None
 
-def ansi_text(message, color='black', bold=False):
+def ansi_text(text, color=None, bold=False, faint=False, underline=False, inverse=False, strike_through=False):
     """
-    Wrap text in ANSI escape sequences for the given color and/or style.
+    Wrap text in ANSI escape sequences for the given color and/or style(s).
 
-    :param message: The text message (a string).
-    :param color: The name of a color (one of the strings black, red, green,
-                  yellow, blue, magenta, cyan or white).
-    :param bold: ``True`` if the text should be bold, ``False`` otherwise.
-    :returns: The text message wrapped in ANSI escape sequences.
+    :param text: The text to wrap in ANSI escape sequences (a string).
+    :param color: The name of a color (one of the strings ``black``, ``red``,
+                  ``green``, ``yellow``, ``blue``, ``magenta``, ``cyan`` or
+                  ``white``) or ``None`` (the default) which means no escape
+                  sequence to switch color will be emitted.
+    :param bold: ``True`` enables bold font (the default is ``False``).
+    :param faint: ``True`` enables faint font (the default is ``False``).
+    :param underline: ``True`` enables underline font (the default is ``False``).
+    :param inverse: ``True`` enables inverse font (the default is ``False``).
+    :param strike_through: ``True`` enables crossed-out / strike-through font
+                           (the default is ``False``).
+    :returns: The text message wrapped in ANSI escape sequences (a string).
+    :raises: :py:exc:`Exception` when an invalid color name is given.
     """
-    return '\x1b[%i;3%im%s\x1b[0m' % (bold and 1 or 0, ansi_color_codes[color], message)
+    sequences = []
+    if bold:
+        sequences.append('1')
+    if faint:
+        sequences.append('2')
+    if underline:
+        sequences.append('4')
+    if inverse:
+        sequences.append('7')
+    if strike_through:
+        sequences.append('9')
+    if color:
+        try:
+            sequences.append('3%i' % ansi_color_codes[color])
+        except KeyError:
+            msg = "Invalid color name %r! (expected one of %s)"
+            raise Exception(msg % (color, ', '.join(sorted(ansi_color_codes))))
+    if sequences:
+        return '\x1b[%sm%s\x1b[0m' % (';'.join(sequences), text)
+    else:
+        return text
 
 def install(level=logging.INFO, **kw):
     """
     Install a :py:class:`ColoredStreamHandler` for the root logger. Calling
     this function multiple times will never install more than one handler.
 
-    :param level: The logging level to filter on (defaults to ``INFO``).
+    :param level: The logging level to filter on (defaults to :py:data:`logging.INFO`).
     :param kw: Optional keyword arguments for :py:class:`ColoredStreamHandler`.
     """
     global root_handler
@@ -150,27 +178,27 @@ class ColoredStreamHandler(logging.StreamHandler):
     .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     """
 
-    default_severity_to_color = {
-        'CRITICAL': 'red',
-        'ERROR': 'red',
-        'WARNING': 'yellow',
-        'VERBOSE': 'blue',
-        'INFO': 'white',
-        'DEBUG': 'green'
+    default_severity_to_style = {
+        'DEBUG': dict(color='green'),
+        'INFO': dict(),
+        'VERBOSE': dict(color='blue'),
+        'WARNING': dict(color='yellow'),
+        'ERROR': dict(color='red'),
+        'CRITICAL': dict(color='red', bold=True),
     }
 
     def __init__(self, stream=sys.stderr, level=logging.NOTSET, isatty=None,
                  show_name=True, show_severity=True, show_timestamps=True,
-                 show_hostname=True, use_chroot=True, severity_to_color=None):
+                 show_hostname=True, use_chroot=True, severity_to_style=None):
         logging.StreamHandler.__init__(self, stream)
         self.level = level
         self.show_timestamps = show_timestamps
         self.show_hostname = show_hostname
         self.show_name = show_name
         self.show_severity = show_severity
-        self.severity_to_color = self.default_severity_to_color.copy()
-        if severity_to_color:
-            self.severity_to_color.update(severity_to_color)
+        self.severity_to_style = self.default_severity_to_style.copy()
+        if severity_to_style:
+            self.severity_to_style.update(severity_to_style)
         if isatty is not None:
             self.isatty = isatty
         else:
@@ -208,21 +236,20 @@ class ColoredStreamHandler(logging.StreamHandler):
                 message = str(message)
         # Colorize the log message text.
         severity = record.levelname
-        message = self.wrap_color(self.severity_to_color.get(severity, 'white'),
-                                  message,
-                                  bold=severity == 'CRITICAL')
+        if severity in self.severity_to_style:
+            message = self.wrap_style(text=message, **self.severity_to_style[severity])
         # Compose the formatted log message as:
         #   timestamp hostname name severity message
         # Everything except the message text is optional.
         parts = []
         if self.show_timestamps:
-            parts.append(self.wrap_color('green', self.render_timestamp(record.created)))
+            parts.append(self.wrap_style(text=self.render_timestamp(record.created), color='green'))
         if self.show_hostname:
-            parts.append(self.wrap_color('magenta', self.hostname))
+            parts.append(self.wrap_style(text=self.hostname, color='magenta'))
         if self.show_name:
-            parts.append(self.wrap_color('blue', self.render_name(record.name)))
+            parts.append(self.wrap_style(text=self.render_name(record.name), color='blue'))
         if self.show_severity:
-            parts.append(self.wrap_color('black', severity, bold=True))
+            parts.append(self.wrap_style(text=severity, color='black', bold=True))
         parts.append(message)
         message = ' '.join(parts)
         # Copy the original record so we don't break other handlers.
@@ -236,6 +263,8 @@ class ColoredStreamHandler(logging.StreamHandler):
         Format the time stamp of the log record. Receives the time when the
         LogRecord was created (as returned by :py:func:`time.time()`). By
         default this returns a string in the format ``YYYY-MM-DD HH:MM:SS``.
+
+        Subclasses can override this method to customize date/time formatting.
         """
         return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
 
@@ -245,15 +274,13 @@ class ColoredStreamHandler(logging.StreamHandler):
         log the call. By default this returns a string in the format
         ``NAME[PID]`` (where PID is the process ID reported by
         :py:func:`os.getpid()`).
+
+        Subclasses can override this method to customize logger name formatting.
         """
         return '%s[%s]' % (name, self.pid)
 
-    def wrap_color(self, colorname, message, bold=False):
+    def wrap_style(self, text, **kw):
         """
-        Wrap text in ANSI escape sequences for the given color [and optionally
-        to enable bold font].
+        Wrapper for :py:func:`ansi_text()` that's disabled when ``isatty=False``.
         """
-        if self.isatty:
-            return ansi_text(message, color=colorname, bold=bold)
-        else:
-            return message
+        return ansi_text(text, **kw) if self.isatty else text

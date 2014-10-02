@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 2, 2014
+# Last Change: October 3, 2014
 # URL: https://github.com/xolox/python-coloredlogs
 
 # Standard library modules.
@@ -124,6 +124,18 @@ class ColoredLogsTestCase(unittest.TestCase):
             assert text in last_line
             assert severity in last_line
             assert PLAIN_TEXT_PATTERN.match(last_line)
+
+    def test_ansi_encoding(self):
+        assert coloredlogs.ansi_text('bold', bold=True) == '\x1b[1mbold\x1b[0m'
+        assert coloredlogs.ansi_text('faint', faint=True) == '\x1b[2mfaint\x1b[0m'
+        assert coloredlogs.ansi_text('underline', underline=True) == '\x1b[4munderline\x1b[0m'
+        assert coloredlogs.ansi_text('inverse', inverse=True) == '\x1b[7minverse\x1b[0m'
+        assert coloredlogs.ansi_text('strike through', strike_through=True) == '\x1b[9mstrike through\x1b[0m'
+        try:
+            coloredlogs.ansi_text('invalid color', color='foobar')
+            assert False
+        except Exception:
+            pass
 
     def test_html_conversion(self):
         ansi_encoded_text = 'I like %s - www.eelstheband.com' % coloredlogs.ansi_text('birds', bold=True, color='blue')
