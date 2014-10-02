@@ -150,15 +150,27 @@ class ColoredStreamHandler(logging.StreamHandler):
     .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     """
 
+    default_severity_to_color = {
+        'CRITICAL': 'red',
+        'ERROR': 'red',
+        'WARNING': 'yellow',
+        'VERBOSE': 'blue',
+        'INFO': 'white',
+        'DEBUG': 'green'
+    }
+
     def __init__(self, stream=sys.stderr, level=logging.NOTSET, isatty=None,
                  show_name=True, show_severity=True, show_timestamps=True,
-                 show_hostname=True, use_chroot=True):
+                 show_hostname=True, use_chroot=True, severity_to_color=None):
         logging.StreamHandler.__init__(self, stream)
         self.level = level
         self.show_timestamps = show_timestamps
         self.show_hostname = show_hostname
         self.show_name = show_name
         self.show_severity = show_severity
+        self.severity_to_color = self.default_severity_to_color.copy()
+        if severity_to_color:
+            self.severity_to_color.update(severity_to_color)
         if isatty is not None:
             self.isatty = isatty
         else:
@@ -196,18 +208,9 @@ class ColoredStreamHandler(logging.StreamHandler):
                 message = str(message)
         # Colorize the log message text.
         severity = record.levelname
-        if severity == 'CRITICAL':
-            message = self.wrap_color('red', message, bold=True)
-        elif severity == 'ERROR':
-            message = self.wrap_color('red', message)
-        elif severity == 'WARNING':
-            message = self.wrap_color('yellow', message)
-        elif severity == 'VERBOSE':
-            # The "VERBOSE" logging level is not defined by Python's logging
-            # module; I've extended the logging module to support this level.
-            message = self.wrap_color('blue', message)
-        elif severity == 'DEBUG':
-            message = self.wrap_color('green', message)
+        message = self.wrap_color(self.severity_to_color.get(severity, 'white'),
+                                  message,
+                                  bold=severity == 'CRITICAL')
         # Compose the formatted log message as:
         #   timestamp hostname name severity message
         # Everything except the message text is optional.
