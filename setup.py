@@ -40,10 +40,15 @@ setup(name='coloredlogs',
       author_email='peter@peterodding.com',
       packages=find_packages(),
       entry_points=dict(console_scripts=[
-          'ansi2html = coloredlogs.converter:main'
+          'ansi2html = coloredlogs.converter:main',
       ]),
+      install_requires=[
+          'humanfriendly >= 1.24',
+      ],
       test_suite='coloredlogs.tests',
-      tests_require=['verboselogs'],
+      tests_require=[
+          'verboselogs',
+      ],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Console',

@@ -11,13 +11,8 @@ import re
 import string
 import unittest
 
-# StringIO.StringIO() vs io.StringIO().
-try:
-    # Python 2.x.
-    from StringIO import StringIO
-except ImportError:
-    # Python 3.x.
-    from io import StringIO
+# External dependencies.
+from humanfriendly.terminal import ansi_wrap
 
 # The module we're testing.
 import coloredlogs
@@ -25,6 +20,14 @@ import coloredlogs.converter
 
 # External test dependency required to test support for custom log levels.
 import verboselogs
+
+# Compatibility with Python 2 and 3.
+try:
+    # Python 2.
+    from StringIO import StringIO
+except ImportError:
+    # Python 3.
+    from io import StringIO
 
 # Compiled regular expression that matches a single line of output produced by
 # ColoredStreamHandler (does not include matching of ANSI escape sequences).
@@ -125,20 +128,8 @@ class ColoredLogsTestCase(unittest.TestCase):
             assert severity in last_line
             assert PLAIN_TEXT_PATTERN.match(last_line)
 
-    def test_ansi_encoding(self):
-        assert coloredlogs.ansi_text('bold', bold=True) == '\x1b[1mbold\x1b[0m'
-        assert coloredlogs.ansi_text('faint', faint=True) == '\x1b[2mfaint\x1b[0m'
-        assert coloredlogs.ansi_text('underline', underline=True) == '\x1b[4munderline\x1b[0m'
-        assert coloredlogs.ansi_text('inverse', inverse=True) == '\x1b[7minverse\x1b[0m'
-        assert coloredlogs.ansi_text('strike through', strike_through=True) == '\x1b[9mstrike through\x1b[0m'
-        try:
-            coloredlogs.ansi_text('invalid color', color='foobar')
-            assert False
-        except Exception:
-            pass
-
     def test_html_conversion(self):
-        ansi_encoded_text = 'I like %s - www.eelstheband.com' % coloredlogs.ansi_text('birds', bold=True, color='blue')
+        ansi_encoded_text = 'I like %s - www.eelstheband.com' % ansi_wrap('birds', bold=True, color='blue')
         assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
         html_encoded_text = coloredlogs.converter.convert(ansi_encoded_text)
         assert html_encoded_text == 'I&nbsp;like&nbsp;<span style="font-weight: bold; color: blue;">birds</span>&nbsp;-&nbsp;<a href="http://www.eelstheband.com" style="color: inherit;">www.eelstheband.com</a>'

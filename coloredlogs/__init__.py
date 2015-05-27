@@ -10,7 +10,7 @@
 """
 
 # Semi-standard module versioning.
-__version__ = '0.8'
+__version__ = '1.0'
 
 # Standard library modules.
 import copy
@@ -21,51 +21,16 @@ import socket
 import sys
 import time
 
-# Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
-ansi_color_codes = dict(black=0, red=1, green=2, yellow=3, blue=4, magenta=5, cyan=6, white=7)
+# External dependencies.
+from humanfriendly.terminal import ansi_wrap, connected_to_terminal
 
 # The logging handler attached to the root logger (initialized by install()).
 root_handler = None
 
-def ansi_text(text, color=None, bold=False, faint=False, underline=False, inverse=False, strike_through=False):
-    """
-    Wrap text in ANSI escape sequences for the given color and/or style(s).
-
-    :param text: The text to wrap in ANSI escape sequences (a string).
-    :param color: The name of a color (one of the strings ``black``, ``red``,
-                  ``green``, ``yellow``, ``blue``, ``magenta``, ``cyan`` or
-                  ``white``) or ``None`` (the default) which means no escape
-                  sequence to switch color will be emitted.
-    :param bold: ``True`` enables bold font (the default is ``False``).
-    :param faint: ``True`` enables faint font (the default is ``False``).
-    :param underline: ``True`` enables underline font (the default is ``False``).
-    :param inverse: ``True`` enables inverse font (the default is ``False``).
-    :param strike_through: ``True`` enables crossed-out / strike-through font
-                           (the default is ``False``).
-    :returns: The text message wrapped in ANSI escape sequences (a string).
-    :raises: :py:exc:`Exception` when an invalid color name is given.
-    """
-    sequences = []
-    if bold:
-        sequences.append('1')
-    if faint:
-        sequences.append('2')
-    if underline:
-        sequences.append('4')
-    if inverse:
-        sequences.append('7')
-    if strike_through:
-        sequences.append('9')
-    if color:
-        try:
-            sequences.append('3%i' % ansi_color_codes[color])
-        except KeyError:
-            msg = "Invalid color name %r! (expected one of %s)"
-            raise Exception(msg % (color, ', '.join(sorted(ansi_color_codes))))
-    if sequences:
-        return '\x1b[%sm%s\x1b[0m' % (';'.join(sequences), text)
-    else:
-        return text
+# In coloredlogs 1.0 the coloredlogs.ansi_text() function was moved to
+# humanfriendly.ansi_wrap(). Because the function signature remained the
+# same the following alias enables us to preserve backwards compatibility.
+ansi_text = ansi_wrap
 
 def install(level=logging.INFO, **kw):
     """
@@ -199,15 +164,7 @@ class ColoredStreamHandler(logging.StreamHandler):
         self.severity_to_style = self.default_severity_to_style.copy()
         if severity_to_style:
             self.severity_to_style.update(severity_to_style)
-        if isatty is not None:
-            self.isatty = isatty
-        else:
-            # Protect against sys.stderr.isatty() not being defined (e.g. in
-            # the Python Interface to Vim).
-            try:
-                self.isatty = stream.isatty()
-            except Exception:
-                self.isatty = False
+        self.isatty = connected_to_terminal(stream) if isatty is None else isatty
         if show_hostname:
             chroot_file = '/etc/debian_chroot'
             if use_chroot and os.path.isfile(chroot_file):
@@ -283,4 +240,4 @@ class ColoredStreamHandler(logging.StreamHandler):
         """
         Wrapper for :py:func:`ansi_text()` that's disabled when ``isatty=False``.
         """
-        return ansi_text(text, **kw) if self.isatty else text
+        return ansi_wrap(text, **kw) if self.isatty else text
