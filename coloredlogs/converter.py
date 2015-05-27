@@ -1,8 +1,8 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 2, 2014
-# URL: https://github.com/xolox/python-coloredlogs
+# Last Change: May 27, 2015
+# URL: http://coloredlogs.readthedocs.org
 
 """
 ``coloredlogs.converter`` - Convert text with ANSI escape sequences to HTML

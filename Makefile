@@ -1,8 +1,8 @@
 # Makefile for coloredlogs.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 2, 2014
-# URL: https://github.com/xolox/python-coloredlogs
+# Last Change: May 27, 2015
+# URL: http://coloredlogs.readthedocs.org
 
 WORKON_HOME ?= $(HOME)/.virtualenvs
 VIRTUAL_ENV ?= $(WORKON_HOME)/coloredlogs

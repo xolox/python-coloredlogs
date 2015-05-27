@@ -1,8 +1,8 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 3, 2014
-# URL: https://github.com/xolox/python-coloredlogs
+# Last Change: May 27, 2015
+# URL: http://coloredlogs.readthedocs.org
 
 """
 ``coloredlogs`` - Colored terminal output for Python's logging module

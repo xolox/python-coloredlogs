@@ -1,7 +1,7 @@
 " Vim file type detection script.
 " Author: Peter Odding <peter@peterodding.com>
-" Last Change: May 30, 2013
-" URL: https://pypi.python.org/pypi/coloredlogs
+" Last Change: May 27, 2015
+" URL: http://coloredlogs.readthedocs.org
 
 if did_filetype()
   finish

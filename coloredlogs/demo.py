@@ -1,8 +1,8 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 10, 2014
-# URL: https://github.com/xolox/python-coloredlogs
+# Last Change: May 27, 2015
+# URL: http://coloredlogs.readthedocs.org
 
 # Standard library modules.
 import logging

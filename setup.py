@@ -4,7 +4,7 @@
 #
 # Author: Peter Odding <peter@peterodding.com>
 # Last Change: May 27, 2015
-# URL: https://github.com/xolox/python-coloredlogs
+# URL: http://coloredlogs.readthedocs.org
 
 # Standard library modules.
 import os
@@ -35,7 +35,7 @@ setup(name='coloredlogs',
       version=version_string,
       description='Colored stream handler for the logging module',
       long_description=readme_text,
-      url='https://github.com/xolox/python-coloredlogs',
+      url='http://coloredlogs.readthedocs.org',
       author='Peter Odding',
       author_email='peter@peterodding.com',
       packages=find_packages(),
