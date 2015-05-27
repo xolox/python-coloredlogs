@@ -119,7 +119,7 @@ License
 
 This software is licensed under the `MIT license`_.
 
-© 2014 Peter Odding.
+© 2015 Peter Odding.
 
 .. External references:
 .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
