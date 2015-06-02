@@ -3,10 +3,11 @@
 # Setup script for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 27, 2015
+# Last Change: June 2, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 # Standard library modules.
+import codecs
 import os
 import re
 
@@ -29,7 +30,8 @@ else:
 # Fill in the long description (for the benefit of PyPI)
 # with the contents of README.rst (rendered by GitHub).
 readme_file = os.path.join(source_directory, 'README.rst')
-readme_text = open(readme_file, 'r').read()
+with codecs.open(readme_file, 'r', 'utf-8') as handle:
+    readme_text = handle.read()
 
 setup(name='coloredlogs',
       version=version_string,
@@ -43,7 +45,7 @@ setup(name='coloredlogs',
           'ansi2html = coloredlogs.converter:main',
       ]),
       install_requires=[
-          'humanfriendly >= 1.24',
+          'humanfriendly >= 1.25.1',
       ],
       test_suite='coloredlogs.tests',
       tests_require=[
