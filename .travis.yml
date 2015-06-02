@@ -5,7 +5,7 @@ python:
   - "3.4"
 install:
   - pip install coveralls
-  - python setup.py install
+  - LC_ALL=C pip install .
 script:
   coverage run --source=coloredlogs setup.py test
 after_success:
