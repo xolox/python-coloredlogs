@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 27, 2015
+# Last Change: June 2, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 """
@@ -10,7 +10,7 @@
 """
 
 # Semi-standard module versioning.
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 # Standard library modules.
 import copy
