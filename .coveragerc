@@ -1,2 +1,3 @@
 [run]
-omit = coloredlogs/demo.py
+source = coloredlogs
+omit = coloredlogs/demo.py, coloredlogs/tests.py

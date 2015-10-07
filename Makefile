@@ -1,12 +1,12 @@
-# Makefile for coloredlogs.
+# Makefile for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 27, 2015
+# Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 WORKON_HOME ?= $(HOME)/.virtualenvs
 VIRTUAL_ENV ?= $(WORKON_HOME)/coloredlogs
-ACTIVATE = . $(VIRTUAL_ENV)/bin/activate
+ACTIVATE = . "$(VIRTUAL_ENV)/bin/activate"
 
 default:
 	@echo 'Makefile for coloredlogs'
@@ -23,11 +23,12 @@ default:
 	@echo
 
 install:
-	test -d "$(VIRTUAL_ENV)" || virtualenv "$(VIRTUAL_ENV)"
+	test -d "$(VIRTUAL_ENV)" || mkdir -p "$(VIRTUAL_ENV)"
+	test -x "$(VIRTUAL_ENV)/bin/python" || virtualenv "$(VIRTUAL_ENV)"
 	test -x "$(VIRTUAL_ENV)/bin/pip" || ($(ACTIVATE) && easy_install pip)
 	test -x "$(VIRTUAL_ENV)/bin/pip-accel" || ($(ACTIVATE) && pip install pip-accel)
 	$(ACTIVATE) && pip uninstall -y coloredlogs || true
-	$(ACTIVATE) && pip install --no-deps --editable .
+	$(ACTIVATE) && pip install --editable .
 
 reset:
 	rm -Rf "$(VIRTUAL_ENV)"
@@ -39,8 +40,9 @@ test: install
 
 coverage: install
 	test -x "$(VIRTUAL_ENV)/bin/coverage" || ($(ACTIVATE) && pip-accel install coverage)
-	$(ACTIVATE) && coverage run --source=coloredlogs setup.py test
-	$(ACTIVATE) && coverage html --omit=coloredlogs/tests.py
+	$(ACTIVATE) && coverage run setup.py test
+	$(ACTIVATE) && coverage report
+	$(ACTIVATE) && coverage html
 
 docs: install
 	test -x "$(VIRTUAL_ENV)/bin/sphinx-build" || ($(ACTIVATE) && pip-accel install sphinx)
