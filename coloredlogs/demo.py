@@ -4,6 +4,8 @@
 # Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
+"""A simple demonstration of the `coloredlogs` package."""
+
 # Standard library modules.
 import logging
 import time
@@ -22,16 +24,14 @@ logger = DemoLogger('coloredlogs')
 
 
 def main():
-
+    """Command line interface for the `coloredlogs` demonstration."""
     # Initialize colored output to the terminal.
     coloredlogs.install(level=logging.DEBUG)
-
     # Print some examples with different timestamps.
     for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
         if hasattr(logger, level):
             getattr(logger, level)("message with level %r", level)
             time.sleep(1)
-
     # Show how exceptions are logged.
     try:
         class RandomException(Exception):
@@ -39,7 +39,6 @@ def main():
         raise RandomException("Something went horribly wrong!")
     except Exception as e:
         logger.exception(e)
-
     logger.info("Done, exiting ..")
 
 if __name__ == '__main__':

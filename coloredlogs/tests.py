@@ -4,6 +4,8 @@
 # Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
+"""Automated tests for the `coloredlogs` package."""
+
 # Standard library modules.
 import logging
 import random
@@ -43,6 +45,8 @@ PLAIN_TEXT_PATTERN = re.compile(r'''
 
 
 class ColoredLogsTestCase(unittest.TestCase):
+
+    """Container for the `coloredlogs` tests."""
 
     def setUp(self):
         """Start each test from a known state."""
@@ -130,6 +134,7 @@ class ColoredLogsTestCase(unittest.TestCase):
             assert PLAIN_TEXT_PATTERN.match(last_line)
 
     def test_html_conversion(self):
+        """Check the conversion from ANSI escape sequences to HTML."""
         ansi_encoded_text = 'I like %s - www.eelstheband.com' % ansi_wrap('birds', bold=True, color='blue')
         assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
         html_encoded_text = coloredlogs.converter.convert(ansi_encoded_text)
@@ -139,5 +144,6 @@ class ColoredLogsTestCase(unittest.TestCase):
         )
 
     def test_output_interception(self):
+        """Test capturing of output from external commands."""
         expected_output = 'testing, 1, 2, 3 ..'
         assert coloredlogs.converter.capture(['sh', '-c', 'echo -n %s' % expected_output]) == expected_output

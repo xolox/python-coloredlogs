@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# Setup script for the `coloredlogs' package.
-#
+"""Setup script for the `coloredlogs` package."""
+
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 2, 2015
+# Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 # Standard library modules.

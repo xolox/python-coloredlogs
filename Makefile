@@ -46,7 +46,7 @@ coverage: install
 	$(ACTIVATE) && coverage html
 
 check: install
-	test -x "$(VIRTUAL_ENV)/bin/flake8" || ($(ACTIVATE) && pip-accel install flake8)
+	test -x "$(VIRTUAL_ENV)/bin/flake8" || ($(ACTIVATE) && pip-accel install flake8-pep257)
 	flake8
 
 docs: install

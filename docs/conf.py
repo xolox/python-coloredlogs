@@ -1,5 +1,4 @@
-# documentation build configuration file for the 'coloredlogs' package. This
-# file is execfile()d with the current directory set to its containing dir.
+"""Documentation build configuration file for the `coloredlogs` package."""
 
 import os
 import sys
@@ -10,7 +9,10 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- General configuration -----------------------------------------------------
 
 # Sphinx extension module names.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+]
 
 # Paths that contain templates, relative to this directory.
 templates_path = ['templates']

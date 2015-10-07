@@ -4,10 +4,7 @@
 # Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
-"""
-``coloredlogs`` - Colored terminal output for Python's logging module
-=====================================================================
-"""
+"""Colored terminal output for Python's :mod:`logging` module."""
 
 # Semi-standard module versioning.
 __version__ = '1.0.1'
@@ -35,11 +32,13 @@ ansi_text = ansi_wrap
 
 def install(level=logging.INFO, **kw):
     """
-    Install a :py:class:`ColoredStreamHandler` for the root logger. Calling
-    this function multiple times will never install more than one handler.
+    Install a :py:class:`ColoredStreamHandler` for the root logger.
 
     :param level: The logging level to filter on (defaults to :py:data:`logging.INFO`).
     :param kw: Optional keyword arguments for :py:class:`ColoredStreamHandler`.
+
+    Calling this function multiple times will never install more than one
+    handler.
     """
     global root_handler
     if not root_handler:
@@ -57,6 +56,7 @@ def install(level=logging.INFO, **kw):
 def increase_verbosity():
     """
     Increase the verbosity of the root handler by one defined level.
+
     Understands custom logging levels like defined by my ``verboselogs``
     module.
     """
@@ -69,6 +69,7 @@ def increase_verbosity():
 def decrease_verbosity():
     """
     Decrease the verbosity of the root handler by one defined level.
+
     Understands custom logging levels like defined by my ``verboselogs``
     module.
     """
@@ -110,6 +111,8 @@ def set_level(level):
 def find_defined_levels():
     """
     Find the defined logging levels.
+
+    :returns: A list of integers (sorted in ascending order).
     """
     defined_levels = set()
     for name in dir(logging):
@@ -123,6 +126,8 @@ def find_defined_levels():
 class ColoredStreamHandler(logging.StreamHandler):
 
     """
+    Enables colored terminal output for Python's :py:mod:`logging` module.
+
     The :py:class:`ColoredStreamHandler` class enables colored terminal output
     for a logger created with Python's :py:mod:`logging` module. The log
     handler formats log messages including timestamps, logger names and
@@ -164,6 +169,7 @@ class ColoredStreamHandler(logging.StreamHandler):
     def __init__(self, stream=sys.stderr, level=logging.NOTSET, isatty=None,
                  show_name=True, show_severity=True, show_timestamps=True,
                  show_hostname=True, use_chroot=True, severity_to_style=None):
+        """Initialize a :class:`ColoredStreamHandler` object."""
         logging.StreamHandler.__init__(self, stream)
         self.level = level
         self.show_timestamps = show_timestamps
@@ -186,6 +192,8 @@ class ColoredStreamHandler(logging.StreamHandler):
 
     def emit(self, record):
         """
+        Emit a formatted log record to the configured stream.
+
         Called by the :py:mod:`logging` module for each log record. Formats the
         log message and passes it onto :py:func:`logging.StreamHandler.emit()`.
         """
@@ -226,9 +234,11 @@ class ColoredStreamHandler(logging.StreamHandler):
 
     def render_timestamp(self, created):
         """
-        Format the time stamp of the log record. Receives the time when the
-        LogRecord was created (as returned by :py:func:`time.time()`). By
-        default this returns a string in the format ``YYYY-MM-DD HH:MM:SS``.
+        Format the time stamp of the log record.
+
+        Receives the time when the LogRecord was created (as returned by
+        :py:func:`time.time()`). By default this returns a string in the format
+        ``YYYY-MM-DD HH:MM:SS``.
 
         Subclasses can override this method to customize date/time formatting.
         """
@@ -236,17 +246,16 @@ class ColoredStreamHandler(logging.StreamHandler):
 
     def render_name(self, name):
         """
-        Format the name of the logger. Receives the name of the logger used to
-        log the call. By default this returns a string in the format
-        ``NAME[PID]`` (where PID is the process ID reported by
-        :py:func:`os.getpid()`).
+        Format the name of the logger.
+
+        Receives the name of the logger used to log the call. By default this
+        returns a string in the format ``NAME[PID]`` (where PID is the process
+        ID reported by :py:func:`os.getpid()`).
 
         Subclasses can override this method to customize logger name formatting.
         """
         return '%s[%s]' % (name, self.pid)
 
     def wrap_style(self, text, **kw):
-        """
-        Wrapper for :py:func:`ansi_text()` that's disabled when ``isatty=False``.
-        """
+        """Wrapper for :py:func:`ansi_text()` that's disabled when ``isatty=False``."""
         return ansi_wrap(text, **kw) if self.isatty else text

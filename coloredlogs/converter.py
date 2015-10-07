@@ -4,10 +4,7 @@
 # Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
-"""
-``coloredlogs.converter`` - Convert text with ANSI escape sequences to HTML
-===========================================================================
-"""
+"""Convert text with ANSI escape sequences to HTML."""
 
 # Standard library modules.
 import pipes
@@ -37,10 +34,11 @@ token_pattern = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
 
 def main():
     """
-    Command line interface for the ``ansi2html`` program. Takes a command (and
-    its arguments) and runs the program under ``script`` (emulating an
-    interactive terminal), intercepts the output of the command and converts
-    ANSI escape sequences in the output to HTML.
+    Command line interface for the ``ansi2html`` program.
+
+    Takes a command (and its arguments) and runs the program under ``script``
+    (emulating an interactive terminal), intercepts the output of the command
+    and converts ANSI escape sequences in the output to HTML.
     """
     html_output = convert(capture(sys.argv[1:]))
     if sys.stdout.isatty():
@@ -111,12 +109,14 @@ def convert(text):
 
 def encode_whitespace(text):
     """
-    Encode whitespace in text as HTML so that all whitespace (specifically
-    indentation and line breaks) is preserved when the text is rendered in a
-    web browser.
+    Encode whitespace so that web browsers properly render it.
 
     :param text: The plain text (a string).
     :returns: The text converted to HTML (a string).
+
+    The purpose of this function is to encode whitespace in such a way that web
+    browsers render the same whitespace regardless of whether 'preformatted'
+    styling is used (by wrapping the text in a ``<pre>...</pre>`` element).
     """
     text = text.replace('\r\n', '\n')
     text = text.replace('\n', '<br>\n')
@@ -126,8 +126,7 @@ def encode_whitespace(text):
 
 def html_encode(text):
     """
-    Encode special characters as HTML so that web browsers render the
-    characters literally instead of messing up the rendering :-).
+    Encode characters with a special meaning as HTML.
 
     :param text: The plain text (a string).
     :returns: The text converted to HTML (a string).
