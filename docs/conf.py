@@ -1,7 +1,8 @@
 # documentation build configuration file for the 'coloredlogs' package. This
 # file is execfile()d with the current directory set to its containing dir.
 
-import sys, os
+import os
+import sys
 
 # Add the 'coloredlogs' source distribution's root directory to the module path.
 sys.path.insert(0, os.path.abspath('..'))

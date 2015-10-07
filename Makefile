@@ -17,6 +17,7 @@ default:
 	@echo '    make reset      recreate the virtual environment'
 	@echo '    make test       run the test suite'
 	@echo '    make coverage   run the tests, report coverage'
+	@echo '    make check      check the coding style'
 	@echo '    make docs       update documentation using Sphinx'
 	@echo '    make publish    publish changes to GitHub/PyPI'
 	@echo '    make clean      cleanup all temporary files'
@@ -27,8 +28,8 @@ install:
 	test -x "$(VIRTUAL_ENV)/bin/python" || virtualenv "$(VIRTUAL_ENV)"
 	test -x "$(VIRTUAL_ENV)/bin/pip" || ($(ACTIVATE) && easy_install pip)
 	test -x "$(VIRTUAL_ENV)/bin/pip-accel" || ($(ACTIVATE) && pip install pip-accel)
-	$(ACTIVATE) && pip uninstall -y coloredlogs || true
-	$(ACTIVATE) && pip install --editable .
+	$(ACTIVATE) && pip uninstall -y coloredlogs >/dev/null 2>&1 || true
+	$(ACTIVATE) && pip install --quiet --editable .
 
 reset:
 	rm -Rf "$(VIRTUAL_ENV)"
@@ -36,13 +37,17 @@ reset:
 
 test: install
 	test -x "$(VIRTUAL_ENV)/bin/py.test" || ($(ACTIVATE) && pip-accel install pytest)
-	$(ACTIVATE) && py.test --exitfirst --capture=no coloredlogs/tests.py
+	$(ACTIVATE) && py.test
 
 coverage: install
 	test -x "$(VIRTUAL_ENV)/bin/coverage" || ($(ACTIVATE) && pip-accel install coverage)
 	$(ACTIVATE) && coverage run setup.py test
 	$(ACTIVATE) && coverage report
 	$(ACTIVATE) && coverage html
+
+check: install
+	test -x "$(VIRTUAL_ENV)/bin/flake8" || ($(ACTIVATE) && pip-accel install flake8)
+	flake8
 
 docs: install
 	test -x "$(VIRTUAL_ENV)/bin/sphinx-build" || ($(ACTIVATE) && pip-accel install sphinx)

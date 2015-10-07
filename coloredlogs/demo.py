@@ -1,7 +1,7 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 27, 2015
+# Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 # Standard library modules.
@@ -19,6 +19,7 @@ except ImportError:
 
 # Initialize the logger and handler.
 logger = DemoLogger('coloredlogs')
+
 
 def main():
 

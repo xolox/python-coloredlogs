@@ -1,7 +1,7 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 27, 2015
+# Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 """
@@ -18,19 +18,22 @@ import tempfile
 import webbrowser
 
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
-EIGHT_COLOR_PALETTE = ('black',
-                       'red',
-                       'rgb(78, 154, 6)', # green
-                       'rgb(196, 160, 0)', # yellow
-                       'blue',
-                       'rgb(117, 80, 123)', # magenta
-                       'cyan',
-                       'white')
+EIGHT_COLOR_PALETTE = (
+    'black',
+    'red',
+    'rgb(78, 154, 6)',  # green
+    'rgb(196, 160, 0)',  # yellow
+    'blue',
+    'rgb(117, 80, 123)',  # magenta
+    'cyan',
+    'white',
+)
 
 # Regular expression that matches strings we want to convert. Used to separate
 # all special strings and literal output in a single pass (this allows us to
 # properly encode the output without resorting to nasty hacks).
 token_pattern = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
+
 
 def main():
     """
@@ -47,6 +50,7 @@ def main():
         webbrowser.open(filename)
     else:
         print(html_output)
+
 
 def capture(command, encoding='UTF-8'):
     """
@@ -66,6 +70,7 @@ def capture(command, encoding='UTF-8'):
     script_process = subprocess.Popen(script_command, stdout=subprocess.PIPE)
     stdout, stderr = script_process.communicate()
     return stdout.decode(encoding)
+
 
 def convert(text):
     """
@@ -103,6 +108,7 @@ def convert(text):
         output.append(token)
     return ''.join(output)
 
+
 def encode_whitespace(text):
     """
     Encode whitespace in text as HTML so that all whitespace (specifically
@@ -116,6 +122,7 @@ def encode_whitespace(text):
     text = text.replace('\n', '<br>\n')
     text = text.replace(' ', '&nbsp;')
     return text
+
 
 def html_encode(text):
     """

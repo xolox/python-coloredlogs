@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 27, 2015
+# Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 # Standard library modules.
@@ -40,6 +40,7 @@ PLAIN_TEXT_PATTERN = re.compile(r'''
     \s (?P<severity> [A-Z]+ )
     \s (?P<message> .* )
 ''', re.VERBOSE)
+
 
 class ColoredLogsTestCase(unittest.TestCase):
 
@@ -107,7 +108,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         # Test that filtering on severity works.
         self.handler.level = logging.INFO
         self.logger.debug("No one should see this message.")
-        assert len(self.stream.getvalue().strip()) ==  0
+        assert len(self.stream.getvalue().strip()) == 0
         # Test that the default output format looks okay in plain text.
         self.handler.level = logging.DEBUG
         for method, severity in ((self.logger.debug, 'DEBUG'),
@@ -132,7 +133,10 @@ class ColoredLogsTestCase(unittest.TestCase):
         ansi_encoded_text = 'I like %s - www.eelstheband.com' % ansi_wrap('birds', bold=True, color='blue')
         assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
         html_encoded_text = coloredlogs.converter.convert(ansi_encoded_text)
-        assert html_encoded_text == 'I&nbsp;like&nbsp;<span style="font-weight: bold; color: blue;">birds</span>&nbsp;-&nbsp;<a href="http://www.eelstheband.com" style="color: inherit;">www.eelstheband.com</a>'
+        assert html_encoded_text == (
+            'I&nbsp;like&nbsp;<span style="font-weight: bold; color: blue;">birds</span>&nbsp;-&nbsp;'
+            '<a href="http://www.eelstheband.com" style="color: inherit;">www.eelstheband.com</a>'
+        )
 
     def test_output_interception(self):
         expected_output = 'testing, 1, 2, 3 ..'

@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 2, 2015
+# Last Change: October 7, 2015
 # URL: http://coloredlogs.readthedocs.org
 
 """
@@ -32,6 +32,7 @@ root_handler = None
 # same the following alias enables us to preserve backwards compatibility.
 ansi_text = ansi_wrap
 
+
 def install(level=logging.INFO, **kw):
     """
     Install a :py:class:`ColoredStreamHandler` for the root logger. Calling
@@ -49,7 +50,9 @@ def install(level=logging.INFO, **kw):
         root_logger.setLevel(logging.NOTSET)
         root_logger.addHandler(root_handler)
 
+
 # TODO Move these functions into ColoredStreamHandler?
+
 
 def increase_verbosity():
     """
@@ -62,6 +65,7 @@ def increase_verbosity():
     selected_index = max(0, current_index - 1)
     set_level(defined_levels[selected_index])
 
+
 def decrease_verbosity():
     """
     Decrease the verbosity of the root handler by one defined level.
@@ -73,6 +77,7 @@ def decrease_verbosity():
     selected_index = min(current_index + 1, len(defined_levels) - 1)
     set_level(defined_levels[selected_index])
 
+
 def is_verbose():
     """
     Check whether the log level of the root handler is set to a verbose level.
@@ -80,6 +85,7 @@ def is_verbose():
     :returns: ``True`` if the root handler is verbose, ``False`` if not.
     """
     return get_level() < logging.INFO
+
 
 def get_level():
     """
@@ -90,6 +96,7 @@ def get_level():
     install()
     return root_handler.level
 
+
 def set_level(level):
     """
     Set the logging level of the root handler.
@@ -98,6 +105,7 @@ def set_level(level):
     """
     install()
     root_handler.level = level
+
 
 def find_defined_levels():
     """
@@ -110,6 +118,7 @@ def find_defined_levels():
             if isinstance(value, int):
                 defined_levels.add(value)
     return sorted(defined_levels)
+
 
 class ColoredStreamHandler(logging.StreamHandler):
 
