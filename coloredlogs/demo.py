@@ -1,8 +1,8 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 7, 2015
-# URL: http://coloredlogs.readthedocs.org
+# Last Change: October 14, 2015
+# URL: https://coloredlogs.readthedocs.org
 
 """A simple demonstration of the `coloredlogs` package."""
 

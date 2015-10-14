@@ -1,8 +1,8 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 7, 2015
-# URL: http://coloredlogs.readthedocs.org
+# Last Change: October 14, 2015
+# URL: https://coloredlogs.readthedocs.org
 
 """Colored terminal output for Python's :mod:`logging` module."""
 

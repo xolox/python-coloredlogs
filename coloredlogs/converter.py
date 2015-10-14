@@ -1,8 +1,8 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 7, 2015
-# URL: http://coloredlogs.readthedocs.org
+# Last Change: October 9, 2015
+# URL: https://coloredlogs.readthedocs.org
 
 """Convert text with ANSI escape sequences to HTML."""
 

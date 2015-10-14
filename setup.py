@@ -3,8 +3,8 @@
 """Setup script for the `coloredlogs` package."""
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 7, 2015
-# URL: http://coloredlogs.readthedocs.org
+# Last Change: October 14, 2015
+# URL: https://coloredlogs.readthedocs.org
 
 # Standard library modules.
 import codecs
@@ -37,7 +37,7 @@ setup(name='coloredlogs',
       version=version_string,
       description='Colored stream handler for the logging module',
       long_description=readme_text,
-      url='http://coloredlogs.readthedocs.org',
+      url='https://coloredlogs.readthedocs.org',
       author='Peter Odding',
       author_email='peter@peterodding.com',
       packages=find_packages(),

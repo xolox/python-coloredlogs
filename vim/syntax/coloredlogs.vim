@@ -1,7 +1,7 @@
 " Vim file type detection script.
 " Author: Peter Odding <peter@peterodding.com>
 " Last Change: May 27, 2015
-" URL: http://coloredlogs.readthedocs.org
+" URL: https://coloredlogs.readthedocs.org
 
 " 2013-05-05 14:31:49 lucid-vm INFO This is the message text.
 

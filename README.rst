@@ -127,9 +127,8 @@ This software is licensed under the `MIT license`_.
 .. _GitHub: https://github.com/xolox/python-coloredlogs
 .. _logging.StreamHandler: http://docs.python.org/2/library/logging.handlers.html#streamhandler
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
-.. _online documentation: http://coloredlogs.readthedocs.org/
+.. _online documentation: https://coloredlogs.readthedocs.org/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
-.. _source code: https://github.com/xolox/python-coloredlogs/blob/master/coloredlogs/__init__.py
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
 .. _Vim: http://www.vim.org/

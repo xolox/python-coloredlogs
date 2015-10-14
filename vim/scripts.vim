@@ -1,7 +1,7 @@
 " Vim file type detection script.
 " Author: Peter Odding <peter@peterodding.com>
 " Last Change: May 27, 2015
-" URL: http://coloredlogs.readthedocs.org
+" URL: https://coloredlogs.readthedocs.org
 
 if did_filetype()
   finish
