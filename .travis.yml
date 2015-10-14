@@ -6,6 +6,7 @@ python:
   - "3.4"
   - "pypy"
 install:
+  - pip install --requirement=requirements-flake8.txt
   - pip install coveralls
   - LC_ALL=C pip install .
 script:

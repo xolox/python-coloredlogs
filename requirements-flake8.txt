@@ -1,0 +1,14 @@
+# Travis CI builds run flake8 with the pep257 plug-in to validate the coding
+# style and break the build on (unexpected) violations. However recently I
+# encountered a failure [1] that seems to be an incompatibility between
+# flake8-pep257==1.0.3 and pep257==0.7.0. This incompatibility has already
+# been reported [2].
+#
+# [1] https://travis-ci.org/xolox/python-coloredlogs/builds/85401773
+# [2] https://github.com/Robpol86/flake8-pep257/issues/4
+
+flake8==2.4.1
+flake8-pep257==1.0.3
+pep257==0.6.0
+pep8==1.5.7
+pyflakes==0.8.1
