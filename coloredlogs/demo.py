@@ -15,18 +15,19 @@ import coloredlogs
 
 # If my verbose logger is installed, we'll use that for the demo.
 try:
-    from verboselogs import VerboseLogger as DemoLogger
+    from verboselogs import VerboseLogger as getLogger
 except ImportError:
-    from logging import getLogger as DemoLogger
+    from logging import getLogger
 
-# Initialize the logger and handler.
-logger = DemoLogger('coloredlogs')
+# Initialize a logger for this module.
+logger = getLogger(__name__)
 
 
-def main():
-    """Command line interface for the `coloredlogs` demonstration."""
+def demonstrate_colored_logging():
+    """A simple demonstration of the `coloredlogs` package."""
     # Initialize colored output to the terminal.
-    coloredlogs.install(level=logging.DEBUG)
+    coloredlogs.install()
+    coloredlogs.set_level(logging.DEBUG)
     # Print some examples with different timestamps.
     for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
         if hasattr(logger, level):
@@ -40,6 +41,3 @@ def main():
     except Exception as e:
         logger.exception(e)
     logger.info("Done, exiting ..")
-
-if __name__ == '__main__':
-    main()

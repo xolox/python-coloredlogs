@@ -7,7 +7,7 @@
 """Colored terminal output for Python's :mod:`logging` module."""
 
 # Semi-standard module versioning.
-__version__ = '1.0.1'
+__version__ = '2.0'
 
 # Standard library modules.
 import copy

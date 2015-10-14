@@ -11,6 +11,7 @@ import logging
 import random
 import re
 import string
+import sys
 import unittest
 
 # External dependencies.
@@ -18,10 +19,12 @@ from humanfriendly.terminal import ansi_wrap
 
 # The module we're testing.
 import coloredlogs
+import coloredlogs.cli
 import coloredlogs.converter
 
-# External test dependency required to test support for custom log levels.
-import verboselogs
+# External test dependencies.
+from capturer import CaptureOutput
+from verboselogs import VerboseLogger
 
 # Compatibility with Python 2 and 3.
 try:
@@ -57,7 +60,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         self.stream = StringIO()
         self.handler = coloredlogs.ColoredStreamHandler(stream=self.stream, isatty=False)
         self.logger_name = ''.join(random.choice(string.ascii_letters) for i in range(25))
-        self.logger = verboselogs.VerboseLogger(self.logger_name)
+        self.logger = VerboseLogger(self.logger_name)
         self.logger.addHandler(self.handler)
 
     def test_is_verbose(self):
@@ -147,3 +150,43 @@ class ColoredLogsTestCase(unittest.TestCase):
         """Test capturing of output from external commands."""
         expected_output = 'testing, 1, 2, 3 ..'
         assert coloredlogs.converter.capture(['sh', '-c', 'echo -n %s' % expected_output]) == expected_output
+
+    def test_cli_demo(self):
+        """Test the command line colored logging demonstration."""
+        with CaptureOutput() as capturer:
+            main('coloredlogs', '--demo')
+            output = capturer.get_text()
+        # Make sure the output contains all of the expected logging level names.
+        for name in 'debug', 'info', 'warning', 'error', 'critical':
+            assert name.upper() in output
+
+    def test_cli_conversion(self):
+        """Test the command line HTML conversion."""
+        output = main('coloredlogs', '--convert', 'coloredlogs', '--demo', capture=True)
+        # Make sure the output is encoded as HTML.
+        assert '<span' in output
+
+    def test_implicit_usage_message(self):
+        """Test that the usage message is shown when no actions are given."""
+        assert 'Usage:' in main('coloredlogs', capture=True)
+
+    def test_explicit_usage_message(self):
+        """Test that the usage message is shown when ``--help`` is given."""
+        assert 'Usage:' in main('coloredlogs', '--help', capture=True)
+
+
+def main(*arguments, **options):
+    """Simple wrapper to run the command line interface."""
+    capture = options.get('capture', False)
+    saved_argv = sys.argv
+    saved_stdout = sys.stdout
+    try:
+        sys.argv = arguments
+        if capture:
+            sys.stdout = StringIO()
+        coloredlogs.cli.main()
+        if capture:
+            return sys.stdout.getvalue()
+    finally:
+        sys.argv = saved_argv
+        sys.stdout = saved_stdout

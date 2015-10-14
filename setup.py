@@ -35,20 +35,21 @@ with codecs.open(readme_file, 'r', 'utf-8') as handle:
 
 setup(name='coloredlogs',
       version=version_string,
-      description='Colored stream handler for the logging module',
+      description="Colored terminal output for Python's logging module",
       long_description=readme_text,
       url='https://coloredlogs.readthedocs.org',
       author='Peter Odding',
       author_email='peter@peterodding.com',
       packages=find_packages(),
       entry_points=dict(console_scripts=[
-          'ansi2html = coloredlogs.converter:main',
+          'coloredlogs = coloredlogs.cli:main',
       ]),
       install_requires=[
           'humanfriendly >= 1.25.1',
       ],
       test_suite='coloredlogs.tests',
       tests_require=[
+          'capturer',
           'verboselogs',
       ],
       classifiers=[

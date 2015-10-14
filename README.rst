@@ -92,19 +92,20 @@ e-mailed to you by cron there's a simple way to set it up::
 
     MAILTO="your-email-address@here"
     CONTENT_TYPE="text/html"
-    * * * * * root ansi2html your-command
+    * * * * * root coloredlogs --to-html your-command
 
-The ``ansi2html`` program is installed when you install `coloredlogs`. It runs
+The ``coloredlogs`` program is installed when you install the `coloredlogs`
+package. When you execute ``coloredlogs --to-html your-command`` it runs
 ``your-command`` under the external program ``script`` (you need to have this
-installed to get ``ansi2html`` working). This makes ``your-command`` think that
-it's attached to an interactive terminal which means it will output ANSI escape
-sequences and ``ansi2html`` converts these to HTML. Yes, this is a bit
-convoluted, but it works great :-)
+installed). This makes ``your-command`` think that it's attached to an
+interactive terminal which means it will output ANSI escape sequences which
+will then be converted to HTML by the ``coloredlogs`` program. Yes, this is a
+bit convoluted, but it works great :-)
 
-You can use ``ansi2html`` without `coloredlogs`, but please note that it only
-supports normal text, bold text and text with one of the foreground colors
-black, red, green, yellow, blue, magenta, cyan and white (these are the
-portable ANSI color codes).
+You can use this feature without using `coloredlogs` in your Python modules,
+but please note that only normal text, bold text and text with one of the
+foreground colors black, red, green, yellow, blue, magenta, cyan and white
+(these are the portable ANSI color codes) are supported.
 
 Contact
 -------
@@ -120,6 +121,7 @@ License
 This software is licensed under the `MIT license`_.
 
 © 2015 Peter Odding.
+
 
 .. External references:
 .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors

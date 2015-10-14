@@ -10,9 +10,6 @@
 import pipes
 import re
 import subprocess
-import sys
-import tempfile
-import webbrowser
 
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 EIGHT_COLOR_PALETTE = (
@@ -30,24 +27,6 @@ EIGHT_COLOR_PALETTE = (
 # all special strings and literal output in a single pass (this allows us to
 # properly encode the output without resorting to nasty hacks).
 token_pattern = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
-
-
-def main():
-    """
-    Command line interface for the ``ansi2html`` program.
-
-    Takes a command (and its arguments) and runs the program under ``script``
-    (emulating an interactive terminal), intercepts the output of the command
-    and converts ANSI escape sequences in the output to HTML.
-    """
-    html_output = convert(capture(sys.argv[1:]))
-    if sys.stdout.isatty():
-        fd, filename = tempfile.mkstemp(suffix='.html')
-        with open(filename, 'w') as handle:
-            handle.write(html_output)
-        webbrowser.open(filename)
-    else:
-        print(html_output)
 
 
 def capture(command, encoding='UTF-8'):
