@@ -10,6 +10,7 @@
 import codecs
 import os
 import re
+import sys
 
 # De-facto standard solution for Python packaging.
 from setuptools import find_packages, setup
@@ -33,6 +34,15 @@ readme_file = os.path.join(source_directory, 'README.rst')
 with codecs.open(readme_file, 'r', 'utf-8') as handle:
     readme_text = handle.read()
 
+# External dependencies.
+install_requires = [
+    'humanfriendly >= 1.42',
+]
+
+# Conditional dependency (Windows only).
+if sys.platform == 'win32':
+    install_requires.append('colorama')
+
 setup(name='coloredlogs',
       version=version_string,
       description="Colored terminal output for Python's logging module",
@@ -44,9 +54,7 @@ setup(name='coloredlogs',
       entry_points=dict(console_scripts=[
           'coloredlogs = coloredlogs.cli:main',
       ]),
-      install_requires=[
-          'humanfriendly >= 1.42',
-      ],
+      install_requires=install_requires,
       test_suite='coloredlogs.tests',
       tests_require=[
           'capturer',

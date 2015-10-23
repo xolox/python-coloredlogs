@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.0'
+__version__ = '3.1'
 
 # Standard library modules.
 import collections
@@ -119,6 +119,16 @@ import time
 from humanfriendly.compat import coerce_string, is_string
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_supports_colors
 from humanfriendly.text import split
+
+# Optional external dependency (only needed on Windows).
+NEED_COLORAMA = (sys.platform == 'win32')
+HAVE_COLORAMA = False
+if NEED_COLORAMA:
+    try:
+        import colorama
+        HAVE_COLORAMA = True
+    except ImportError:
+        pass
 
 DEFAULT_LOG_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s'
 """The default log format for :class:`ColoredFormatter` objects (a string)."""
@@ -236,8 +246,20 @@ def install(level=None, **kw):
         stream = kw.get('stream', sys.stderr)
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
-        if use_colors is None:
-            use_colors = terminal_supports_colors(stream)
+        if use_colors or use_colors is None:
+            if NEED_COLORAMA:
+                if HAVE_COLORAMA:
+                    # On Windows we can only use ANSI escape
+                    # sequences if Colorama is available.
+                    colorama.init()
+                    use_colors = True
+                else:
+                    # If Colorama isn't available then we specifically
+                    # shouldn't emit ANSI escape sequences!
+                    use_colors = False
+            elif use_colors is None:
+                # Auto-detect terminal support on other platforms.
+                use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
         root_handler = logging.StreamHandler(stream)
         if level is None:
