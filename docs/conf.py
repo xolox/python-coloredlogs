@@ -56,7 +56,10 @@ pygments_style = 'sphinx'
 
 # Refer to the Python standard library.
 # From: http://twistedmatrix.com/trac/ticket/4582.
-intersphinx_mapping = {'python': ('http://docs.python.org', None)}
+intersphinx_mapping = dict(
+    python=('http://docs.python.org', None),
+    humanfriendly=('http://humanfriendly.readthedocs.org/en/latest', None),
+)
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -66,3 +69,13 @@ html_theme = 'default'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'coloredlogsdoc'
+
+
+def setup(app):
+    """
+    Configure the autodoc extension not to skip ``__init__()`` members.
+
+    Based on http://stackoverflow.com/a/5599712/788200.
+    """
+    app.connect('autodoc-skip-member', (lambda app, what, name, obj, skip, options:
+                                        False if name == '__init__' and obj.__doc__ else skip))

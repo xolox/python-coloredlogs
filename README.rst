@@ -1,5 +1,5 @@
-coloredlogs: Colored stream handler for Python's logging module
-===============================================================
+coloredlogs: Colored terminal output for Python's logging module
+================================================================
 
 .. image:: https://travis-ci.org/xolox/python-coloredlogs.svg?branch=master
    :target: https://travis-ci.org/xolox/python-coloredlogs
@@ -7,13 +7,14 @@ coloredlogs: Colored stream handler for Python's logging module
 .. image:: https://coveralls.io/repos/xolox/python-coloredlogs/badge.png?branch=master
    :target: https://coveralls.io/r/xolox/python-coloredlogs?branch=master
 
-The ``coloredlogs.ColoredStreamHandler`` class is a simple logging handler that
-inherits from `logging.StreamHandler`_ and uses `ANSI escape sequences`_ to
-render your logging messages in color. It uses only standard colors so it
-should work on any UNIX terminal. It's currently tested on Python 2.6, 2.7, 3.4
-and PyPy. This module does not support non-UNIX terminals (e.g. the Windows
-console). Here is a screen shot of the demo that is printed when the command
-``python -m coloredlogs.demo`` is executed:
+The `coloredlogs` package enables colored terminal output for Python's logging_
+module. The ColoredFormatter_ class inherits from `logging.Formatter`_ and uses
+`ANSI escape sequences`_ to render your logging messages in color. It uses
+only standard colors so it should work on any UNIX terminal. It's currently
+tested on Python 2.6, 2.7, 3.4 and PyPy. This module does not support non-UNIX
+terminals (e.g. the Windows console) but will fall back to plain text. Here is
+a screen shot of the demo that is printed when the command ``coloredlogs
+--demo`` is executed:
 
 .. image:: https://peterodding.com/code/python/coloredlogs/screenshots/terminal.png
 
@@ -30,25 +31,28 @@ for your log files as well.
 Format of log messages
 ----------------------
 
-As can be seen in the screenshot above, the logging handler includes four
-fields in every logged message by default:
+The ColoredFormatter_ class supports user defined log formats so you can use
+any log format you like. The default log format is as follows::
 
-1. A timestamp indicating when the event was logged. This field is visible by
-   default. To hide it you can pass the keyword argument
-   ``show_timestamps=False`` when you create the handler.
-2. The hostname of the system on which the event was logged. This field is
-   visible by default. To hide it you can pass the keyword argument
-   ``show_hostname=False`` when you create the handler.
-3. The name of the logger that logged the event. This field is visible by
-   default. To hide it you can pass the keyword argument ``show_name=False``
-   when you create the handler.
-4. The human friendly name of the log level / severity.
-5. The message that was logged.
+ %(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s
+
+This log format results in the following output::
+
+ 2015-10-23 03:32:22 peter-macbook coloredlogs.demo[30462] DEBUG message with level 'debug'
+ 2015-10-23 03:32:23 peter-macbook coloredlogs.demo[30462] VERBOSE message with level 'verbose'
+ 2015-10-23 03:32:24 peter-macbook coloredlogs.demo[30462] INFO message with level 'info'
+ ...
+
+You can customize the log format and styling using environment variables as
+well as programmatically, please refer to the `online documentation`_ for
+details.
 
 Usage
 -----
 
-Here's an example of how you would use the logging handler::
+Here's an example of how easy it is to get started:
+
+.. code-block:: python
 
    # Create a logger object.
    import logging
@@ -56,19 +60,14 @@ Here's an example of how you would use the logging handler::
 
    # Initialize coloredlogs.
    import coloredlogs
-   coloredlogs.install(level=logging.DEBUG)
+   coloredlogs.install(level='DEBUG')
 
    # Some examples.
    logger.debug("this is a debugging message")
    logger.info("this is an informational message")
    logger.warn("this is a warning message")
    logger.error("this is an error message")
-   logger.fatal("this is a fatal message")
    logger.critical("this is a critical message")
-
-You can change the formatting of the output to a limited amount by subclassing
-``ColoredStreamHandler`` and overriding the method(s) of your choice. For
-details refer to the `online documentation`_.
 
 For people who like Vim
 -----------------------
@@ -125,9 +124,11 @@ This software is licensed under the `MIT license`_.
 
 .. External references:
 .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+.. _ColoredFormatter: http://coloredlogs.readthedocs.org/en/latest/#coloredlogs.ColoredFormatter
 .. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
-.. _logging.StreamHandler: http://docs.python.org/2/library/logging.handlers.html#streamhandler
+.. _logging.Formatter: http://docs.python.org/2/library/logging.html#logging.Formatter
+.. _logging: https://docs.python.org/2/library/logging.html
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _online documentation: https://coloredlogs.readthedocs.org/
 .. _peter@peterodding.com: peter@peterodding.com

@@ -1,17 +1,19 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 14, 2015
+# Last Change: October 23, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """Automated tests for the `coloredlogs` package."""
 
 # Standard library modules.
 import logging
+import os
 import random
 import re
 import string
 import sys
+import tempfile
 import unittest
 
 # External dependencies.
@@ -25,14 +27,7 @@ import coloredlogs.converter
 # External test dependencies.
 from capturer import CaptureOutput
 from verboselogs import VerboseLogger
-
-# Compatibility with Python 2 and 3.
-try:
-    # Python 2.
-    from StringIO import StringIO
-except ImportError:
-    # Python 3.
-    from io import StringIO
+from humanfriendly.compat import StringIO
 
 # Compiled regular expression that matches a single line of output produced by
 # ColoredStreamHandler (does not include matching of ANSI escape sequences).
@@ -62,6 +57,34 @@ class ColoredLogsTestCase(unittest.TestCase):
         self.logger_name = ''.join(random.choice(string.ascii_letters) for i in range(25))
         self.logger = VerboseLogger(self.logger_name)
         self.logger.addHandler(self.handler)
+        # Speed up the tests by disabling the demo's artificial delay.
+        os.environ['COLOREDLOGS_DEMO_DELAY'] = '0'
+        coloredlogs.demo.DEMO_DELAY = 0
+
+    def test_find_hostname(self):
+        """Make sure :func:`~coloredlogs.find_hostname()` works correctly."""
+        assert coloredlogs.find_hostname()
+        # Create a temporary file as a placeholder for e.g. /etc/debian_chroot.
+        fd, temporary_file = tempfile.mkstemp()
+        try:
+            with open(temporary_file, 'w') as handle:
+                handle.write('first line\n')
+                handle.write('second line\n')
+            coloredlogs.CHROOT_FILES.insert(0, temporary_file)
+            # Make sure the chroot file is being read.
+            assert coloredlogs.find_hostname() == 'first line'
+        finally:
+            # Clean up.
+            coloredlogs.CHROOT_FILES.pop(0)
+            os.unlink(temporary_file)
+        # Test that unreadable chroot files don't break coloredlogs.
+        try:
+            coloredlogs.CHROOT_FILES.insert(0, temporary_file)
+            # Make sure that a usable value is still produced.
+            assert coloredlogs.find_hostname()
+        finally:
+            # Clean up.
+            coloredlogs.CHROOT_FILES.pop(0)
 
     def test_is_verbose(self):
         """Make sure is_verbose() does what it should :-)."""
@@ -96,8 +119,10 @@ class ColoredLogsTestCase(unittest.TestCase):
 
     def test_level_discovery(self):
         """Make sure find_defined_levels() always reports the levels defined in Python's standard library."""
+        defined_levels = coloredlogs.find_defined_levels()
+        level_values = defined_levels.values()
         for number in (0, 10, 20, 30, 40, 50):
-            assert number in coloredlogs.find_defined_levels()
+            assert number in level_values
 
     def test_missing_isatty_method(self):
         """Make sure ColoredStreamHandler() doesn't break because of a missing isatty() method."""

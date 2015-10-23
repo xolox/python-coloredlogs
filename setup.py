@@ -3,7 +3,7 @@
 """Setup script for the `coloredlogs` package."""
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 14, 2015
+# Last Change: October 23, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 # Standard library modules.
@@ -45,7 +45,7 @@ setup(name='coloredlogs',
           'coloredlogs = coloredlogs.cli:main',
       ]),
       install_requires=[
-          'humanfriendly >= 1.25.1',
+          'humanfriendly >= 1.42',
       ],
       test_suite='coloredlogs.tests',
       tests_require=[
