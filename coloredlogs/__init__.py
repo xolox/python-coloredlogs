@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 23, 2015
+# Last Change: October 24, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """
@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.1.1'
+__version__ = '3.1.2'
 
 # Standard library modules.
 import collections
@@ -600,7 +600,7 @@ class ColoredFormatter(logging.Formatter):
         result = []
         for token in fmt.split():
             # Look for field names in the token.
-            for match in re.finditer(r'%\((\w+)\)\w', token):
+            for match in re.finditer(r'%\((\w+)\)', token):
                 # Check if a style is defined for the matched field name.
                 style = self.nn.get(self.field_styles, match.group(1))
                 if style:
