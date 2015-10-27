@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 24, 2015
+# Last Change: October 27, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """
@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.1.2'
+__version__ = '3.1.3'
 
 # Standard library modules.
 import collections
@@ -121,7 +121,7 @@ from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_support
 from humanfriendly.text import split
 
 # Optional external dependency (only needed on Windows).
-NEED_COLORAMA = (sys.platform == 'win32')
+NEED_COLORAMA = sys.platform.startswith('win')
 HAVE_COLORAMA = False
 if NEED_COLORAMA:
     try:
@@ -142,7 +142,8 @@ CHROOT_FILES = ['/etc/debian_chroot']
 DEFAULT_FIELD_STYLES = dict(
     asctime=dict(color='green'),
     hostname=dict(color='magenta'),
-    levelname=dict(color='black', bold=True),
+    # FYI: Colorama doesn't support bold fonts.
+    levelname=dict(color='black', bold=(not NEED_COLORAMA)),
     name=dict(color='blue'))
 """Mapping of log format names to default font styles."""
 
