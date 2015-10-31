@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 27, 2015
+# Last Change: October 31, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """
@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.1.3'
+__version__ = '3.1.4'
 
 # Standard library modules.
 import collections
@@ -139,11 +139,19 @@ DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 CHROOT_FILES = ['/etc/debian_chroot']
 """A list of filenames that indicate a chroot and contain the name of the chroot."""
 
+CAN_USE_BOLD_FONT = (not NEED_COLORAMA)
+"""
+Whether bold fonts can be used in default styles (a boolean).
+
+This is disabled on Windows because in my (admittedly limited) experience the
+ANSI escape sequence for bold font is simply not translated by Colorama,
+instead it's printed to the terminal without any translation.
+"""
+
 DEFAULT_FIELD_STYLES = dict(
     asctime=dict(color='green'),
     hostname=dict(color='magenta'),
-    # FYI: Colorama doesn't support bold fonts.
-    levelname=dict(color='black', bold=(not NEED_COLORAMA)),
+    levelname=dict(color='black', bold=CAN_USE_BOLD_FONT),
     name=dict(color='blue'))
 """Mapping of log format names to default font styles."""
 
@@ -153,7 +161,7 @@ DEFAULT_LEVEL_STYLES = dict(
     verbose=dict(color='blue'),
     warning=dict(color='yellow'),
     error=dict(color='red'),
-    critical=dict(color='red', bold=True))
+    critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
 """Mapping of log level names to default font styles."""
 
 LEGACY_FORMAT_SPECIFIERS = (
