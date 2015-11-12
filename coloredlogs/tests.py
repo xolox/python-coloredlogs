@@ -95,6 +95,15 @@ class ColoredLogsTestCase(unittest.TestCase):
             output = capturer.get_text()
             assert coloredlogs.find_hostname() in output
 
+    def test_program_name_filter(self):
+        """Make sure :func:`coloredlogs.install()` integrates with :class:`~coloredlogs.ProgramNameFilter()`."""
+        coloredlogs.root_handler = None
+        coloredlogs.install(fmt='%(programname)s')
+        with CaptureOutput() as capturer:
+            logging.info("A truly insignificant message ..")
+            output = capturer.get_text()
+            assert coloredlogs.find_program_name() in output
+
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
         nn = coloredlogs.NameNormalizer()

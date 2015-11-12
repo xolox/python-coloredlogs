@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 31, 2015
+# Last Change: November 12, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """
@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.1.4'
+__version__ = '3.2'
 
 # Standard library modules.
 import collections
@@ -152,6 +152,7 @@ DEFAULT_FIELD_STYLES = dict(
     asctime=dict(color='green'),
     hostname=dict(color='magenta'),
     levelname=dict(color='black', bold=CAN_USE_BOLD_FONT),
+    programname=dict(color='cyan'),
     name=dict(color='blue'))
 """Mapping of log format names to default font styles."""
 
@@ -292,8 +293,17 @@ def install(level=None, **kw):
         if not formatter_options['datefmt']:
             formatter_options['datefmt'] = os.environ.get('COLOREDLOGS_DATE_FORMAT') or DEFAULT_DATE_FORMAT
         # Do we need to make %(hostname) available to the formatter?
-        if '%(hostname)s' in formatter_options['fmt']:
-            root_handler.addFilter(HostNameFilter(kw.get('use_chroot', True)))
+        HostNameFilter.install(
+            handler=root_handler,
+            fmt=formatter_options['fmt'],
+            use_chroot=kw.get('use_chroot', True),
+        )
+        # Do we need to make %(programname) available to the formatter?
+        ProgramNameFilter.install(
+            handler=root_handler,
+            fmt=formatter_options['fmt'],
+            programname=kw.get('programname'),
+        )
         # Inject additional formatter arguments specific to ColoredFormatter?
         if use_colors:
             # The `level_styles' argument belongs to ColoredFormatter (new)
@@ -545,6 +555,24 @@ def find_hostname(use_chroot=True):
     return socket.gethostname()
 
 
+def find_program_name():
+    """
+    Select a suitable program name to embed in log messages.
+
+    :returns: One of the following strings (in decreasing order of preference):
+
+              1. The base name of the currently running Python program or
+                 script (based on the value at index zero of :data:`sys.argv`).
+              2. The base name of the Python executable (based on
+                 :data:`sys.executable`).
+              3. The string 'python'.
+    """
+    # Gotcha: sys.argv[0] is '-c' if Python is started with the -c option.
+    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '')
+            or (os.path.basename(sys.executable) if sys.executable else '')
+            or 'python')
+
+
 class ColoredFormatter(logging.Formatter):
 
     """Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs."""
@@ -650,11 +678,11 @@ class HostNameFilter(logging.Filter):
     """
     Log filter to enable the ``%(hostname)s`` format.
 
-    Python's :mod:`logging` module doesn't natively expose the system's host
-    name while I consider this to be a valuable addition. Fortunately it's very
-    easy to expose additional fields in format strings: :func:`filter()` simply
-    sets the ``hostname`` attribute of each :class:`~logging.LogRecord` object
-    it receives and this is enough to enable the use of the ``%(hostname)s``
+    Python's :mod:`logging` module doesn't expose the system's host name while
+    I consider this to be a valuable addition. Fortunately it's very easy to
+    expose additional fields in format strings: :func:`filter()` simply sets
+    the ``hostname`` attribute of each :class:`~logging.LogRecord` object it
+    receives and this is enough to enable the use of the ``%(hostname)s``
     expression in format strings.
 
     You can install this log filter as follows::
@@ -672,6 +700,22 @@ class HostNameFilter(logging.Filter):
     Of course :func:`coloredlogs.install()` does all of this for you :-).
     """
 
+    @classmethod
+    def install(cls, handler, fmt=None, use_chroot=True):
+        """
+        Install the :class:`HostNameFilter` on a log handler (only if needed).
+
+        :param handler: The logging handler on which to install the filter.
+        :param fmt: The log format string to check for ``%(hostname)``.
+        :param use_chroot: Refer to :func:`find_hostname()`.
+
+        If `fmt` is given the filter will only be installed if `fmt` contains
+        ``%(programname)``. If `fmt` is not given the filter is installed
+        unconditionally.
+        """
+        if not (fmt and '%(hostname)' not in fmt):
+            handler.addFilter(cls(use_chroot))
+
     def __init__(self, use_chroot=True):
         """
         Initialize a :class:`HostNameFilter` object.
@@ -684,6 +728,51 @@ class HostNameFilter(logging.Filter):
         """Set each :class:`~logging.LogRecord`'s `hostname` field."""
         # Modify the record.
         record.hostname = self.hostname
+        # Don't filter the record.
+        return 1
+
+
+class ProgramNameFilter(logging.Filter):
+
+    """
+    Log filter to enable the ``%(programname)s`` format.
+
+    Python's :mod:`logging` module doesn't expose the name of the currently
+    running program while I consider this to be a useful addition. Fortunately
+    it's very easy to expose additional fields in format strings:
+    :func:`filter()` simply sets the ``programname`` attribute of each
+    :class:`~logging.LogRecord` object it receives and this is enough to enable
+    the use of the ``%(programname)s`` expression in format strings.
+
+    Refer to :class:`HostNameFilter` for an example of how to manually install
+    these log filters.
+    """
+
+    @classmethod
+    def install(cls, fmt, handler, programname=None):
+        """
+        Install the :class:`ProgramNameFilter` (only if needed).
+
+        :param fmt: The log format string to check for ``%(programname)``.
+        :param handler: The logging handler on which to install the filter.
+        :param programname: Refer to :func:`__init__()`.
+        """
+        if not (fmt and '%(programname)' not in fmt):
+            handler.addFilter(cls(programname))
+
+    def __init__(self, programname=None):
+        """
+        Initialize a :class:`ProgramNameFilter` object.
+
+        :param programname: The program name to use (defaults to the result of
+                            :func:`find_program_name()`).
+        """
+        self.programname = programname or find_program_name()
+
+    def filter(self, record):
+        """Set each :class:`~logging.LogRecord`'s `programname` field."""
+        # Modify the record.
+        record.programname = self.programname
         # Don't filter the record.
         return 1
 
