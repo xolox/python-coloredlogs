@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 23, 2015
+# Last Change: November 12, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """Automated tests for the `coloredlogs` package."""
@@ -85,6 +85,35 @@ class ColoredLogsTestCase(unittest.TestCase):
         finally:
             # Clean up.
             coloredlogs.CHROOT_FILES.pop(0)
+
+    def test_host_name_filter(self):
+        """Make sure :func:`coloredlogs.install()` integrates with :class:`~coloredlogs.HostNameFilter()`."""
+        coloredlogs.root_handler = None
+        coloredlogs.install(fmt='%(hostname)s')
+        with CaptureOutput() as capturer:
+            logging.info("A truly insignificant message ..")
+            output = capturer.get_text()
+            assert coloredlogs.find_hostname() in output
+
+    def test_name_normalization(self):
+        """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
+        nn = coloredlogs.NameNormalizer()
+        for canonical_name in ['debug', 'info', 'warning', 'error', 'critical']:
+            assert nn.normalize_name(canonical_name) == canonical_name
+            assert nn.normalize_name(canonical_name.upper()) == canonical_name
+        assert nn.normalize_name('warn') == 'warning'
+        assert nn.normalize_name('fatal') == 'critical'
+
+    def test_style_parsing(self):
+        """Make sure :func:`~coloredlogs.parse_encoded_styles()` works as intended."""
+        encoded_styles = 'debug=green;warning=yellow;error=red;critical=red,bold'
+        decoded_styles = coloredlogs.parse_encoded_styles(encoded_styles, normalize_key=lambda k: k.upper())
+        assert sorted(decoded_styles.keys()) == sorted(['debug', 'warning', 'error', 'critical'])
+        assert decoded_styles['debug']['color'] == 'green'
+        assert decoded_styles['warning']['color'] == 'yellow'
+        assert decoded_styles['error']['color'] == 'red'
+        assert decoded_styles['critical']['color'] == 'red'
+        assert decoded_styles['critical']['bold'] is True
 
     def test_is_verbose(self):
         """Make sure is_verbose() does what it should :-)."""

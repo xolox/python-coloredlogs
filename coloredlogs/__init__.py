@@ -499,9 +499,6 @@ def parse_encoded_styles(text, normalize_key=None):
     Parse text styles encoded in a string into a nested data structure.
 
     :param text: The encoded styles (a string).
-    :param normalize_key: A function that's called to normalize the keys in the
-                          top level dictionary (defaults to :data:`None` which
-                          means no normalization is done).
     :returns: A dictionary in the structure of the :data:`DEFAULT_FIELD_STYLES`
               and :data:`DEFAULT_LEVEL_STYLES` dictionaries.
 
@@ -510,11 +507,11 @@ def parse_encoded_styles(text, normalize_key=None):
     >>> from coloredlogs import parse_encoded_styles
     >>> from pprint import pprint
     >>> encoded_styles = 'debug=green;warning=yellow;error=red;critical=red,bold'
-    >>> pprint(parse_encoded_styles(encoded_styles, normalize_key=lambda k: k.upper()))
-    {'DEBUG': {'color': 'green'},
-     'WARNING': {'color': 'yellow'},
-     'ERROR': {'color': 'red'},
-     'CRITICAL': {'bold': True, 'color': 'red'}}
+    >>> pprint(parse_encoded_styles(encoded_styles))
+    {'debug': {'color': 'green'},
+     'warning': {'color': 'yellow'},
+     'error': {'color': 'red'},
+     'critical': {'bold': True, 'color': 'red'}}
     """
     parsed_styles = {}
     for token in split(text, ';'):
@@ -536,7 +533,7 @@ def find_hostname(use_chroot=True):
     the chroot name). If none are found then :func:`socket.gethostname()` is
     used as a fall back.
     """
-    for chroot_file in filter(os.path.isfile, CHROOT_FILES):
+    for chroot_file in CHROOT_FILES:
         try:
             with open(chroot_file) as handle:
                 first_line = next(handle)
