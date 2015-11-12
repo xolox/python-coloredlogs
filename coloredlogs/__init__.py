@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 12, 2015
+# Last Change: November 13, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """
@@ -749,7 +749,7 @@ class ProgramNameFilter(logging.Filter):
     """
 
     @classmethod
-    def install(cls, fmt, handler, programname=None):
+    def install(cls, handler, fmt, programname=None):
         """
         Install the :class:`ProgramNameFilter` (only if needed).
 
