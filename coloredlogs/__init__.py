@@ -579,6 +579,43 @@ def find_program_name():
             or 'python')
 
 
+def find_handler(logger=None, type=None):
+    """
+    Check whether a logger has a handler.
+
+    :param logger: The logger to check (a :class:`logging.Logger`
+                   object, defaults to the root logger).
+    :param type: The type of handler to look for (a subclass of
+                 :class:`logging.Handler` or :data:`None` which
+                 means no type matching is performed).
+    :returns: The :class:`~logging.Handler` connected to the logger (or one of
+              its parent loggers) or :data:`None` if the logger and its parents
+              don't have a (matching type of) handler.
+
+    This function finds a handler of the given type attached to the given
+    logger or one of its parents (see :func:`walk_propagation_tree()`). It uses
+    the undocumented :class:`~logging.Logger.handlers` attribute to find
+    handlers attached to a logger, however it won't raise an exception if the
+    attribute isn't available. The advantages of this approach are:
+
+    - This works regardless of whether :mod:`coloredlogs` attached the handler
+      or other Python code attached the handler.
+
+    - This will correctly recognize the situation where the given logger has no
+      handlers but :attr:`~logging.Logger.propagate` is enabled and the logger
+      has a parent logger that does have a handler attached.
+    """
+    logger = logger or logging.getLogger()
+    try:
+        for logger_node in walk_propagation_tree(logger):
+            for handler in logger_node.handlers:
+                if isinstance(handler, type or logging.Handler):
+                    return handler
+    except AttributeError:
+        # If the logic above fails we shouldn't raise an exception.
+        return None
+
+
 def walk_propagation_tree(logger):
     """
     Walk through the propagation hierarchy of the given logger.

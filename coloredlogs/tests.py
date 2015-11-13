@@ -8,6 +8,7 @@
 
 # Standard library modules.
 import logging
+import logging.handlers
 import os
 import random
 import re
@@ -174,6 +175,30 @@ class ColoredLogsTestCase(unittest.TestCase):
 
     def test_walk_propagation_tree(self):
         """Make sure walk_propagation_tree() properly walks the tree of loggers."""
+        root, parent, child, grand_child = self.get_logger_tree()
+        # Check the default mode of operation.
+        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
+        assert loggers == [grand_child, child, parent, root]
+        # Now change the propagation (non-default mode of operation).
+        child.propagate = False
+        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
+        assert loggers == [grand_child, child]
+
+    def test_find_handler(self):
+        """Make sure find_handler() works as intended."""
+        root, parent, child, grand_child = self.get_logger_tree()
+        # Add some handlers to the tree.
+        stream_handler = logging.StreamHandler()
+        syslog_handler = logging.handlers.SysLogHandler()
+        child.addHandler(stream_handler)
+        parent.addHandler(syslog_handler)
+        # Make sure the first matching handler is returned.
+        assert coloredlogs.find_handler(grand_child) is stream_handler
+        # Make sure the first matching handler of the given type is returned.
+        assert coloredlogs.find_handler(child, logging.handlers.SysLogHandler) is syslog_handler
+
+    def get_logger_tree(self):
+        """Create and return a tree of loggers."""
         # Get the root logger.
         root = logging.getLogger()
         # Create a top level logger for ourselves.
@@ -185,13 +210,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         # Create a grand child logger.
         grand_child_name = '%s.%s' % (child_name, random_string())
         grand_child = logging.getLogger(grand_child_name)
-        # Check the default mode of operation.
-        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
-        assert loggers == [grand_child, child, parent, root]
-        # Now change the propagation (non-default mode of operation).
-        child.propagate = False
-        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
-        assert loggers == [grand_child, child]
+        return root, parent, child, grand_child
 
     def test_missing_isatty_method(self):
         """Make sure ColoredStreamHandler() doesn't break because of a missing isatty() method."""
