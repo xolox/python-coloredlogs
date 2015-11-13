@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 12, 2015
+# Last Change: November 13, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """Automated tests for the `coloredlogs` package."""
@@ -23,6 +23,7 @@ from humanfriendly.terminal import ansi_wrap
 import coloredlogs
 import coloredlogs.cli
 import coloredlogs.converter
+import coloredlogs.syslog
 
 # External test dependencies.
 from capturer import CaptureOutput
@@ -54,7 +55,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         # Reset local state.
         self.stream = StringIO()
         self.handler = coloredlogs.ColoredStreamHandler(stream=self.stream, isatty=False)
-        self.logger_name = ''.join(random.choice(string.ascii_letters) for i in range(25))
+        self.logger_name = random_string(25)
         self.logger = VerboseLogger(self.logger_name)
         self.logger.addHandler(self.handler)
         # Speed up the tests by disabling the demo's artificial delay.
@@ -103,6 +104,15 @@ class ColoredLogsTestCase(unittest.TestCase):
             logging.info("A truly insignificant message ..")
             output = capturer.get_text()
             assert coloredlogs.find_program_name() in output
+
+    def test_system_logging(self):
+        """Make sure the :mod:`coloredlogs.syslog` module works."""
+        expected_message = random_string(50)
+        with coloredlogs.syslog.SystemLogging(programname='coloredlogs-test-suite') as syslog:
+            logging.info("%s", expected_message)
+            if syslog and os.path.isfile('/var/log/syslog'):
+                with open('/var/log/syslog') as handle:
+                    assert any(expected_message in line for line in handle)
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
@@ -253,3 +263,8 @@ def main(*arguments, **options):
     finally:
         sys.argv = saved_argv
         sys.stdout = saved_stdout
+
+
+def random_string(length=25):
+    """Generate a random string."""
+    return ''.join(random.choice(string.ascii_letters) for i in range(25))
