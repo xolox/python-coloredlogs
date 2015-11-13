@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.3'
+__version__ = '3.4'
 
 # Standard library modules.
 import collections
@@ -219,6 +219,8 @@ def install(level=None, **kw):
                    (defaults to auto-detection using
                    :func:`~humanfriendly.terminal.terminal_supports_colors()`).
     :param use_chroot: Refer to :func:`find_hostname()`.
+    :param syslog: If :data:`True` then :func:`~coloredlogs.syslog.enable_system_logging()`
+                   will be called without arguments (defaults to :data:`False`).
 
     The :func:`coloredlogs.install()` function is similar to
     :func:`logging.basicConfig()`, both functions take a lot of optional
@@ -252,6 +254,10 @@ def install(level=None, **kw):
     """
     global root_handler
     if not root_handler:
+        # Make it easy to enable system logging.
+        if kw.get('syslog', False):
+            from coloredlogs import syslog
+            syslog.enable_system_logging()
         # Find out to which stream we'll be logging.
         stream = kw.get('stream', sys.stderr)
         # Figure out whether we can use ANSI escape sequences.
