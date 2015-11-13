@@ -579,6 +579,32 @@ def find_program_name():
             or 'python')
 
 
+def walk_propagation_tree(logger):
+    """
+    Walk through the propagation hierarchy of the given logger.
+
+    :param logger: The logger whose hierarchy to walk (a
+                   :class:`~logging.Logger` object).
+    :returns: A generator of :class:`~logging.Logger` objects.
+
+    .. note:: This uses the undocumented :class:`logging.Logger.parent`
+              attribute to find higher level loggers, however it won't
+              raise an exception if the attribute isn't available.
+    """
+    while isinstance(logger, logging.Logger):
+        # Yield the logger to our caller.
+        yield logger
+        # Check if the logger has propagation enabled.
+        if logger.propagate:
+            # Continue with the parent logger. We use getattr() because the
+            # `parent' attribute isn't documented so properly speaking we
+            # shouldn't break if it's not available.
+            logger = getattr(logger, 'parent', None)
+        else:
+            # The propagation chain stops here.
+            logger = None
+
+
 class ColoredFormatter(logging.Formatter):
 
     """Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs."""

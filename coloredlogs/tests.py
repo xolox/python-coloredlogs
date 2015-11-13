@@ -172,6 +172,27 @@ class ColoredLogsTestCase(unittest.TestCase):
         for number in (0, 10, 20, 30, 40, 50):
             assert number in level_values
 
+    def test_walk_propagation_tree(self):
+        """Make sure walk_propagation_tree() properly walks the tree of loggers."""
+        # Get the root logger.
+        root = logging.getLogger()
+        # Create a top level logger for ourselves.
+        parent_name = random_string()
+        parent = logging.getLogger(parent_name)
+        # Create a child logger.
+        child_name = '%s.%s' % (parent_name, random_string())
+        child = logging.getLogger(child_name)
+        # Create a grand child logger.
+        grand_child_name = '%s.%s' % (child_name, random_string())
+        grand_child = logging.getLogger(grand_child_name)
+        # Check the default mode of operation.
+        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
+        assert loggers == [grand_child, child, parent, root]
+        # Now change the propagation (non-default mode of operation).
+        child.propagate = False
+        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
+        assert loggers == [grand_child, child]
+
     def test_missing_isatty_method(self):
         """Make sure ColoredStreamHandler() doesn't break because of a missing isatty() method."""
         # This should not raise any exceptions in the constructor.
