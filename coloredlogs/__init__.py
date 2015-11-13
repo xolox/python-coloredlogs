@@ -103,7 +103,7 @@ following screen shot:
 """
 
 # Semi-standard module versioning.
-__version__ = '3.4'
+__version__ = '3.5'
 
 # Standard library modules.
 import collections

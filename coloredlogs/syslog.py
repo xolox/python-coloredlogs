@@ -33,7 +33,7 @@ import socket
 import sys
 
 # Modules included in our package.
-from coloredlogs import ProgramNameFilter, find_program_name
+from coloredlogs import ProgramNameFilter, find_handler, find_program_name
 
 LOG_DEVICE_MACOSX = '/var/run/syslog'
 """The pathname of the log device on Mac OS X (a string)."""
@@ -108,25 +108,50 @@ def enable_system_logging(programname=None, **kw):
     :param kw: Refer to :func:`connect_to_syslog()`.
     :returns: A :class:`~logging.handlers.SysLogHandler` object or :data:`None` (if the
               system logging daemon is unavailable).
+
+    If system logging is already enabled for the logger (this is determined
+    using :func:`find_syslog_handler()`) then a second handler will not be
+    added, instead the existing :class:`~logging.handlers.SysLogHandler` object
+    will be returned.
+
+    In this case the function parameters aren't respected because that would
+    require removing the existing handler and adding a new one. Right now I'm
+    not sure if this is even worth the complexity. If you disagree then feel
+    free to submit a feature request :-).
     """
     # Remove the keyword arguments we handle.
     programname = programname or find_program_name()
     logger = kw.pop('logger', None) or logging.getLogger()
     fmt = kw.pop('fmt', None) or DEFAULT_LOG_FORMAT
-    # Delegate the remaining keyword arguments to connect_to_syslog().
-    handler = connect_to_syslog(**kw)
-    # Make sure a handler was successfully created.
-    if handler:
-        # Enable the use of %(programname)s.
-        ProgramNameFilter.install(
-            handler=handler,
-            fmt=fmt,
-            programname=programname,
-        )
-        # Connect the formatter, handler and logger.
-        handler.setFormatter(logging.Formatter(fmt))
-        logger.addHandler(handler)
+    # Check whether system logging is already enabled for the logger.
+    handler = find_syslog_handler(logger)
+    # Use connect_to_syslog() to set up system logging?
+    if not handler:
+        handler = connect_to_syslog(**kw)
+        # Make sure a handler was successfully created.
+        if handler:
+            # Enable the use of %(programname)s.
+            ProgramNameFilter.install(
+                handler=handler,
+                fmt=fmt,
+                programname=programname,
+            )
+            # Connect the formatter, handler and logger.
+            handler.setFormatter(logging.Formatter(fmt))
+            logger.addHandler(handler)
     return handler
+
+
+def find_syslog_handler(logger=None):
+    """
+    Get the :class:`~logging.handlers.SysLogHandler` attached to a logger.
+
+    :param logger: Refer to :func:`~coloredlogs.find_handler()`.
+    :returns: The :class:`~logging.handlers.SysLogHandler` attached to the
+              logger (or one of its parent loggers) or :data:`None` if no
+              handler is matched.
+    """
+    return find_handler(logger=logger, type=logging.handlers.SysLogHandler)
 
 
 def connect_to_syslog(address=None, facility=None, level=None):
