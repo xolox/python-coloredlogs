@@ -9,9 +9,9 @@ coloredlogs: Colored terminal output for Python's logging module
 
 The `coloredlogs` package enables colored terminal output for Python's logging_
 module. The ColoredFormatter_ class inherits from `logging.Formatter`_ and uses
-`ANSI escape sequences`_ to render your logging messages in color. It uses
-only standard colors so it should work on any UNIX terminal. It's currently
-tested on Python 2.6, 2.7, 3.4 and PyPy. On Windows `coloredlogs` automatically
+`ANSI escape sequences`_ to render your logging messages in color. It uses only
+standard colors so it should work on any UNIX terminal. It's currently tested
+on Python 2.6, 2.7, 3.4, 3.5 and PyPy. On Windows `coloredlogs` automatically
 pulls in Colorama_ as a dependency and enables ANSI escape sequence translation
 using Colorama. Here is a screen shot of the demo that is printed when the
 command ``coloredlogs --demo`` is executed:

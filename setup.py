@@ -3,7 +3,7 @@
 """Setup script for the `coloredlogs` package."""
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 23, 2015
+# Last Change: November 14, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 # Standard library modules.
@@ -75,6 +75,7 @@ setup(name='coloredlogs',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
           'Topic :: Scientific/Engineering :: Human Machine Interfaces',
           'Topic :: Software Development',
           'Topic :: Software Development :: Libraries :: Python Modules',
