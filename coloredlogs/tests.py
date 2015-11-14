@@ -25,8 +25,6 @@ import coloredlogs
 import coloredlogs.cli
 from coloredlogs import (
     CHROOT_FILES,
-    ColoredStreamHandler,
-    NameNormalizer,
     decrease_verbosity,
     find_defined_levels,
     find_handler,
@@ -36,6 +34,8 @@ from coloredlogs import (
     increase_verbosity,
     install,
     is_verbose,
+    level_to_number,
+    NameNormalizer,
     parse_encoded_styles,
     set_level,
     walk_propagation_tree,
@@ -49,7 +49,7 @@ from verboselogs import VerboseLogger
 from humanfriendly.compat import StringIO
 
 # Compiled regular expression that matches a single line of output produced by
-# ColoredStreamHandler (does not include matching of ANSI escape sequences).
+# the default log format (does not include matching of ANSI escape sequences).
 PLAIN_TEXT_PATTERN = re.compile(r'''
     (?P<date> \d{4}-\d{2}-\d{2} )
     \s (?P<time> \d{2}:\d{2}:\d{2} )
@@ -70,6 +70,17 @@ def setUpModule():
 class ColoredLogsTestCase(unittest.TestCase):
 
     """Container for the `coloredlogs` tests."""
+
+    def test_level_to_number(self):
+        """Make sure :func:`level_to_number()` works as intended."""
+        # Make sure the default levels are translated as expected.
+        assert level_to_number('debug') == logging.DEBUG
+        assert level_to_number('info') == logging.INFO
+        assert level_to_number('warn') == logging.WARNING
+        assert level_to_number('error') == logging.ERROR
+        assert level_to_number('fatal') == logging.FATAL
+        # Make sure bogus level names don't blow up.
+        assert level_to_number('bogus-level') == logging.INFO
 
     def test_find_hostname(self):
         """Make sure :func:`~find_hostname()` works correctly."""
@@ -234,31 +245,17 @@ class ColoredLogsTestCase(unittest.TestCase):
         grand_child = logging.getLogger(grand_child_name)
         return root, parent, child, grand_child
 
-    def test_missing_isatty_method(self):
-        """Make sure ColoredStreamHandler() doesn't break because of a missing isatty() method."""
-        # This should not raise any exceptions in the constructor.
-        ColoredStreamHandler(stream=object())
-
-    def test_non_string_messages(self):
-        """Make sure ColoredStreamHandler() doesn't break because of non-string messages."""
-        # This should not raise any exceptions; all of these values can be cast to strings.
-        logger = logging.getLogger(random_string(25))
-        logger.addHandler(ColoredStreamHandler())
-        for value in (True, False, 0, 42, (), []):
-            logger.info(value)
-
     def test_plain_text_output_format(self):
         """Inspect the plain text output of coloredlogs."""
-        stream = StringIO()
-        handler = ColoredStreamHandler(stream=stream, isatty=False)
         logger = VerboseLogger(random_string(25))
-        logger.addHandler(handler)
+        stream = StringIO()
+        install(level=logging.NOTSET, logger=logger, stream=stream)
         # Test that filtering on severity works.
-        handler.level = logging.INFO
+        logger.setLevel(logging.INFO)
         logger.debug("No one should see this message.")
         assert len(stream.getvalue().strip()) == 0
         # Test that the default output format looks okay in plain text.
-        handler.level = logging.NOTSET
+        logger.setLevel(logging.NOTSET)
         for method, severity in ((logger.debug, 'DEBUG'),
                                  (logger.info, 'INFO'),
                                  (logger.verbose, 'VERBOSE'),

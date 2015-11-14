@@ -1,3 +1,2 @@
 include *.rst
 include *.txt
-recursive-include vim *.vim

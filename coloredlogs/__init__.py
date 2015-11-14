@@ -124,7 +124,7 @@ Classes and functions
 """
 
 # Semi-standard module versioning.
-__version__ = '4.0'
+__version__ = '5.0'
 
 # Standard library modules.
 import collections
@@ -134,7 +134,6 @@ import os
 import re
 import socket
 import sys
-import time
 
 # External dependencies.
 from humanfriendly.compat import coerce_string, is_string
@@ -186,34 +185,6 @@ DEFAULT_LEVEL_STYLES = dict(
     critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
 """Mapping of log level names to default font styles."""
 
-LEGACY_FORMAT_SPECIFIERS = (
-    ('show_timestamps', '%(asctime)s'),
-    ('show_hostname', '%(hostname)s'),
-    ('show_name', '%(name)s[%(process)d]'),
-    ('show_severity', '%(levelname)s'),
-    # This is not actually a legacy format specifier (i.e. it was previously
-    # impossible to opt out of) but by defining it here we can keep the code
-    # that interacts with LEGACY_FORMAT_SPECIFIERS free from special cases.
-    ('show_message', '%(message)s'),
-)
-"""
-Legacy keyword arguments and the corresponding log formats.
-
-This is a sequence of tuples with two values each:
-
-1. The name of a legacy keyword argument.
-2. The log format corresponding to the argument.
-
-This information is used by :func:`generate_log_format()` to convert a legacy
-call (intended for :class:`ColoredStreamHandler`) into a log format string that
-can be used by :class:`ColoredFormatter`.
-"""
-
-# In coloredlogs 1.0 the coloredlogs.ansi_text() function was moved to
-# humanfriendly.ansi_wrap(). Because the function signature remained the
-# same the following alias enables us to preserve backwards compatibility.
-ansi_text = ansi_wrap
-
 
 def install(level=None, **kw):
     """
@@ -224,8 +195,8 @@ def install(level=None, **kw):
     :param logger: The logger to which the stream handler should be attached (a
                    :class:`~logging.Logger` object, defaults to the root logger).
     :param fmt: Set the logging format (a string like those accepted by
-                :class:`~logging.Formatter`, defaults to the result of
-                :func:`generate_log_format()` for backwards compatibility).
+                :class:`~logging.Formatter`, defaults to
+                :data:`DEFAULT_LOG_FORMAT`).
     :param datefmt: Set the date/time format (a string, defaults to
                     :data:`DEFAULT_DATE_FORMAT`).
     :param level_styles: A dictionary with custom level styles (defaults to
@@ -322,13 +293,9 @@ def install(level=None, **kw):
         formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
         # Come up with a default log format?
         if not formatter_options['fmt']:
-            if any(name in kw for name, fmt in LEGACY_FORMAT_SPECIFIERS):
-                # Generate a log format based on legacy keyword arguments.
-                formatter_options['fmt'] = generate_log_format(**kw)
-            else:
-                # Use the log format defined by the environment variable
-                # $COLOREDLOGS_LOG_FORMAT (or fall back to the default).
-                formatter_options['fmt'] = os.environ.get('COLOREDLOGS_LOG_FORMAT') or DEFAULT_LOG_FORMAT
+            # Use the log format defined by the environment variable
+            # $COLOREDLOGS_LOG_FORMAT or fall back to the default.
+            formatter_options['fmt'] = os.environ.get('COLOREDLOGS_LOG_FORMAT') or DEFAULT_LOG_FORMAT
         # If the caller didn't specify a date/time format we'll use the format
         # defined by the environment variable $COLOREDLOGS_DATE_FORMAT (or fall
         # back to the default).
@@ -348,31 +315,17 @@ def install(level=None, **kw):
         )
         # Inject additional formatter arguments specific to ColoredFormatter?
         if use_colors:
-            # The `level_styles' argument belongs to ColoredFormatter (new)
-            # while `severity_to_style' belongs to ColoredStreamHandler (old).
-            # We accept both for backwards compatibility (the value's format
-            # is the same, it's just the old name that was wrong :-).
-            for from_name, to_name in (('level_styles', 'level_styles'),
-                                       ('severity_to_style', 'level_styles'),
-                                       ('field_styles', 'field_styles')):
-                value = kw.get(from_name)
-                if value:
-                    formatter_options[to_name] = value
-                    break
-            # If no custom level styles have been configured we'll use the
-            # custom level styles defined by the environment variable
-            # $COLOREDLOGS_LEVEL_STYLES (if it has been set).
-            if not formatter_options.get('level_styles'):
-                override = os.environ.get('COLOREDLOGS_LEVEL_STYLES')
-                if override is not None:
-                    formatter_options['level_styles'] = parse_encoded_styles(override)
-            # If no custom field styles have been configured we'll use the
-            # custom field styles defined by the environment variable
-            # $COLOREDLOGS_FIELD_STYLES (if it has been set).
-            if not formatter_options.get('field_styles'):
-                override = os.environ.get('COLOREDLOGS_FIELD_STYLES')
-                if override is not None:
-                    formatter_options['field_styles'] = parse_encoded_styles(override)
+            for name, environment_name in (('field_styles', 'COLOREDLOGS_FIELD_STYLES'),
+                                           ('level_styles', 'COLOREDLOGS_LEVEL_STYLES')):
+                value = kw.get(name)
+                if value is None:
+                    # If no styles have been specified we'll fall back
+                    # to the styles defined by the environment variable.
+                    environment_value = os.environ.get(environment_name)
+                    if environment_value is not None:
+                        value = parse_encoded_styles(environment_value)
+                if value is not None:
+                    formatter_options[name] = value
         # Create a (possibly colored) formatter.
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
         handler.setFormatter(formatter_type(**formatter_options))
@@ -523,33 +476,6 @@ def find_level_aliases():
     return aliases
 
 
-def generate_log_format(**kw):
-    """
-    Generate a log format based on "legacy" keyword arguments.
-
-    :param kw: Any keyword arguments are matched against
-               :data:`LEGACY_FORMAT_SPECIFIERS` to
-               generate a log format string.
-    :returns: A log format string.
-
-    By default all of the fields defined in :data:`LEGACY_FORMAT_SPECIFIERS`
-    are enabled, this means that if :func:`generate_log_format()` is called
-    without any arguments the result will be the same as
-    :data:`DEFAULT_LOG_FORMAT`.
-
-    .. note:: In `coloredlogs` version 3.0 :class:`ColoredFormatter` was added
-              and :func:`install()` was changed to use :class:`ColoredFormatter`
-              instead of :class:`ColoredStreamHandler` (which has been deprecated).
-              The :func:`generate_log_format()` function translates the keyword
-              arguments accepted by :class:`ColoredStreamHandler` into a log
-              format string that can be used by :class:`ColoredFormatter`. This
-              enables :func:`install()` to preserve backwards compatibility
-              while still switching from :class:`ColoredStreamHandler` to
-              :class:`ColoredFormatter`.
-    """
-    return ' '.join(fmt for name, fmt in LEGACY_FORMAT_SPECIFIERS if kw.get(name, True))
-
-
 def parse_encoded_styles(text, normalize_key=None):
     """
     Parse text styles encoded in a string into a nested data structure.
@@ -674,15 +600,10 @@ def find_handler(logger, match_handler):
       handlers but :attr:`~logging.Logger.propagate` is enabled and the logger
       has a parent logger that does have a handler attached.
     """
-    try:
-        for logger in walk_propagation_tree(logger):
-            for handler in logger.handlers:
-                if match_handler(handler):
-                    return handler, logger
-    except AttributeError:
-        # If our use of undocumented implementation details (.handlers and
-        # .formatter) breaks we don't want it to blow up in our face.
-        pass
+    for logger in walk_propagation_tree(logger):
+        for handler in getattr(logger, 'handlers', []):
+            if match_handler(handler):
+                return handler, logger
     return None, None
 
 
@@ -988,107 +909,3 @@ class NameNormalizer(object):
         :returns: The value of the normalized key (if any).
         """
         return normalized_dict.get(self.normalize_name(name))
-
-
-class ColoredStreamHandler(logging.StreamHandler):
-
-    """
-    Deprecated stream handler with hard coded log format.
-
-    The :py:class:`ColoredStreamHandler` class implements a stream handler that
-    injects `ANSI escape sequences`_ into the log output. This stream handler
-    has a hard coded log format that can be customized to a limited extent
-    through inheritance.
-
-    .. warning:: This class remains only for backwards compatibility. If you're
-                 writing new code consider using :func:`coloredlogs.install()`
-                 and/or :class:`ColoredFormatter` instead.
-    """
-
-    # Alias preserved for backwards compatibility.
-    default_severity_to_style = DEFAULT_LEVEL_STYLES
-
-    def __init__(self, stream=None, level=logging.NOTSET, isatty=None,
-                 show_name=True, show_severity=True, show_timestamps=True,
-                 show_hostname=True, use_chroot=True, severity_to_style=None):
-        """Initialize a :class:`ColoredStreamHandler` object."""
-        stream = sys.stderr if stream is None else stream
-        logging.StreamHandler.__init__(self, stream)
-        self.nn = NameNormalizer()
-        self.level = level
-        self.show_timestamps = show_timestamps
-        self.show_hostname = show_hostname
-        self.show_name = show_name
-        self.show_severity = show_severity
-        self.severity_to_style = self.nn.normalize_keys(DEFAULT_LEVEL_STYLES)
-        if severity_to_style:
-            self.severity_to_style.update(self.nn.normalize_keys(severity_to_style))
-        self.isatty = terminal_supports_colors(stream) if isatty is None else isatty
-        if show_hostname:
-            self.hostname = find_hostname()
-        if show_name:
-            self.pid = os.getpid()
-
-    def emit(self, record):
-        """
-        Emit a formatted log record to the configured stream.
-
-        Called by the :py:mod:`logging` module for each log record. Formats the
-        log message and passes it onto :py:func:`logging.StreamHandler.emit()`.
-        """
-        # If the message doesn't need to be rendered we take a shortcut.
-        if record.levelno < self.level:
-            return
-        # Make sure the log record's message is a string.
-        message = coerce_string(record.msg)
-        # Colorize the log message.
-        message_style = self.nn.get(self.severity_to_style, record.levelname)
-        if message_style:
-            message = self.wrap_style(text=message, **message_style)
-        # Compose the formatted log message as:
-        #   timestamp hostname name severity message
-        # Everything except the message text is optional.
-        parts = []
-        if self.show_timestamps:
-            parts.append(self.wrap_style(text=self.render_timestamp(record.created), color='green'))
-        if self.show_hostname:
-            parts.append(self.wrap_style(text=self.hostname, color='magenta'))
-        if self.show_name:
-            parts.append(self.wrap_style(text=self.render_name(record.name), color='blue'))
-        if self.show_severity:
-            parts.append(self.wrap_style(text=record.levelname, color='black', bold=True))
-        parts.append(message)
-        message = ' '.join(parts)
-        # Copy the original record so we don't break other handlers.
-        record = copy.copy(record)
-        record.msg = message
-        # Use the built-in stream handler to handle output.
-        logging.StreamHandler.emit(self, record)
-
-    def render_timestamp(self, created):
-        """
-        Format the time stamp of the log record.
-
-        Receives the time when the LogRecord was created (as returned by
-        :py:func:`time.time()`). By default this returns a string in the format
-        ``YYYY-MM-DD HH:MM:SS``.
-
-        Subclasses can override this method to customize date/time formatting.
-        """
-        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created))
-
-    def render_name(self, name):
-        """
-        Format the name of the logger.
-
-        Receives the name of the logger used to log the call. By default this
-        returns a string in the format ``NAME[PID]`` (where PID is the process
-        ID reported by :py:func:`os.getpid()`).
-
-        Subclasses can override this method to customize logger name formatting.
-        """
-        return '%s[%s]' % (name, self.pid)
-
-    def wrap_style(self, text, **kw):
-        """Wrapper for :py:func:`ansi_text()` that's disabled when ``isatty=False``."""
-        return ansi_wrap(text, **kw) if self.isatty else text
