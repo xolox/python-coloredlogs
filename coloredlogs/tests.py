@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 13, 2015
+# Last Change: November 14, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """Automated tests for the `coloredlogs` package."""
@@ -23,8 +23,25 @@ from humanfriendly.terminal import ansi_wrap
 # The module we're testing.
 import coloredlogs
 import coloredlogs.cli
-import coloredlogs.converter
-import coloredlogs.syslog
+from coloredlogs import (
+    CHROOT_FILES,
+    ColoredStreamHandler,
+    NameNormalizer,
+    decrease_verbosity,
+    find_defined_levels,
+    find_handler,
+    find_hostname,
+    find_program_name,
+    get_level,
+    increase_verbosity,
+    install,
+    is_verbose,
+    parse_encoded_styles,
+    set_level,
+    walk_propagation_tree,
+)
+from coloredlogs.syslog import SystemLogging
+from coloredlogs.converter import capture, convert
 
 # External test dependencies.
 from capturer import CaptureOutput
@@ -44,72 +61,61 @@ PLAIN_TEXT_PATTERN = re.compile(r'''
 ''', re.VERBOSE)
 
 
+def setUpModule():
+    """Speed up the tests by disabling the demo's artificial delay."""
+    os.environ['COLOREDLOGS_DEMO_DELAY'] = '0'
+    coloredlogs.demo.DEMO_DELAY = 0
+
+
 class ColoredLogsTestCase(unittest.TestCase):
 
     """Container for the `coloredlogs` tests."""
 
-    def setUp(self):
-        """Start each test from a known state."""
-        # Reset global state.
-        coloredlogs.install()
-        coloredlogs.set_level(logging.INFO)
-        # Reset local state.
-        self.stream = StringIO()
-        self.handler = coloredlogs.ColoredStreamHandler(stream=self.stream, isatty=False)
-        self.logger_name = random_string(25)
-        self.logger = VerboseLogger(self.logger_name)
-        self.logger.addHandler(self.handler)
-        # Speed up the tests by disabling the demo's artificial delay.
-        os.environ['COLOREDLOGS_DEMO_DELAY'] = '0'
-        coloredlogs.demo.DEMO_DELAY = 0
-
     def test_find_hostname(self):
-        """Make sure :func:`~coloredlogs.find_hostname()` works correctly."""
-        assert coloredlogs.find_hostname()
+        """Make sure :func:`~find_hostname()` works correctly."""
+        assert find_hostname()
         # Create a temporary file as a placeholder for e.g. /etc/debian_chroot.
         fd, temporary_file = tempfile.mkstemp()
         try:
             with open(temporary_file, 'w') as handle:
                 handle.write('first line\n')
                 handle.write('second line\n')
-            coloredlogs.CHROOT_FILES.insert(0, temporary_file)
+            CHROOT_FILES.insert(0, temporary_file)
             # Make sure the chroot file is being read.
-            assert coloredlogs.find_hostname() == 'first line'
+            assert find_hostname() == 'first line'
         finally:
             # Clean up.
-            coloredlogs.CHROOT_FILES.pop(0)
+            CHROOT_FILES.pop(0)
             os.unlink(temporary_file)
         # Test that unreadable chroot files don't break coloredlogs.
         try:
-            coloredlogs.CHROOT_FILES.insert(0, temporary_file)
+            CHROOT_FILES.insert(0, temporary_file)
             # Make sure that a usable value is still produced.
-            assert coloredlogs.find_hostname()
+            assert find_hostname()
         finally:
             # Clean up.
-            coloredlogs.CHROOT_FILES.pop(0)
+            CHROOT_FILES.pop(0)
 
     def test_host_name_filter(self):
-        """Make sure :func:`coloredlogs.install()` integrates with :class:`~coloredlogs.HostNameFilter()`."""
-        coloredlogs.root_handler = None
-        coloredlogs.install(fmt='%(hostname)s')
+        """Make sure :func:`install()` integrates with :class:`~coloredlogs.HostNameFilter()`."""
+        install(fmt='%(hostname)s')
         with CaptureOutput() as capturer:
             logging.info("A truly insignificant message ..")
             output = capturer.get_text()
-            assert coloredlogs.find_hostname() in output
+            assert find_hostname() in output
 
     def test_program_name_filter(self):
-        """Make sure :func:`coloredlogs.install()` integrates with :class:`~coloredlogs.ProgramNameFilter()`."""
-        coloredlogs.root_handler = None
-        coloredlogs.install(fmt='%(programname)s')
+        """Make sure :func:`install()` integrates with :class:`~coloredlogs.ProgramNameFilter()`."""
+        install(fmt='%(programname)s')
         with CaptureOutput() as capturer:
             logging.info("A truly insignificant message ..")
             output = capturer.get_text()
-            assert coloredlogs.find_program_name() in output
+            assert find_program_name() in output
 
     def test_system_logging(self):
         """Make sure the :mod:`coloredlogs.syslog` module works."""
         expected_message = random_string(50)
-        with coloredlogs.syslog.SystemLogging(programname='coloredlogs-test-suite') as syslog:
+        with SystemLogging(programname='coloredlogs-test-suite') as syslog:
             logging.info("%s", expected_message)
             if syslog and os.path.isfile('/var/log/syslog'):
                 with open('/var/log/syslog') as handle:
@@ -117,7 +123,7 @@ class ColoredLogsTestCase(unittest.TestCase):
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
-        nn = coloredlogs.NameNormalizer()
+        nn = NameNormalizer()
         for canonical_name in ['debug', 'info', 'warning', 'error', 'critical']:
             assert nn.normalize_name(canonical_name) == canonical_name
             assert nn.normalize_name(canonical_name.upper()) == canonical_name
@@ -127,7 +133,7 @@ class ColoredLogsTestCase(unittest.TestCase):
     def test_style_parsing(self):
         """Make sure :func:`~coloredlogs.parse_encoded_styles()` works as intended."""
         encoded_styles = 'debug=green;warning=yellow;error=red;critical=red,bold'
-        decoded_styles = coloredlogs.parse_encoded_styles(encoded_styles, normalize_key=lambda k: k.upper())
+        decoded_styles = parse_encoded_styles(encoded_styles, normalize_key=lambda k: k.upper())
         assert sorted(decoded_styles.keys()) == sorted(['debug', 'warning', 'error', 'critical'])
         assert decoded_styles['debug']['color'] == 'green'
         assert decoded_styles['warning']['color'] == 'yellow'
@@ -137,38 +143,52 @@ class ColoredLogsTestCase(unittest.TestCase):
 
     def test_is_verbose(self):
         """Make sure is_verbose() does what it should :-)."""
-        assert coloredlogs.root_handler.level == logging.INFO
-        assert not coloredlogs.is_verbose()
-        coloredlogs.set_level(logging.VERBOSE)
-        assert coloredlogs.is_verbose()
+        set_level(logging.INFO)
+        assert not is_verbose()
+        set_level(logging.DEBUG)
+        assert is_verbose()
+        set_level(logging.VERBOSE)
+        assert is_verbose()
 
     def test_increase_verbosity(self):
         """Make sure increase_verbosity() respects default and custom levels."""
-        assert coloredlogs.root_handler.level == logging.INFO
-        coloredlogs.increase_verbosity()
-        assert coloredlogs.root_handler.level == logging.VERBOSE
-        coloredlogs.increase_verbosity()
-        assert coloredlogs.root_handler.level == logging.DEBUG
-        coloredlogs.increase_verbosity()
-        assert coloredlogs.root_handler.level == logging.NOTSET
-        coloredlogs.increase_verbosity()
-        assert coloredlogs.root_handler.level == logging.NOTSET
+        # Start from a known state.
+        set_level(logging.INFO)
+        assert get_level() == logging.INFO
+        # INFO -> VERBOSE.
+        increase_verbosity()
+        assert get_level() == logging.VERBOSE
+        # VERBOSE -> DEBUG.
+        increase_verbosity()
+        assert get_level() == logging.DEBUG
+        # DEBUG -> NOTSET.
+        increase_verbosity()
+        assert get_level() == logging.NOTSET
+        # NOTSET -> NOTSET.
+        increase_verbosity()
+        assert get_level() == logging.NOTSET
 
     def test_decrease_verbosity(self):
         """Make sure decrease_verbosity() respects default and custom levels."""
-        assert coloredlogs.root_handler.level == logging.INFO
-        coloredlogs.decrease_verbosity()
-        assert coloredlogs.root_handler.level == logging.WARNING
-        coloredlogs.decrease_verbosity()
-        assert coloredlogs.root_handler.level == logging.ERROR
-        coloredlogs.decrease_verbosity()
-        assert coloredlogs.root_handler.level == logging.CRITICAL
-        coloredlogs.decrease_verbosity()
-        assert coloredlogs.root_handler.level == logging.CRITICAL
+        # Start from a known state.
+        set_level(logging.INFO)
+        assert get_level() == logging.INFO
+        # INFO -> WARNING.
+        decrease_verbosity()
+        assert get_level() == logging.WARNING
+        # WARNING -> ERROR.
+        decrease_verbosity()
+        assert get_level() == logging.ERROR
+        # ERROR -> CRITICAL.
+        decrease_verbosity()
+        assert get_level() == logging.CRITICAL
+        # CRITICAL -> CRITICAL.
+        decrease_verbosity()
+        assert get_level() == logging.CRITICAL
 
     def test_level_discovery(self):
         """Make sure find_defined_levels() always reports the levels defined in Python's standard library."""
-        defined_levels = coloredlogs.find_defined_levels()
+        defined_levels = find_defined_levels()
         level_values = defined_levels.values()
         for number in (0, 10, 20, 30, 40, 50):
             assert number in level_values
@@ -177,11 +197,11 @@ class ColoredLogsTestCase(unittest.TestCase):
         """Make sure walk_propagation_tree() properly walks the tree of loggers."""
         root, parent, child, grand_child = self.get_logger_tree()
         # Check the default mode of operation.
-        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
+        loggers = list(walk_propagation_tree(grand_child))
         assert loggers == [grand_child, child, parent, root]
         # Now change the propagation (non-default mode of operation).
         child.propagate = False
-        loggers = list(coloredlogs.walk_propagation_tree(grand_child))
+        loggers = list(walk_propagation_tree(grand_child))
         assert loggers == [grand_child, child]
 
     def test_find_handler(self):
@@ -193,9 +213,11 @@ class ColoredLogsTestCase(unittest.TestCase):
         child.addHandler(stream_handler)
         parent.addHandler(syslog_handler)
         # Make sure the first matching handler is returned.
-        assert coloredlogs.find_handler(grand_child) is stream_handler
+        matched_handler, matched_logger = find_handler(grand_child, lambda h: isinstance(h, logging.Handler))
+        assert matched_handler is stream_handler
         # Make sure the first matching handler of the given type is returned.
-        assert coloredlogs.find_handler(child, logging.handlers.SysLogHandler) is syslog_handler
+        matched_handler, matched_logger = find_handler(child, lambda h: isinstance(h, logging.handlers.SysLogHandler))
+        assert matched_handler is syslog_handler
 
     def get_logger_tree(self):
         """Create and return a tree of loggers."""
@@ -215,34 +237,40 @@ class ColoredLogsTestCase(unittest.TestCase):
     def test_missing_isatty_method(self):
         """Make sure ColoredStreamHandler() doesn't break because of a missing isatty() method."""
         # This should not raise any exceptions in the constructor.
-        coloredlogs.ColoredStreamHandler(stream=object())
+        ColoredStreamHandler(stream=object())
 
     def test_non_string_messages(self):
         """Make sure ColoredStreamHandler() doesn't break because of non-string messages."""
         # This should not raise any exceptions; all of these values can be cast to strings.
+        logger = logging.getLogger(random_string(25))
+        logger.addHandler(ColoredStreamHandler())
         for value in (True, False, 0, 42, (), []):
-            self.logger.info(value)
+            logger.info(value)
 
     def test_plain_text_output_format(self):
         """Inspect the plain text output of coloredlogs."""
+        stream = StringIO()
+        handler = ColoredStreamHandler(stream=stream, isatty=False)
+        logger = VerboseLogger(random_string(25))
+        logger.addHandler(handler)
         # Test that filtering on severity works.
-        self.handler.level = logging.INFO
-        self.logger.debug("No one should see this message.")
-        assert len(self.stream.getvalue().strip()) == 0
+        handler.level = logging.INFO
+        logger.debug("No one should see this message.")
+        assert len(stream.getvalue().strip()) == 0
         # Test that the default output format looks okay in plain text.
-        self.handler.level = logging.DEBUG
-        for method, severity in ((self.logger.debug, 'DEBUG'),
-                                 (self.logger.info, 'INFO'),
-                                 (self.logger.verbose, 'VERBOSE'),
-                                 (self.logger.warning, 'WARN'),
-                                 (self.logger.error, 'ERROR'),
-                                 (self.logger.critical, 'CRITICAL')):
+        handler.level = logging.NOTSET
+        for method, severity in ((logger.debug, 'DEBUG'),
+                                 (logger.info, 'INFO'),
+                                 (logger.verbose, 'VERBOSE'),
+                                 (logger.warning, 'WARN'),
+                                 (logger.error, 'ERROR'),
+                                 (logger.critical, 'CRITICAL')):
             # Prepare the text.
             text = "This is a message with severity %r." % severity.lower()
             # Log the message with the given severity.
             method(text)
             # Get the line of output generated by the handler.
-            output = self.stream.getvalue()
+            output = stream.getvalue()
             lines = output.splitlines()
             last_line = lines[-1]
             assert text in last_line
@@ -253,7 +281,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         """Check the conversion from ANSI escape sequences to HTML."""
         ansi_encoded_text = 'I like %s - www.eelstheband.com' % ansi_wrap('birds', bold=True, color='blue')
         assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
-        html_encoded_text = coloredlogs.converter.convert(ansi_encoded_text)
+        html_encoded_text = convert(ansi_encoded_text)
         assert html_encoded_text == (
             'I&nbsp;like&nbsp;<span style="font-weight: bold; color: blue;">birds</span>&nbsp;-&nbsp;'
             '<a href="http://www.eelstheband.com" style="color: inherit;">www.eelstheband.com</a>'
@@ -262,7 +290,7 @@ class ColoredLogsTestCase(unittest.TestCase):
     def test_output_interception(self):
         """Test capturing of output from external commands."""
         expected_output = 'testing, 1, 2, 3 ..'
-        assert coloredlogs.converter.capture(['sh', '-c', 'echo -n %s' % expected_output]) == expected_output
+        assert capture(['sh', '-c', 'echo -n %s' % expected_output]) == expected_output
 
     def test_cli_demo(self):
         """Test the command line colored logging demonstration."""

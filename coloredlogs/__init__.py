@@ -1,16 +1,20 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 13, 2015
+# Last Change: November 14, 2015
 # URL: https://coloredlogs.readthedocs.org
 
 """
 Colored terminal output for Python's :mod:`logging` module.
 
-The :mod:`coloredlogs` module enables colored terminal output for Python's
-:mod:`logging` module. The easiest way to get started is by importing
-:mod:`coloredlogs` and calling :mod:`coloredlogs.install()` (similar to
-:func:`logging.basicConfig()`):
+.. contents::
+   :local:
+
+Getting started
+===============
+
+The easiest way to get started is by importing :mod:`coloredlogs` and calling
+:mod:`coloredlogs.install()` (similar to :func:`logging.basicConfig()`):
 
  >>> import coloredlogs, logging
  >>> coloredlogs.install(level='DEBUG')
@@ -21,10 +25,10 @@ The :mod:`coloredlogs` module enables colored terminal output for Python's
 The :mod:`~coloredlogs.install()` function creates a :class:`ColoredFormatter`
 that injects `ANSI escape sequences`_ into the log output.
 
-.. note:: Old versions of :mod:`coloredlogs` used :class:`ColoredStreamHandler`
-          instead, that class now remains only for backwards compatibility (it
-          hard codes the log format so :class:`ColoredFormatter` is much more
-          flexible).
+.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+
+Environment variables
+=====================
 
 The following environment variables can be used to configure the
 :mod:`coloredlogs` module without writing any code:
@@ -39,9 +43,19 @@ Environment variable           Default value                 Type of value
 ``$COLOREDLOGS_FIELD_STYLES``  :data:`DEFAULT_FIELD_STYLES`  see :func:`parse_encoded_styles()`
 =============================  ============================  ==================================
 
-We'll take a look at some examples of how you can customize :mod:`coloredlogs`
-using environment variables. The simplest customization is to change the log
-format, for example:
+Examples of customization
+=========================
+
+Here we'll take a look at some examples of how you can customize
+:mod:`coloredlogs` using environment variables.
+
+.. contents::
+   :local:
+
+Changing the log format
+-----------------------
+
+The simplest customization is to change the log format, for example:
 
 .. code-block:: sh
 
@@ -58,6 +72,9 @@ black background and white text):
    :alt: Screen shot of colored logging with custom log format.
    :align: center
    :width: 80%
+
+Changing the date/time format
+-----------------------------
 
 You can also change the date/time format, for example you can remove the date
 part and leave only the time:
@@ -77,6 +94,9 @@ Here's what it looks like in a terminal:
    :alt: Screen shot of colored logging with custom date/time format.
    :align: center
    :width: 80%
+
+Changing the colors/styles
+--------------------------
 
 Finally you can customize the colors and text styles that are used:
 
@@ -99,11 +119,12 @@ following screen shot:
    :align: center
    :width: 80%
 
-.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+Classes and functions
+=====================
 """
 
 # Semi-standard module versioning.
-__version__ = '3.5'
+__version__ = '4.0'
 
 # Standard library modules.
 import collections
@@ -188,9 +209,6 @@ call (intended for :class:`ColoredStreamHandler`) into a log format string that
 can be used by :class:`ColoredFormatter`.
 """
 
-# The logging handler attached to the root logger (initialized by install()).
-root_handler = None
-
 # In coloredlogs 1.0 the coloredlogs.ansi_text() function was moved to
 # humanfriendly.ansi_wrap(). Because the function signature remained the
 # same the following alias enables us to preserve backwards compatibility.
@@ -203,6 +221,8 @@ def install(level=None, **kw):
 
     :param level: The default logging level (an integer or a string with a
                   level name, defaults to :data:`logging.INFO`).
+    :param logger: The logger to which the stream handler should be attached (a
+                   :class:`~logging.Logger` object, defaults to the root logger).
     :param fmt: Set the logging format (a string like those accepted by
                 :class:`~logging.Formatter`, defaults to the result of
                 :func:`generate_log_format()` for backwards compatibility).
@@ -218,7 +238,11 @@ def install(level=None, **kw):
                    :data:`False` to use a normal :class:`~logging.Formatter`
                    (defaults to auto-detection using
                    :func:`~humanfriendly.terminal.terminal_supports_colors()`).
-    :param use_chroot: Refer to :func:`find_hostname()`.
+    :param reconfigure: If :data:`True` (the default) multiple calls to
+                        :func:`coloredlogs.install()` will each override
+                        the previous configuration.
+    :param use_chroot: Refer to :class:`HostNameFilter`.
+    :param programname: Refer to :class:`ProgramNameFilter`.
     :param syslog: If :data:`True` then :func:`~coloredlogs.syslog.enable_system_logging()`
                    will be called without arguments (defaults to :data:`False`).
 
@@ -226,40 +250,52 @@ def install(level=None, **kw):
     :func:`logging.basicConfig()`, both functions take a lot of optional
     keyword arguments but try to do the right thing by default:
 
-    1. A :class:`~logging.StreamHandler` is created and connected to the stream
+    1. If `reconfigure` is :data:`True` (it is by default) and an existing
+       :class:`~logging.StreamHandler` is found that is connected to either
+       :data:`~sys.stdout` or :data:`~sys.stderr` the handler will be removed.
+       This means that first calling :func:`logging.basicConfig()` and then
+       calling :func:`coloredlogs.install()` will replace the stream handler
+       instead of adding a duplicate stream handler. If `reconfigure` is
+       :data:`False` and an existing handler is found no further steps are
+       taken (to avoid installing a duplicate stream handler).
+
+    2. A :class:`~logging.StreamHandler` is created and connected to the stream
        given by the `stream` keyword argument (:data:`sys.stderr` by
        default). The stream handler's level is set to the value of the `level`
        keyword argument.
 
-    2. A :class:`ColoredFormatter` is created if the `isatty` keyword argument
+    3. A :class:`ColoredFormatter` is created if the `isatty` keyword argument
        allows it (or auto-detection allows it), otherwise a normal
        :class:`~logging.Formatter` is created. The formatter is initialized
        with the `fmt` and `datefmt` keyword arguments (or their computed
        defaults).
 
-    3. If the format string contains ``%(hostname)s`` a :class:`HostNameFilter`
-       is created and added to the :class:`~logging.StreamHandler`.
+    4. :func:`HostNameFilter.install()` and :func:`ProgramNameFilter.install()`
+       are called to enable the use of additional fields in the log format.
 
-    4. The formatter is added to the handler and the handler is added to the
-       root logger. The root logger's level is set to :data:`logging.NOTSET` so
-       that handlers get to decide which records they filter. This allows
-       things like :data:`~logging.INFO` logging to the terminal but
-       :data:`~logging.DEBUG` logging to a file.
-
-    .. note:: Calling :func:`install()` more than once will never install more
-              than one handler, i.e. you won't get duplicate log messages. What
-              happens instead is that the first call goes through all of the
-              steps above while all but the first call will just change the log
-              level of the configuration defined on the first call.
+    5. The formatter is added to the handler and the handler is added to the
+       logger. The logger's level is set to :data:`logging.NOTSET` so that each
+       handler gets to decide which records they filter. This makes it possible
+       to have controllable verbosity on the terminal while logging at full
+       verbosity to the system log or a file.
     """
-    global root_handler
-    if not root_handler:
+    logger = kw.get('logger') or logging.getLogger()
+    reconfigure = kw.get('reconfigure', True)
+    stream = kw.get('stream', sys.stderr)
+    # Remove any existing stream handler that writes to stdout or stderr, even
+    # if the stream handler wasn't created by coloredlogs because multiple
+    # stream handlers (in the same hierarchy) writing to stdout or stderr would
+    # create duplicate output.
+    standard_streams = (sys.stdout, sys.stderr)
+    match_streams = standard_streams if stream in standard_streams else (stream,)
+    match_handler = lambda handler: match_stream_handler(handler, match_streams)
+    handler, logger = replace_handler(logger, match_handler, reconfigure)
+    # Make sure reconfiguration is allowed or not relevant.
+    if not (handler and not reconfigure):
         # Make it easy to enable system logging.
         if kw.get('syslog', False):
             from coloredlogs import syslog
             syslog.enable_system_logging()
-        # Find out to which stream we'll be logging.
-        stream = kw.get('stream', sys.stderr)
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
         if use_colors or use_colors is None:
@@ -277,10 +313,10 @@ def install(level=None, **kw):
                 # Auto-detect terminal support on other platforms.
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
-        root_handler = logging.StreamHandler(stream)
+        handler = logging.StreamHandler(stream)
         if level is None:
             level = os.environ.get('COLOREDLOGS_LOG_LEVEL') or 'INFO'
-        root_handler.setLevel(level_to_number(level))
+        handler.setLevel(level_to_number(level))
         # Prepare the arguments to the formatter. The caller is
         # allowed to customize `fmt' and/or `datefmt' as desired.
         formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
@@ -300,13 +336,13 @@ def install(level=None, **kw):
             formatter_options['datefmt'] = os.environ.get('COLOREDLOGS_DATE_FORMAT') or DEFAULT_DATE_FORMAT
         # Do we need to make %(hostname) available to the formatter?
         HostNameFilter.install(
-            handler=root_handler,
+            handler=handler,
             fmt=formatter_options['fmt'],
             use_chroot=kw.get('use_chroot', True),
         )
         # Do we need to make %(programname) available to the formatter?
         ProgramNameFilter.install(
-            handler=root_handler,
+            handler=handler,
             fmt=formatter_options['fmt'],
             programname=kw.get('programname'),
         )
@@ -339,15 +375,10 @@ def install(level=None, **kw):
                     formatter_options['field_styles'] = parse_encoded_styles(override)
         # Create a (possibly colored) formatter.
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
-        root_handler.setFormatter(formatter_type(**formatter_options))
+        handler.setFormatter(formatter_type(**formatter_options))
         # Install the stream handler.
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.NOTSET)
-        root_logger.addHandler(root_handler)
-    elif level is not None:
-        # Always set the root handler's log level to the level given to the
-        # most recent call of coloredlogs.install() (if a level was given).
-        root_handler.setLevel(level_to_number(level))
+        logger.setLevel(logging.NOTSET)
+        logger.addHandler(handler)
 
 
 def increase_verbosity():
@@ -389,19 +420,28 @@ def get_level():
     """
     Get the logging level of the root handler.
 
-    :returns: The logging level of the root handler (an integer).
+    :returns: The logging level of the root handler (an integer) or
+              :data:`logging.INFO` (if no root handler exists).
     """
-    install()
-    return root_handler.level
+    handler, logger = find_handler(logging.getLogger(), match_stream_handler)
+    return handler.level if handler else logging.INFO
 
 
 def set_level(level):
     """
     Set the logging level of the root handler.
 
-    :param level: The logging level to filter on (an integer).
+    :param level: The logging level to filter on (an integer or string).
+
+    If no root handler exists yet this automatically calls :func:`install()`.
     """
-    install(level=level)
+    handler, logger = find_handler(logging.getLogger(), match_stream_handler)
+    if handler:
+        # Change the level of the existing handler.
+        handler.setLevel(level_to_number(level))
+    else:
+        # Create a new handler with the given level.
+        install(level=level)
 
 
 def find_defined_levels():
@@ -579,20 +619,49 @@ def find_program_name():
             or 'python')
 
 
-def find_handler(logger=None, type=None):
+def replace_handler(logger, match_handler, reconfigure):
     """
-    Check whether a logger has a handler.
+    Prepare to replace a handler.
 
-    :param logger: The logger to check (a :class:`logging.Logger`
-                   object, defaults to the root logger).
-    :param type: The type of handler to look for (a subclass of
-                 :class:`logging.Handler` or :data:`None` which
-                 means no type matching is performed).
-    :returns: The :class:`~logging.Handler` connected to the logger (or one of
-              its parent loggers) or :data:`None` if the logger and its parents
-              don't have a (matching type of) handler.
+    :param logger: Refer to :func:`find_handler()`.
+    :param match_handler: Refer to :func:`find_handler()`.
+    :param reconfigure: :data:`True` if an existing handler should be replaced,
+                        :data:`False` otherwise.
+    :returns: A tuple of two values:
 
-    This function finds a handler of the given type attached to the given
+              1. The matched :class:`~logging.Handler` object or :data:`None`
+                 if no handler was matched.
+              2. The :class:`~logging.Logger` to which the matched handler was
+                 attached or the logger given to :func:`replace_handler()`.
+    """
+    handler, other_logger = find_handler(logger, match_handler)
+    if handler and other_logger and reconfigure:
+        # Remove the existing handler from the logger that its attached to
+        # so that we can install a new handler that behaves differently.
+        other_logger.removeHandler(handler)
+        # Switch to the logger that the existing handler was attached to so
+        # that reconfiguration doesn't narrow the scope of logging.
+        logger = other_logger
+    return handler, logger
+
+
+def find_handler(logger, match_handler):
+    """
+    Find a (specific type of) handler in the propagation tree of a logger.
+
+    :param logger: The logger to check (a :class:`~logging.Logger` object).
+    :param match_handler: A callable that receives a :class:`~logging.Handler`
+                          object and returns :data:`True` to match a handler or
+                          :data:`False` to skip that handler and continue
+                          searching for a match.
+    :returns: A tuple of two values:
+
+              1. The matched :class:`~logging.Handler` object or :data:`None`
+                 if no handler was matched.
+              2. The :class:`~logging.Logger` object to which the handler is
+                 attached or :data:`None` if no handler was matched.
+
+    This function finds a logging handler (of the given type) attached to a
     logger or one of its parents (see :func:`walk_propagation_tree()`). It uses
     the undocumented :class:`~logging.Logger.handlers` attribute to find
     handlers attached to a logger, however it won't raise an exception if the
@@ -605,15 +674,32 @@ def find_handler(logger=None, type=None):
       handlers but :attr:`~logging.Logger.propagate` is enabled and the logger
       has a parent logger that does have a handler attached.
     """
-    logger = logger or logging.getLogger()
     try:
-        for logger_node in walk_propagation_tree(logger):
-            for handler in logger_node.handlers:
-                if isinstance(handler, type or logging.Handler):
-                    return handler
+        for logger in walk_propagation_tree(logger):
+            for handler in logger.handlers:
+                if match_handler(handler):
+                    return handler, logger
     except AttributeError:
-        # If the logic above fails we shouldn't raise an exception.
-        return None
+        # If our use of undocumented implementation details (.handlers and
+        # .formatter) breaks we don't want it to blow up in our face.
+        pass
+    return None, None
+
+
+def match_stream_handler(handler, streams=[]):
+    """
+    Identify stream handlers writing to the given streams(s).
+
+    :param handler: The :class:`~logging.Handler` class to check.
+    :param streams: A sequence of streams to match (defaults to matching
+                    :data:`~sys.stdout` and :data:`~sys.stderr`).
+    :returns: :data:`True` if the handler is a :class:`~logging.StreamHandler`
+              logging to the given stream(s), :data:`False` otherwise.
+
+    This function can be used as a callback for :func:`find_handler()`.
+    """
+    return (isinstance(handler, logging.StreamHandler) and
+            getattr(handler, 'stream') in (streams or (sys.stdout, sys.stderr)))
 
 
 def walk_propagation_tree(logger):
@@ -658,8 +744,8 @@ class ColoredFormatter(logging.Formatter):
         :param field_styles: A dictionary with custom field styles
                              (defaults to :data:`DEFAULT_FIELD_STYLES`).
 
-        This initializer uses :func:`colorize_log_format()` to inject ANSI
-        escape sequences in the log format string before it is passed to the
+        This initializer uses :func:`colorize_format()` to inject ANSI escape
+        sequences in the log format string before it is passed to the
         initializer of the base class.
         """
         self.nn = NameNormalizer()
@@ -720,7 +806,7 @@ class ColoredFormatter(logging.Formatter):
         Apply level-specific styling to log records.
 
         :param record: A :class:`~logging.LogRecord` object.
-        :returns: The result of :func:`~logging.Formatter.format()`.
+        :returns: The result of :func:`logging.Formatter.format()`.
 
         This method injects ANSI escape sequences that are specific to the
         level of each log record (because such logic cannot be expressed in the
