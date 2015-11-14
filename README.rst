@@ -23,10 +23,8 @@ defined by my verboselogs_ package: if you install both `coloredlogs` and
 `verboselogs` it will Just Work (`verboselogs` is of course not required to use
 `coloredlogs`).
 
-The logging handler does not use ANSI escape sequences when output redirection
-applies (for example when the standard error stream is being redirected to a
-file or another program) so if you like the format (see below) you can use it
-for your log files as well.
+.. contents::
+   :local:
 
 Format of log messages
 ----------------------
@@ -69,19 +67,7 @@ Here's an example of how easy it is to get started:
    logger.error("this is an error message")
    logger.critical("this is a critical message")
 
-For people who like Vim
------------------------
-
-Although the logging handler was originally meant for interactive use, it can
-also be used to generate log files. In this case the ANSI escape sequences are
-not used so the log file will contain plain text and no colors. If you use Vim_
-and `coloredlogs` and would like to view your log files in color, you can try
-the two Vim scripts included in the `coloredlogs` source distributions and git
-repository:
-
-.. image:: https://peterodding.com/code/python/coloredlogs/screenshots/vim.png
-
-For people who like cron
+Colored output from cron
 ------------------------
 
 When `coloredlogs` is used in a cron_ job, the output that's e-mailed to you by
@@ -135,4 +121,3 @@ This software is licensed under the `MIT license`_.
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
-.. _Vim: http://www.vim.org/
