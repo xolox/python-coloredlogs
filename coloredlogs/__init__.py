@@ -331,7 +331,7 @@ def install(level=None, **kw):
                     formatter_options[name] = value
         # Create a (possibly colored) formatter.
         if not use_colors:
-            formatter_options.pop('overridefmt')
+            formatter_options.pop('overridefmt', None)
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
 
         handler.setFormatter(formatter_type(**formatter_options))
@@ -701,7 +701,7 @@ class ColoredFormatter(logging.Formatter):
                                 _datefmt)
 
                 except Exception:
-                    self.formatters.pop(level)
+                    self.formatters.pop(level, None)
 
         logging.Formatter.__init__(self, self.colorize_format(fmt), datefmt)
 
