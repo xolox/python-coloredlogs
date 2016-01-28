@@ -55,8 +55,9 @@ def demonstrate_colored_logging_with_different_formatters():
         "INFO": {'fmt': "%(asctime)s - %(levelname)s - "
                         "%(module)s - %(message)s"},
         "DEBUG": {'fmt': "%(asctime)s - %(levelname)s - "
-                     "%(module)s::%(funcName)s @ %(lineno)d - %(message)s"},
-        "WARNING": {'fmt': "%(message)s"}
+                         "%(module)s::%(funcName)s @ %(lineno)d - %(message)s"},
+        "WARNING": {'fmt': "%(asctime)s - %(message)s"}
+        # "WARNING": {}
     }
     FIELD_STYLES = dict(
             asctime=dict(color='green'),

@@ -689,19 +689,19 @@ class ColoredFormatter(logging.Formatter):
         # Rewrite the format string to inject ANSI escape sequences and
         # initialize the superclass with the rewritten format string.
         if overridefmt is not None and isinstance(overridefmt, dict):
-            try:
-                for level in ['INFO', 'WARNING', 'DEBUG', 'CRITICAL', 'ERROR']:
+
+            for level in ['INFO', 'WARNING', 'DEBUG',
+                          'CRITICAL', 'ERROR', 'VERBOSE']:
+                try:
                     if overridefmt.get(level) is not None:
-                        _fmt = overridefmt[level].get('fmt')
-                        _datefmt = overridefmt[level].get('datefmt')
+                        _fmt = overridefmt[level].get('fmt', fmt)
+                        _datefmt = overridefmt[level].get('datefmt', datefmt)
                         self.formatters[level] = logging.Formatter(
                                 self.colorize_format(_fmt),
                                 _datefmt)
 
-            except Exception:
-                self.formatters = {}
-                logging.Formatter.__init__(self, self.colorize_format(fmt), datefmt)
-
+                except Exception:
+                    self.formatters.pop(level)
 
         logging.Formatter.__init__(self, self.colorize_format(fmt), datefmt)
 
