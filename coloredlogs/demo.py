@@ -45,3 +45,58 @@ def demonstrate_colored_logging():
         logger.exception(e)
         time.sleep(DEMO_DELAY)
     logger.info("Done, exiting ..")
+
+
+def demonstrate_colored_logging_with_different_formatters():
+    """A simple demonstration of the `coloredlogs` package."""
+    # Initialize colored output to the terminal, default to the
+    # DEBUG logging level but enable the user the customize it.
+    FORMATS = {
+        "INFO": {'fmt': "%(asctime)s - %(levelname)s - "
+                        "%(module)s - %(message)s"},
+        "DEBUG": {'fmt': "%(asctime)s - %(levelname)s - "
+                     "%(module)s::%(funcName)s @ %(lineno)d - %(message)s"},
+        "WARNING": {'fmt': "%(message)s"}
+    }
+    FIELD_STYLES = dict(
+            asctime=dict(color='green'),
+            hostname=dict(color='magenta'),
+            levelname=dict(color='blue', bold=False),
+            programname=dict(color='cyan'),
+            name=dict(color='blue'),
+            module=dict(color='cyan'),
+            lineno=dict(color='magenta')
+    )
+
+    LEVEL_STYLES = {
+                'DEBUG':    {"color": "blue"},
+                'INFO':     {"color": "green"},
+                'WARNING':  {"color": "yellow"},
+                'ERROR':    {"color": "red"},
+                'CRITICAL': {"color": 'red'}
+            }
+    fmt = (
+            "%(asctime)s - %(levelname)s - "
+            "%(module)s - %(message)s"
+        )
+    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'DEBUG'),
+                        # fmt=fmt,
+                        field_styles=FIELD_STYLES,
+                        level_styles=LEVEL_STYLES,
+                        overridefmt=FORMATS)
+    # Print some examples with different timestamps.
+    for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
+        if hasattr(logger, level):
+            getattr(logger, level)("message with level %r", level)
+            time.sleep(DEMO_DELAY)
+    # Show how exceptions are logged.
+    try:
+        class RandomException(Exception):
+            pass
+        raise RandomException("Something went horribly wrong!")
+    except Exception as e:
+        logger.exception(e)
+        time.sleep(DEMO_DELAY)
+    logger.info("Done, exiting ..")
+# demonstrate_colored_logging()
+demonstrate_colored_logging_with_different_formatters()
