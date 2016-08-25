@@ -1,0 +1,1 @@
+import os; exec('try: __import__("coloredlogs").install() if os.environ.get("COLOREDLOGS_AUTOUSE") else None\nexcept ImportError: pass')

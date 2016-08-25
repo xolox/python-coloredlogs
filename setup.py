@@ -51,6 +51,8 @@ setup(name='coloredlogs',
       author='Peter Odding',
       author_email='peter@peterodding.com',
       packages=find_packages(),
+      data_files=[('lib/python{}/site-packages'.format(sys.version[:3]),
+                   ['coloredlogs.pth'])],
       entry_points=dict(console_scripts=[
           'coloredlogs = coloredlogs.cli:main',
       ]),
