@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 9, 2016
+# Last Change: October 10, 2016
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -123,9 +123,6 @@ Classes and functions
 =====================
 """
 
-# Semi-standard module versioning.
-__version__ = '5.1'
-
 # Standard library modules.
 import collections
 import copy
@@ -149,6 +146,9 @@ if NEED_COLORAMA:
         HAVE_COLORAMA = True
     except ImportError:
         pass
+
+# Semi-standard module versioning.
+__version__ = '5.1'
 
 DEFAULT_LOG_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s'
 """The default log format for :class:`ColoredFormatter` objects (a string)."""
@@ -542,9 +542,9 @@ def find_program_name():
               3. The string 'python'.
     """
     # Gotcha: sys.argv[0] is '-c' if Python is started with the -c option.
-    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '')
-            or (os.path.basename(sys.executable) if sys.executable else '')
-            or 'python')
+    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '') or
+            (os.path.basename(sys.executable) if sys.executable else '') or
+            'python')
 
 
 def replace_handler(logger, match_handler, reconfigure):

@@ -1,5 +1,5 @@
-language: python
 sudo: false
+language: python
 matrix:
   include:
   - os: linux
@@ -17,11 +17,15 @@ matrix:
 before_install:
   - scripts/mac-os-x-on-travis.sh
 install:
-  - pip install --requirement=requirements-flake8.txt
-  - pip install coveralls
-  - LC_ALL=C pip install .
+  - pip install pip-accel
+  - pip-accel install coveralls
+  - pip-accel install --requirement=requirements-checks.txt
+  - LC_ALL=C pip-accel install .
 script:
   - make check
-  - coverage run setup.py test
+  - make test
 after_success:
-  coveralls
+  - coveralls
+branches:
+  except:
+    - /^[0-9]/

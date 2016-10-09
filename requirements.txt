@@ -1,0 +1,1 @@
+humanfriendly >= 2.1

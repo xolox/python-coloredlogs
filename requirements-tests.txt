@@ -1,0 +1,3 @@
+capturer >= 2.2
+pytest >= 3.0.3
+verboselogs >= 1.5

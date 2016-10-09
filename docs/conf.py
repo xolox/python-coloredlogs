@@ -32,7 +32,7 @@ copyright = u'2015, Peter Odding'
 # built documents.
 
 # Find the package version and make it the release.
-from coloredlogs import __version__ as coloredlogs_version
+from coloredlogs import __version__ as coloredlogs_version  # noqa
 
 # The short X.Y version.
 version = '.'.join(coloredlogs_version.split('.')[:2])
@@ -57,15 +57,15 @@ pygments_style = 'sphinx'
 # Refer to the Python standard library.
 # From: http://twistedmatrix.com/trac/ticket/4582.
 intersphinx_mapping = dict(
-    python=('http://docs.python.org', None),
-    humanfriendly=('http://humanfriendly.readthedocs.org/en/latest', None),
+    python=('https://docs.python.org/2', None),
+    humanfriendly=('https://humanfriendly.readthedocs.io/en/latest', None),
 )
 
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'classic'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'coloredlogsdoc'
