@@ -124,7 +124,7 @@ Classes and functions
 """
 
 # Semi-standard module versioning.
-__version__ = '5.0'
+__version__ = '5.1'
 
 # Standard library modules.
 import collections

@@ -294,7 +294,6 @@ class ColoredLogsTestCase(unittest.TestCase):
         """Test capturing of output from external commands."""
         expected_output = 'testing, 1, 2, 3 ..'
         actual_output = capture(['echo', expected_output])
-        print("Actual output: %r" % actual_output)
         assert actual_output.strip() == expected_output.strip()
 
     def test_cli_demo(self):
