@@ -14,19 +14,17 @@ matrix:
     python: "pypy"
   - os: osx
     language: generic
-before_install:
-  - scripts/mac-os-x-on-travis.sh
 install:
-  - pip install pip-accel
-  - pip-accel install coveralls
-  - pip-accel install --requirement=requirements-checks.txt
-  - pip-accel install --requirement=requirements-tests.txt
-  - LC_ALL=C pip install .
+  - scripts/travis.sh pip install pip-accel
+  - scripts/travis.sh pip-accel install coveralls
+  - scripts/travis.sh pip-accel install --requirement=requirements-checks.txt
+  - scripts/travis.sh pip-accel install --requirement=requirements-tests.txt
+  - scripts/travis.sh LC_ALL=C pip install .
 script:
-  - make check
-  - make test
+  - scripts/travis.sh make check
+  - scripts/travis.sh make test
 after_success:
-  - coveralls
+  - scripts/travis.sh coveralls
 branches:
   except:
     - /^[0-9]/

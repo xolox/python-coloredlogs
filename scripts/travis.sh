@@ -11,7 +11,16 @@
 # [1] https://github.com/travis-ci/travis-ci/issues/216
 # [2] https://github.com/travis-ci/travis-ci/issues/2312
 
+# We define $VIRTUAL_ENV to match the default location on Travis CI.
+export VIRTUAL_ENV=$HOME/virtualenv
+
+# We are responsible for creating the environment on Mac OS X.
 if [ "$TRAVIS_OS_NAME" = osx ]; then
-  virtualenv ~/virtualenv
-  source ~/virtualenv/bin/activate
+  virtualenv "$VIRTUAL_ENV"
 fi
+
+# Activate the virtual environment before running the command.
+source "$VIRTUAL_ENV/bin/activate"
+
+# Execute the requested command inside the virtual environment.
+exec "$@"
