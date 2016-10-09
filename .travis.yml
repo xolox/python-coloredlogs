@@ -1,8 +1,5 @@
 language: python
 sudo: false
-os:
-  - linux
-  - osx
 matrix:
   include:
   - os: linux
