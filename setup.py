@@ -3,7 +3,7 @@
 """Setup script for the `coloredlogs` package."""
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 14, 2015
+# Last Change: October 9, 2016
 # URL: https://coloredlogs.readthedocs.org
 
 # Standard library modules.
@@ -36,7 +36,7 @@ with codecs.open(readme_file, 'r', 'utf-8') as handle:
 
 # External dependencies.
 install_requires = [
-    'humanfriendly >= 1.42',
+    'humanfriendly >= 2.1',
 ]
 
 # Conditional dependency (Windows only).

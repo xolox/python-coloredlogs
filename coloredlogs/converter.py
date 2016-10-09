@@ -14,6 +14,9 @@ import re
 import subprocess
 import tempfile
 
+# External dependencies.
+from humanfriendly.terminal import clean_terminal_output
+
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 EIGHT_COLOR_PALETTE = (
     'black',
@@ -59,7 +62,7 @@ def capture(command, encoding='UTF-8'):
             # If `script' succeeded we assume that it understood our command line
             # invocation which means it's the Linux implementation (in this case
             # we can use standard output instead of a temporary file).
-            return stdout.decode(encoding)
+            output = stdout.decode(encoding)
         else:
             # If `script' failed we assume that it didn't understand our command
             # line invocation which means it's the Mac OS X (BSD) implementation
@@ -70,9 +73,12 @@ def capture(command, encoding='UTF-8'):
                 command_line = ['script', '-q', temporary_file] + list(command)
                 subprocess.Popen(command_line, stdout=dev_null, stderr=dev_null).wait()
                 with codecs.open(temporary_file, 'r', encoding) as handle:
-                    return handle.read()
+                    output = handle.read()
             finally:
                 os.unlink(temporary_file)
+    # Clean up backspace and carriage return characters and the 'erase line'
+    # ANSI escape sequence and return the output as a Unicode string.
+    return u'\n'.join(clean_terminal_output(output))
 
 
 def convert(text):
