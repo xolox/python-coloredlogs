@@ -3,12 +3,6 @@ sudo: false
 os:
   - linux
   - osx
-python:
-  - "2.6"
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "pypy"
 matrix:
   include:
   - os: linux
