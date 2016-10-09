@@ -6,21 +6,15 @@
 #
 # As a workaround the build configuration file specifies a single Mac OS X job
 # with `language: generic' that runs this script from the `before_install'
-# section to create a Python virtual environment.
+# section to create and activate a Python virtual environment.
 #
 # [1] https://github.com/travis-ci/travis-ci/issues/216
 # [2] https://github.com/travis-ci/travis-ci/issues/2312
 
-# We define $VIRTUAL_ENV to match the default location on Travis CI.
-export VIRTUAL_ENV=$HOME/virtualenv
-
-# We are responsible for creating the environment on Mac OS X.
 if [ "$TRAVIS_OS_NAME" = osx ]; then
+  VIRTUAL_ENV="$HOME/virtualenv/python2.7"
   virtualenv "$VIRTUAL_ENV"
+  source "$VIRTUAL_ENV/bin/activate"
 fi
 
-# Activate the virtual environment before running the command.
-source "$VIRTUAL_ENV/bin/activate"
-
-# Execute the requested command inside the virtual environment.
 exec "$@"
