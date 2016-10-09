@@ -43,7 +43,7 @@ check: install
 	@scripts/check-code-style.sh
 
 test: install
-	@pip-accel install --quiet coverage pytest pytest-cov
+	@pip-accel install --quiet coverage pytest-cov --requirement=requirements-tests.txt
 	@py.test --cov --cov-report=html --no-cov-on-fail
 	@coverage report --fail-under=90
 
