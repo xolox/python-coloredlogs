@@ -17,4 +17,4 @@ if [ "$TRAVIS_OS_NAME" = osx ]; then
   source "$VIRTUAL_ENV/bin/activate"
 fi
 
-exec "$@"
+eval "$@"
