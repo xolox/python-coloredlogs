@@ -293,7 +293,9 @@ class ColoredLogsTestCase(unittest.TestCase):
     def test_output_interception(self):
         """Test capturing of output from external commands."""
         expected_output = 'testing, 1, 2, 3 ..'
-        assert capture(['sh', '-c', 'echo -n %s' % expected_output]) == expected_output
+        actual_output = capture(['sh', '-c', 'echo -n %s' % expected_output])
+        print("Actual output: %r" % actual_output)
+        assert actual_output == expected_output
 
     def test_cli_demo(self):
         """Test the command line colored logging demonstration."""
