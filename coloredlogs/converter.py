@@ -1,15 +1,18 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 9, 2015
+# Last Change: October 9, 2016
 # URL: https://coloredlogs.readthedocs.org
 
 """Convert text with ANSI escape sequences to HTML."""
 
 # Standard library modules.
+import codecs
+import os
 import pipes
 import re
 import subprocess
+import tempfile
 
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 EIGHT_COLOR_PALETTE = (
@@ -31,22 +34,45 @@ token_pattern = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
 
 def capture(command, encoding='UTF-8'):
     """
-    Capture the output of an external program as if it runs in an interactive terminal.
+    Capture the output of an external command as if it runs in an interactive terminal.
 
-    This function runs an external program under ``script`` (emulating an
-    interactive terminal) to capture the output of the program as if it was
-    running in an interactive terminal (including ANSI escape sequences).
-
-    :param command: The program name and its arguments (a list of strings).
+    :param command: The command name and its arguments (a list of strings).
     :param encoding: The encoding to use to decode the output (a string).
     :returns: The output of the command.
+
+    This function runs an external command under ``script`` (emulating an
+    interactive terminal) to capture the output of the command as if it was
+    running in an interactive terminal (including ANSI escape sequences).
     """
-    script_command = ['script', '-qe']
-    script_command.extend(['-c', ' '.join(pipes.quote(a) for a in command)])
-    script_command.append('/dev/null')
-    script_process = subprocess.Popen(script_command, stdout=subprocess.PIPE)
-    stdout, stderr = script_process.communicate()
-    return stdout.decode(encoding)
+    with open(os.devnull, 'wb') as dev_null:
+        # We start by invoking the `script' program in a form that is supported
+        # by the Linux implementation [1] but fails command line validation on
+        # the Mac OS X (BSD) implementation [2]: The command is specified
+        # using the -c option and the typescript file is /dev/null.
+        #
+        # [1] http://man7.org/linux/man-pages/man1/script.1.html
+        # [2] https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/script.1.html
+        command_line = ['script', '-qc', ' '.join(map(pipes.quote, command)), '/dev/null']
+        script = subprocess.Popen(command_line, stdout=subprocess.PIPE, stderr=dev_null)
+        stdout, stderr = script.communicate()
+        if script.returncode == 0:
+            # If `script' succeeded we assume that it understood our command line
+            # invocation which means it's the Linux implementation (in this case
+            # we can use standard output instead of a temporary file).
+            return stdout.decode(encoding)
+        else:
+            # If `script' failed we assume that it didn't understand our command
+            # line invocation which means it's the Mac OS X (BSD) implementation
+            # (in this case we need a temporary file because the command line
+            # interface requires it).
+            fd, temporary_file = tempfile.mkstemp(prefix='coloredlogs-', suffix='-capture.txt')
+            try:
+                command_line = ['script', '-q', temporary_file] + list(command)
+                subprocess.Popen(command_line, stdout=dev_null, stderr=dev_null).wait()
+                with codecs.open(temporary_file, 'r', encoding) as handle:
+                    return handle.read()
+            finally:
+                os.unlink(temporary_file)
 
 
 def convert(text):
