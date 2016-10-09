@@ -1,44 +1,17 @@
-#!/bin/bash -x
+#!/bin/bash -e
 
-# An experiment inspired by https://github.com/travis-ci/travis-ci/issues/2312#issuecomment-195620855.
-
-find_program () {
-  local matches="$(which -a "$1")"
-  echo "Matches for '$1' program on PATH:"
-  if [ -z "$matches" ]; then
-    echo " - (none)"
-  else
-    echo "$matches" | while read PATHNAME; do
-      if [ -x "$PATHNAME" ]; then
-        VERSION=$("$PATHNAME" --version 2>&1)
-        echo " - $VERSION ($PATHNAME)"
-      fi
-    done
-  fi
-}
+# Even though Travis CI supports Mac OS X [1] and several Python interpreters
+# are installed out of the box, the Python environment cannot be configured in
+# the Travis CI build configuration [2].
+#
+# As a workaround the build configuration file specifies a single Mac OS X job
+# with `language: generic' that runs this script from the `before_install'
+# section to create a Python virtual environment.
+#
+# [1] https://github.com/travis-ci/travis-ci/issues/216
+# [2] https://github.com/travis-ci/travis-ci/issues/2312
 
 if [ "$TRAVIS_OS_NAME" = osx ]; then
-
-  # Show the installed Python interpreters.
-  for program in python{,{2{,.6,.7},3{,.4,.5}}}; do
-    find_program "$program"
-  done
-
-  # Show the installed `virtualenv' version.
-  find_program virtualenv
-
-  # I'm getting the distinct impression that I don't even need Homebrew
-  # to install Python 2.7 on Mac OS X because it's already available?!
-  if ! which python2.7 &>/dev/null; then
-    brew update
-    brew install python
-  fi
-
-  # But do I still need this as an alternative to the Travis CI Python runtime support?
-  virtualenv osx-env
-  source osx-env/bin/activate
-
-  # Show the Python version inside the virtual environment.
-  find_program "python"
-
+  virtualenv ~/virtualenv
+  source ~/virtualenv/bin/activate
 fi
