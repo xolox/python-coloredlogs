@@ -148,7 +148,7 @@ if NEED_COLORAMA:
         pass
 
 # Semi-standard module versioning.
-__version__ = '5.1'
+__version__ = '5.1.1'
 
 DEFAULT_LOG_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s'
 """The default log format for :class:`ColoredFormatter` objects (a string)."""
