@@ -1,8 +1,8 @@
 # Makefile for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 7, 2015
-# URL: https://coloredlogs.readthedocs.org
+# Last Change: October 9, 2016
+# URL: https://coloredlogs.readthedocs.io
 
 WORKON_HOME ?= $(HOME)/.virtualenvs
 VIRTUAL_ENV ?= $(WORKON_HOME)/coloredlogs

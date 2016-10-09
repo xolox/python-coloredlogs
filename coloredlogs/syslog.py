@@ -2,7 +2,7 @@
 #
 # Author: Peter Odding <peter@peterodding.com>
 # Last Change: November 14, 2015
-# URL: https://coloredlogs.readthedocs.org
+# URL: https://coloredlogs.readthedocs.io
 
 """
 Easy to use UNIX system logging for Python's :mod:`logging` module.

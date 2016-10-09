@@ -111,13 +111,13 @@ This software is licensed under the `MIT license`_.
 .. External references:
 .. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 .. _Colorama: https://pypi.python.org/pypi/colorama
-.. _ColoredFormatter: http://coloredlogs.readthedocs.org/en/latest/#coloredlogs.ColoredFormatter
+.. _ColoredFormatter: http://coloredlogs.readthedocs.io/en/latest/#coloredlogs.ColoredFormatter
 .. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
 .. _logging.Formatter: http://docs.python.org/2/library/logging.html#logging.Formatter
 .. _logging: https://docs.python.org/2/library/logging.html
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
-.. _online documentation: https://coloredlogs.readthedocs.org/
+.. _online documentation: https://coloredlogs.readthedocs.io/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs

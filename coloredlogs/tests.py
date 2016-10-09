@@ -2,7 +2,7 @@
 #
 # Author: Peter Odding <peter@peterodding.com>
 # Last Change: October 9, 2016
-# URL: https://coloredlogs.readthedocs.org
+# URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
 

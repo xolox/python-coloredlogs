@@ -2,7 +2,7 @@
 #
 # Author: Peter Odding <peter@peterodding.com>
 # Last Change: October 14, 2015
-# URL: https://coloredlogs.readthedocs.org
+# URL: https://coloredlogs.readthedocs.io
 
 """
 Usage: coloredlogs [OPTIONS] [ARGS]
