@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 14, 2015
+# Last Change: October 9, 2016
 # URL: https://coloredlogs.readthedocs.org
 
 """Automated tests for the `coloredlogs` package."""
@@ -172,7 +172,10 @@ class ColoredLogsTestCase(unittest.TestCase):
         # VERBOSE -> DEBUG.
         increase_verbosity()
         assert get_level() == logging.DEBUG
-        # DEBUG -> NOTSET.
+        # DEBUG -> SPAM.
+        increase_verbosity()
+        assert get_level() == logging.SPAM
+        # SPAM -> NOTSET.
         increase_verbosity()
         assert get_level() == logging.NOTSET
         # NOTSET -> NOTSET.
@@ -184,7 +187,10 @@ class ColoredLogsTestCase(unittest.TestCase):
         # Start from a known state.
         set_level(logging.INFO)
         assert get_level() == logging.INFO
-        # INFO -> WARNING.
+        # INFO -> NOTICE.
+        decrease_verbosity()
+        assert get_level() == logging.NOTICE
+        # NOTICE -> WARNING.
         decrease_verbosity()
         assert get_level() == logging.WARNING
         # WARNING -> ERROR.
