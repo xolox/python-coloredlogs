@@ -21,7 +21,7 @@ install:
   - pip-accel install coveralls
   - pip-accel install --requirement=requirements-checks.txt
   - pip-accel install --requirement=requirements-tests.txt
-  - LC_ALL=C pip-accel install .
+  - LC_ALL=C pip install .
 script:
   - make check
   - make test
