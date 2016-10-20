@@ -332,7 +332,6 @@ def install(level=None, **kw):
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
         handler.setFormatter(formatter_type(**formatter_options))
         # Install the stream handler.
-        logger.setLevel(logging.NOTSET)
         logger.addHandler(handler)
 
 
