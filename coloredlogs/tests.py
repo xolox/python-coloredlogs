@@ -13,6 +13,7 @@ import os
 import random
 import re
 import string
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -45,7 +46,6 @@ from coloredlogs.converter import capture, convert
 
 # External test dependencies.
 from capturer import CaptureOutput
-from executor import execute
 from verboselogs import VerboseLogger
 from humanfriendly.compat import StringIO
 
@@ -302,15 +302,17 @@ class ColoredLogsTestCase(unittest.TestCase):
         needle = random_string()
         command_line = [sys.executable, '-c', 'import logging; logging.info(%r)' % needle]
         # Sanity check that log messages aren't enabled by default.
-        output = execute(*command_line,
-                         capture=True, merge_streams=True,
-                         environment=dict(COLOREDLOGS_AUTO_INSTALL='false'))
+        with CaptureOutput() as capturer:
+            os.environ['COLOREDLOGS_AUTO_INSTALL'] = 'false'
+            subprocess.call(command_line)
+            output = capturer.get_text()
         assert needle not in output
         # Test that the $COLOREDLOGS_AUTO_INSTALL environment variable can be
         # used to automatically call coloredlogs.install() during initialization.
-        output = execute(*command_line,
-                         capture=True, merge_streams=True,
-                         environment=dict(COLOREDLOGS_AUTO_INSTALL='true'))
+        with CaptureOutput() as capturer:
+            os.environ['COLOREDLOGS_AUTO_INSTALL'] = 'true'
+            subprocess.call(command_line)
+            output = capturer.get_text()
         assert needle in output
 
     def test_cli_demo(self):
