@@ -1,5 +1,6 @@
 capturer >= 2.2
 coverage >= 4.2
+executor >= 14.1
 pytest >= 3.0.3
 pytest-cov >= 2.3.1
 verboselogs >= 1.5

@@ -3,7 +3,7 @@
 # Setup script for the `coloredlogs' package.
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 9, 2016
+# Last Change: November 1, 2016
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -21,6 +21,7 @@ Setup script for the `coloredlogs` package.
 
 # Standard library modules.
 import codecs
+import distutils.sysconfig
 import os
 import re
 import sys
@@ -93,6 +94,29 @@ def have_environment_marker_support():
         return False
 
 
+def find_pth_directory():
+    """
+    Determine the correct directory pathname for installing ``*.pth`` files.
+
+    To install a ``*.pth`` file using a source distribution archive (created
+    when ``python setup.py sdist`` is called) the relative directory pathname
+    ``lib/pythonX.Y/site-packages`` needs to be passed to the ``data_files``
+    option to ``setup()``.
+
+    Unfortunately this breaks universal wheel archives (created when ``python
+    setup.py bdist_wheel --universal`` is called) because a specific Python
+    version is now encoded in the pathname of a directory that becomes part of
+    the supposedly universal archive :-).
+
+    Through trial and error I've found that by passing the directory pathname
+    ``/`` when ``python setup.py bdist_wheel`` is called we can ensure that
+    ``*.pth`` files are installed in the ``lib/pythonX.Y/site-packages``
+    directory without hard coding its location.
+    """
+    return ('/' if 'bdist_wheel' in sys.argv
+            else os.path.relpath(distutils.sysconfig.get_python_lib(), sys.prefix))
+
+
 setup(name='coloredlogs',
       version=get_version('coloredlogs', '__init__.py'),
       description="Colored terminal output for Python's logging module",
@@ -101,6 +125,9 @@ setup(name='coloredlogs',
       author="Peter Odding",
       author_email='peter@peterodding.com',
       packages=find_packages(),
+      data_files=[
+          (find_pth_directory(), ['coloredlogs.pth']),
+      ],
       entry_points=dict(console_scripts=[
           'coloredlogs = coloredlogs.cli:main',
       ]),

@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 9, 2016
+# Last Change: November 1, 2016
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -45,6 +45,7 @@ from coloredlogs.converter import capture, convert
 
 # External test dependencies.
 from capturer import CaptureOutput
+from executor import execute
 from verboselogs import VerboseLogger
 from humanfriendly.compat import StringIO
 
@@ -295,6 +296,22 @@ class ColoredLogsTestCase(unittest.TestCase):
         expected_output = 'testing, 1, 2, 3 ..'
         actual_output = capture(['echo', expected_output])
         assert actual_output.strip() == expected_output.strip()
+
+    def test_auto_install(self):
+        """Test :func:`coloredlogs.auto_install()`."""
+        needle = random_string()
+        command_line = [sys.executable, '-c', 'import logging; logging.info(%r)' % needle]
+        # Sanity check that log messages aren't enabled by default.
+        output = execute(*command_line,
+                         capture=True, merge_streams=True,
+                         environment=dict(COLOREDLOGS_AUTO_INSTALL='false'))
+        assert needle not in output
+        # Test that the $COLOREDLOGS_AUTO_INSTALL environment variable can be
+        # used to automatically call coloredlogs.install() during initialization.
+        output = execute(*command_line,
+                         capture=True, merge_streams=True,
+                         environment=dict(COLOREDLOGS_AUTO_INSTALL='true'))
+        assert needle in output
 
     def test_cli_demo(self):
         """Test the command line colored logging demonstration."""

@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 10, 2016
+# Last Change: November 1, 2016
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -36,6 +36,8 @@ The following environment variables can be used to configure the
 =============================  ============================  ==================================
 Environment variable           Default value                 Type of value
 =============================  ============================  ==================================
+``$COLOREDLOGS_AUTO_INSTALL``  'false'                       a boolean that controls whether
+                                                             :func:`auto_install()` is called
 ``$COLOREDLOGS_LOG_LEVEL``     'INFO'                        a log level name
 ``$COLOREDLOGS_LOG_FORMAT``    :data:`DEFAULT_LOG_FORMAT`    a log format string
 ``$COLOREDLOGS_DATE_FORMAT``   :data:`DEFAULT_DATE_FORMAT`   a date/time format string
@@ -133,6 +135,7 @@ import socket
 import sys
 
 # External dependencies.
+from humanfriendly import coerce_boolean
 from humanfriendly.compat import coerce_string, is_string
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_supports_colors
 from humanfriendly.text import split
@@ -186,6 +189,24 @@ DEFAULT_LEVEL_STYLES = dict(
     error=dict(color='red'),
     critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
 """Mapping of log level names to default font styles."""
+
+
+def auto_install():
+    """
+    Automatically call :func:`install()` when ``$COLOREDLOGS_AUTO_INSTALL`` is set.
+
+    The `coloredlogs` package includes a `path configuration file`_ that
+    automatically imports the :mod:`coloredlogs` module and calls
+    :func:`auto_install()` when the environment variable
+    ``$COLOREDLOGS_AUTO_INSTALL`` is set.
+
+    This function uses :func:`~humanfriendly.coerce_boolean()` to check whether
+    the value of ``$COLOREDLOGS_AUTO_INSTALL`` should be considered :data:`True`.
+
+    .. _path configuration file: https://docs.python.org/2/library/site.html#module-site
+    """
+    if coerce_boolean(os.environ.get('COLOREDLOGS_AUTO_INSTALL', 'false')):
+        install()
 
 
 def install(level=None, **kw):
