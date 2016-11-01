@@ -1,7 +1,7 @@
 # Makefile for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 10, 2016
+# Last Change: November 1, 2016
 # URL: https://coloredlogs.readthedocs.io
 
 WORKON_HOME ?= $(HOME)/.virtualenvs
@@ -32,7 +32,7 @@ install:
 	@test -x "$(VIRTUAL_ENV)/bin/pip-accel" || pip install --quiet pip-accel
 	@pip-accel install --quiet --requirement=requirements.txt
 	@pip uninstall --yes coloredlogs &>/dev/null || true
-	@pip install --quiet --editable .
+	@pip install --quiet --no-deps --ignore-installed .
 
 reset:
 	$(MAKE) clean
