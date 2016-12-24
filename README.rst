@@ -52,15 +52,17 @@ Here's an example of how easy it is to get started:
 
 .. code-block:: python
 
-   # Create a logger object.
+   # create a logger object.
    import logging
    logger = logging.getLogger('your-module')
 
-   # Initialize coloredlogs.
+   # initialize coloredlogs.
    import coloredlogs
-   coloredlogs.install(level='DEBUG')
+   
+   coloredlogs.install(logger=logger, level='DEBUG') # will print logs only from your code
+   # coloredlogs.install(level='DEBUG')  # will print logs from libraries too - install handler into the root logger
 
-   # Some examples.
+   # some examples
    logger.debug("this is a debugging message")
    logger.info("this is an informational message")
    logger.warn("this is a warning message")
