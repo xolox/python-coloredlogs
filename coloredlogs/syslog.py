@@ -1,7 +1,7 @@
 # Easy to use system logging for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 14, 2015
+# Last Change: March 9, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -33,7 +33,13 @@ import socket
 import sys
 
 # Modules included in our package.
-from coloredlogs import ProgramNameFilter, find_program_name, replace_handler
+from coloredlogs import (
+    DEFAULT_LOG_LEVEL,
+    ProgramNameFilter,
+    find_program_name,
+    level_to_number,
+    replace_handler,
+)
 
 LOG_DEVICE_MACOSX = '/var/run/syslog'
 """The pathname of the log device on Mac OS X (a string)."""
@@ -73,7 +79,6 @@ class SystemLogging(object):
         """
         self.args = args
         self.kw = kw
-        self.silent = kw.pop('silent', False)
         self.handler = None
 
     def __enter__(self):
@@ -146,8 +151,10 @@ def connect_to_syslog(address=None, facility=None, level=None):
                     daemon (a string or tuple, defaults to the result of
                     :func:`find_syslog_address()`).
     :param facility: Refer to :class:`~logging.handlers.SysLogHandler`.
+                     Defaults to ``LOG_USER``.
     :param level: The logging level for the :class:`~logging.handlers.SysLogHandler`
-                  (defaults to :data:`logging.DEBUG` meaning nothing is filtered).
+                  (defaults to :data:`.DEFAULT_LOG_LEVEL`). This value is coerced
+                  using :func:`~coloredlogs.level_to_number()`.
     :returns: A :class:`~logging.handlers.SysLogHandler` object or :data:`None` (if the
               system logging daemon is unavailable).
 
@@ -170,7 +177,7 @@ def connect_to_syslog(address=None, facility=None, level=None):
     if facility is None:
         facility = logging.handlers.SysLogHandler.LOG_USER
     if level is None:
-        level = logging.DEBUG
+        level = DEFAULT_LOG_LEVEL
     for socktype in socket.SOCK_RAW, socket.SOCK_STREAM, None:
         kw = dict(facility=facility, address=address)
         if socktype:
@@ -184,7 +191,7 @@ def connect_to_syslog(address=None, facility=None, level=None):
             # unavailable.
             pass
         else:
-            handler.setLevel(level)
+            handler.setLevel(level_to_number(level))
             return handler
 
 

@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 1, 2016
+# Last Change: March 9, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -153,6 +153,9 @@ if NEED_COLORAMA:
 # Semi-standard module versioning.
 __version__ = '5.2'
 
+DEFAULT_LOG_LEVEL = logging.INFO
+"""The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
+
 DEFAULT_LOG_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s'
 """The default log format for :class:`ColoredFormatter` objects (a string)."""
 
@@ -214,7 +217,7 @@ def install(level=None, **kw):
     Enable colored terminal output for Python's :mod:`logging` module.
 
     :param level: The default logging level (an integer or a string with a
-                  level name, defaults to :data:`logging.INFO`).
+                  level name, defaults to :data:`DEFAULT_LOG_LEVEL`).
     :param logger: The logger to which the stream handler should be attached (a
                    :class:`~logging.Logger` object, defaults to the root logger).
     :param fmt: Set the logging format (a string like those accepted by
@@ -309,7 +312,7 @@ def install(level=None, **kw):
         # Create a stream handler.
         handler = logging.StreamHandler(stream)
         if level is None:
-            level = os.environ.get('COLOREDLOGS_LOG_LEVEL') or 'INFO'
+            level = os.environ.get('COLOREDLOGS_LOG_LEVEL') or DEFAULT_LOG_LEVEL
         handler.setLevel(level_to_number(level))
         # Prepare the arguments to the formatter. The caller is
         # allowed to customize `fmt' and/or `datefmt' as desired.
@@ -389,7 +392,7 @@ def is_verbose():
 
     :returns: ``True`` if the root handler is verbose, ``False`` if not.
     """
-    return get_level() < logging.INFO
+    return get_level() < DEFAULT_LOG_LEVEL
 
 
 def get_level():
@@ -397,10 +400,10 @@ def get_level():
     Get the logging level of the root handler.
 
     :returns: The logging level of the root handler (an integer) or
-              :data:`logging.INFO` (if no root handler exists).
+              :data:`DEFAULT_LOG_LEVEL` (if no root handler exists).
     """
     handler, logger = find_handler(logging.getLogger(), match_stream_handler)
-    return handler.level if handler else logging.INFO
+    return handler.level if handler else DEFAULT_LOG_LEVEL
 
 
 def set_level(level):
@@ -465,7 +468,7 @@ def level_to_number(value):
             value = defined_levels[value.upper()]
         except KeyError:
             # Don't fail on unsupported log levels.
-            value = logging.INFO
+            value = DEFAULT_LOG_LEVEL
     return value
 
 
