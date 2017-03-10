@@ -204,7 +204,7 @@ if NEED_COLORAMA:
         pass
 
 # Semi-standard module versioning.
-__version__ = '5.2'
+__version__ = '6.0'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
