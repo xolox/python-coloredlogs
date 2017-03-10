@@ -293,8 +293,11 @@ def install(level=None, **kw):
                         the previous configuration.
     :param use_chroot: Refer to :class:`HostNameFilter`.
     :param programname: Refer to :class:`ProgramNameFilter`.
-    :param syslog: If :data:`True` then :func:`~coloredlogs.syslog.enable_system_logging()`
-                   will be called without arguments (defaults to :data:`False`).
+    :param syslog: If :data:`True` then :func:`.enable_system_logging()` will
+                   be called without arguments (defaults to :data:`False`). The
+                   `syslog` argument may also be a number or string, in this
+                   case it is assumed to be a logging level which is passed on
+                   to :func:`~coloredlogs.syslog.enable_system_logging()`.
 
     The :func:`coloredlogs.install()` function is similar to
     :func:`logging.basicConfig()`, both functions take a lot of optional
@@ -348,9 +351,20 @@ def install(level=None, **kw):
     # Make sure reconfiguration is allowed or not relevant.
     if not (handler and not reconfigure):
         # Make it easy to enable system logging.
-        if kw.get('syslog', False):
-            from coloredlogs import syslog
-            syslog.enable_system_logging()
+        syslog_enabled = kw.get('syslog')
+        # Ignore False and None because None means the caller didn't opt in to
+        # system logging and False means the caller explicitly opted out of
+        # system logging.
+        if syslog_enabled not in (None, False):
+            from coloredlogs.syslog import enable_system_logging
+            if syslog_enabled is True:
+                # If the caller passed syslog=True then we leave the choice of
+                # default log level up to the coloredlogs.syslog module.
+                enable_system_logging()
+            else:
+                # Values other than (None, True, False) are assumed to
+                # represent a logging level for system logging.
+                enable_system_logging(level=syslog_enabled)
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
         if use_colors or use_colors is None:
