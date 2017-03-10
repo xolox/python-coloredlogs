@@ -52,13 +52,20 @@ Here's an example of how easy it is to get started:
 
 .. code-block:: python
 
+   import coloredlogs, logging
+
    # Create a logger object.
-   import logging
    logger = logging.getLogger('your-module')
 
-   # Initialize coloredlogs.
-   import coloredlogs
+   # By default the install() function installs a handler on the root logger,
+   # this means that log messages from your code and log messages from the
+   # libraries that you use will all show up on the terminal.
    coloredlogs.install(level='DEBUG')
+
+   # If you don't want to see log messages from libraries, you can pass a
+   # specific logger object to the install() function. In this case only log
+   # messages originating from that logger will show up on the terminal.
+   coloredlogs.install(level='DEBUG', logger=logger)
 
    # Some examples.
    logger.debug("this is a debugging message")

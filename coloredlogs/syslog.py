@@ -1,7 +1,7 @@
 # Easy to use system logging for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 9, 2017
+# Last Change: March 10, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -112,6 +112,9 @@ def enable_system_logging(programname=None, fmt=None, logger=None, reconfigure=T
                 :data:`DEFAULT_LOG_FORMAT`).
     :param logger: The logger to which the :class:`~logging.handlers.SysLogHandler`
                    should be connected (defaults to the root logger).
+    :param level: The logging level for the :class:`~logging.handlers.SysLogHandler`
+                  (defaults to :data:`.DEFAULT_LOG_LEVEL`). This value is coerced
+                  using :func:`~coloredlogs.level_to_number()`.
     :param reconfigure: If :data:`True` (the default) multiple calls to
                         :func:`enable_system_logging()` will each override
                         the previous configuration.
@@ -121,11 +124,15 @@ def enable_system_logging(programname=None, fmt=None, logger=None, reconfigure=T
               is :data:`False` the existing handler object is returned. If the
               connection to the system logging daemon fails :data:`None` is
               returned.
+
+    .. note:: When the logger's effective level is too restrictive it is
+              relaxed (refer to `notes about log levels`_ for details).
     """
-    # Remove the keyword arguments that we can handle.
+    # Provide defaults for omitted arguments.
     programname = programname or find_program_name()
     logger = logger or logging.getLogger()
     fmt = fmt or DEFAULT_LOG_FORMAT
+    level = level_to_number(kw.get('level', DEFAULT_LOG_LEVEL))
     # Check whether system logging is already enabled.
     match_syslog_handler = lambda handler: isinstance(handler, logging.handlers.SysLogHandler)
     handler, logger = replace_handler(logger, match_syslog_handler, reconfigure)
@@ -140,6 +147,9 @@ def enable_system_logging(programname=None, fmt=None, logger=None, reconfigure=T
             # Connect the formatter, handler and logger.
             handler.setFormatter(logging.Formatter(fmt))
             logger.addHandler(handler)
+            # Adjust the level of the selected logger?
+            if logger.getEffectiveLevel() > level:
+                logger.setLevel(level)
     return handler
 
 
@@ -170,7 +180,7 @@ def connect_to_syslog(address=None, facility=None, level=None):
           default (which is UDP).
 
     - If socket types are not supported Python's (2.6) defaults are used to
-      connect to the given `address`.
+      connect to the selected `address`.
     """
     if not address:
         address = find_syslog_address()
@@ -180,7 +190,7 @@ def connect_to_syslog(address=None, facility=None, level=None):
         level = DEFAULT_LOG_LEVEL
     for socktype in socket.SOCK_RAW, socket.SOCK_STREAM, None:
         kw = dict(facility=facility, address=address)
-        if socktype:
+        if socktype is not None:
             kw['socktype'] = socktype
         try:
             handler = logging.handlers.SysLogHandler(**kw)

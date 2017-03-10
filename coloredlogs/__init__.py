@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 9, 2017
+# Last Change: March 10, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -120,6 +120,59 @@ following screen shot:
    :alt: Screen shot of colored logging with custom colors.
    :align: center
    :width: 80%
+
+.. _notes about log levels:
+
+Some notes about log levels
+===========================
+
+With regards to the handling of log levels, the :mod:`coloredlogs` package
+differs from Python's :mod:`logging` module in two aspects:
+
+1. While the :mod:`logging` module uses the default logging level
+   :data:`logging.WARNING`, the :mod:`coloredlogs` package has always used
+   :data:`logging.INFO` as its default log level.
+
+2. When logging to the terminal or system log is initialized by
+   :func:`install()` or :func:`.enable_system_logging()` the effective
+   level [#]_ of the selected logger [#]_ is compared against the requested
+   level [#]_ and if the effective level is more restrictive than the
+   requested level, the logger's level will be set to the requested level.
+   The reason for this is to work around a combination of design choices in
+   Python's :mod:`logging` module that can easily confuse people who aren't
+   already intimately familiar with it:
+
+   - All loggers are initialized with the level :data:`logging.NOTSET`.
+
+   - When a logger's level is set to :data:`logging.NOTSET` the
+     :func:`~logging.Logger.getEffectiveLevel()` method will
+     fall back to the level of the parent logger.
+
+   - The parent of all loggers is the root logger and the root logger has its
+     level set to :data:`logging.WARNING` by default (after importing the
+     :mod:`logging` module).
+
+   Effectively all user defined loggers inherit the default log level
+   :data:`logging.WARNING` from the root logger, which isn't very intuitive for
+   those who aren't already familiar with the hierarchical nature of the
+   :mod:`logging` module.
+
+   By avoiding this potentially confusing behavior (see `#14`_, `#18`_, `#21`_,
+   `#23`_ and `#24`_), while at the same time allowing the caller to specify a
+   logger object, my goal and hope is to provide sane defaults that can easily
+   be changed when the need arises.
+
+   .. [#] Refer to :func:`logging.Logger.getEffectiveLevel()` for details.
+   .. [#] The logger that is passed as an argument by the caller or the root
+          logger which is selected as a default when no logger is provided.
+   .. [#] The log level that is passed as an argument by the caller or the
+          default log level :data:`logging.INFO` when no level is provided.
+
+   .. _#14: https://github.com/xolox/python-coloredlogs/issues/14
+   .. _#18: https://github.com/xolox/python-coloredlogs/issues/18
+   .. _#21: https://github.com/xolox/python-coloredlogs/pull/21
+   .. _#23: https://github.com/xolox/python-coloredlogs/pull/23
+   .. _#24: https://github.com/xolox/python-coloredlogs/issues/24
 
 Classes and functions
 =====================
@@ -270,15 +323,20 @@ def install(level=None, **kw):
     4. :func:`HostNameFilter.install()` and :func:`ProgramNameFilter.install()`
        are called to enable the use of additional fields in the log format.
 
-    5. The formatter is added to the handler and the handler is added to the
-       logger. The logger's level is set to :data:`logging.NOTSET` so that each
-       handler gets to decide which records they filter. This makes it possible
-       to have controllable verbosity on the terminal while logging at full
-       verbosity to the system log or a file.
+    5. If the logger's level is too restrictive it is relaxed (refer to `notes
+       about log levels`_ for details).
+
+    6. The formatter is added to the handler and the handler is added to the
+       logger.
     """
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
     stream = kw.get('stream', sys.stderr)
+    # Get the log level from an argument, environment variable or default and
+    # convert the names of log levels to numbers to enable numeric comparison.
+    if level is None:
+        level = os.environ.get('COLOREDLOGS_LOG_LEVEL', DEFAULT_LOG_LEVEL)
+    level = level_to_number(level)
     # Remove any existing stream handler that writes to stdout or stderr, even
     # if the stream handler wasn't created by coloredlogs because multiple
     # stream handlers (in the same hierarchy) writing to stdout or stderr would
@@ -311,9 +369,7 @@ def install(level=None, **kw):
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
         handler = logging.StreamHandler(stream)
-        if level is None:
-            level = os.environ.get('COLOREDLOGS_LOG_LEVEL') or DEFAULT_LOG_LEVEL
-        handler.setLevel(level_to_number(level))
+        handler.setLevel(level)
         # Prepare the arguments to the formatter. The caller is
         # allowed to customize `fmt' and/or `datefmt' as desired.
         formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
@@ -355,8 +411,10 @@ def install(level=None, **kw):
         # Create a (possibly colored) formatter.
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
         handler.setFormatter(formatter_type(**formatter_options))
+        # Adjust the level of the selected logger?
+        if logger.getEffectiveLevel() > level:
+            logger.setLevel(level)
         # Install the stream handler.
-        logger.setLevel(logging.NOTSET)
         logger.addHandler(handler)
 
 
