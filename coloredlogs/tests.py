@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 1, 2016
+# Last Change: April 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -20,6 +20,7 @@ import unittest
 
 # External dependencies.
 from humanfriendly.terminal import ansi_wrap
+from mock import MagicMock
 
 # The module we're testing.
 import coloredlogs
@@ -123,6 +124,31 @@ class ColoredLogsTestCase(unittest.TestCase):
             logging.info("A truly insignificant message ..")
             output = capturer.get_text()
             assert find_program_name() in output
+
+    def test_colorama_integration(self):
+        """Test the integration with colorama through mocking."""
+        module_name = 'colorama'
+        saved_module = sys.modules.get(module_name, None)
+        need_colorama = coloredlogs.NEED_COLORAMA
+        try:
+            # Create a fake module shadowing colorama.
+            class fake_module():
+                init = MagicMock()
+            sys.modules[module_name] = fake_module
+            # Temporarily reconfigure coloredlogs to use colorama.
+            coloredlogs.NEED_COLORAMA = True
+            # Configure logging to the terminal.
+            coloredlogs.install()
+            # Ensure that our mock method was called.
+            assert fake_module.init.called
+        finally:
+            # Restore the setting.
+            coloredlogs.NEED_COLORAMA = need_colorama
+            # Clean up the mock module.
+            if saved_module:
+                sys.modules[module_name] = saved_module
+            else:
+                sys.modules.pop(module_name, None)
 
     def test_system_logging(self):
         """Make sure the :mod:`coloredlogs.syslog` module works."""

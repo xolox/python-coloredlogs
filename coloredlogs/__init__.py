@@ -198,13 +198,6 @@ WINDOWS = sys.platform.startswith('win')
 
 # Optional external dependency (only needed on Windows).
 NEED_COLORAMA = WINDOWS
-HAVE_COLORAMA = False
-if NEED_COLORAMA:
-    try:
-        import colorama
-        HAVE_COLORAMA = True
-    except ImportError:
-        pass
 
 # Semi-standard module versioning.
 __version__ = '6.0'
@@ -377,12 +370,13 @@ def install(level=None, **kw):
         use_colors = kw.get('isatty', None)
         if use_colors or use_colors is None:
             if NEED_COLORAMA:
-                if HAVE_COLORAMA:
+                try:
                     # On Windows we can only use ANSI escape
                     # sequences if Colorama is available.
+                    import colorama
                     colorama.init()
                     use_colors = True
-                else:
+                except ImportError:
                     # If Colorama isn't available then we specifically
                     # shouldn't emit ANSI escape sequences!
                     use_colors = False
