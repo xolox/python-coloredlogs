@@ -7,6 +7,8 @@
 """Automated tests for the `coloredlogs` package."""
 
 # Standard library modules.
+import contextlib
+import imp
 import logging
 import logging.handlers
 import os
@@ -27,6 +29,8 @@ import coloredlogs
 import coloredlogs.cli
 from coloredlogs import (
     CHROOT_FILES,
+    ColoredFormatter,
+    NameNormalizer,
     decrease_verbosity,
     find_defined_levels,
     find_handler,
@@ -37,7 +41,7 @@ from coloredlogs import (
     install,
     is_verbose,
     level_to_number,
-    NameNormalizer,
+    match_stream_handler,
     parse_encoded_styles,
     set_level,
     walk_propagation_tree,
@@ -125,30 +129,30 @@ class ColoredLogsTestCase(unittest.TestCase):
             output = capturer.get_text()
             assert find_program_name() in output
 
-    def test_colorama_integration(self):
-        """Test the integration with colorama through mocking."""
-        module_name = 'colorama'
-        saved_module = sys.modules.get(module_name, None)
-        need_colorama = coloredlogs.NEED_COLORAMA
-        try:
-            # Create a fake module shadowing colorama.
-            class fake_module():
-                init = MagicMock()
-            sys.modules[module_name] = fake_module
-            # Temporarily reconfigure coloredlogs to use colorama.
-            coloredlogs.NEED_COLORAMA = True
+    def test_colorama_enabled(self):
+        """Test that colorama is enabled (through mocking)."""
+        init_function = MagicMock()
+        with mocked_colorama_module(init_function):
             # Configure logging to the terminal.
             coloredlogs.install()
             # Ensure that our mock method was called.
-            assert fake_module.init.called
-        finally:
-            # Restore the setting.
-            coloredlogs.NEED_COLORAMA = need_colorama
-            # Clean up the mock module.
-            if saved_module:
-                sys.modules[module_name] = saved_module
-            else:
-                sys.modules.pop(module_name, None)
+            assert init_function.called
+
+    def test_colorama_missing(self):
+        """Test that colorama is missing (through mocking)."""
+        def init_function():
+            raise ImportError
+        with mocked_colorama_module(init_function):
+            # Configure logging to the terminal. It is expected that internally
+            # an ImportError is raised, but the exception is caught and colored
+            # output is disabled.
+            coloredlogs.install()
+            # Find the handler that was created by coloredlogs.install().
+            handler, logger = find_handler(logging.getLogger(), match_stream_handler)
+            # Make sure that logging to the terminal was initialized.
+            assert isinstance(handler.formatter, logging.Formatter)
+            # Make sure colored logging is disabled.
+            assert not isinstance(handler.formatter, ColoredFormatter)
 
     def test_system_logging(self):
         """Make sure the :mod:`coloredlogs.syslog` module works."""
@@ -385,3 +389,27 @@ def main(*arguments, **options):
 def random_string(length=25):
     """Generate a random string."""
     return ''.join(random.choice(string.ascii_letters) for i in range(25))
+
+
+@contextlib.contextmanager
+def mocked_colorama_module(init_function):
+    """Context manager to ease testing of colorama integration."""
+    module_name = 'colorama'
+    # Create a fake module shadowing colorama.
+    fake_module = imp.new_module(module_name)
+    setattr(fake_module, 'init', init_function)
+    # Temporarily reconfigure coloredlogs to use colorama.
+    need_colorama = coloredlogs.NEED_COLORAMA
+    coloredlogs.NEED_COLORAMA = True
+    # Install the fake colorama module.
+    saved_module = sys.modules.get(module_name, None)
+    sys.modules[module_name] = fake_module
+    # We've finished setting up, yield control.
+    yield
+    # Restore the original setting.
+    coloredlogs.NEED_COLORAMA = need_colorama
+    # Clean up the mock module.
+    if saved_module is not None:
+        sys.modules[module_name] = saved_module
+    else:
+        sys.modules.pop(module_name, None)
