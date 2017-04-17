@@ -193,8 +193,11 @@ from humanfriendly.compat import coerce_string, is_string
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_supports_colors
 from humanfriendly.text import split
 
+# Windows requires special handling and the first step is detecting it :-).
+WINDOWS = sys.platform.startswith('win')
+
 # Optional external dependency (only needed on Windows).
-NEED_COLORAMA = sys.platform.startswith('win')
+NEED_COLORAMA = WINDOWS
 HAVE_COLORAMA = False
 if NEED_COLORAMA:
     try:
@@ -352,10 +355,15 @@ def install(level=None, **kw):
     if not (handler and not reconfigure):
         # Make it easy to enable system logging.
         syslog_enabled = kw.get('syslog')
-        # Ignore False and None because None means the caller didn't opt in to
-        # system logging and False means the caller explicitly opted out of
-        # system logging.
-        if syslog_enabled not in (None, False):
+        # We ignore the value `None' because it means the caller didn't opt in
+        # to system logging and `False' because it means the caller explicitly
+        # opted out of system logging.
+        #
+        # We never enable system logging on Windows because it is my impression
+        # that SysLogHandler isn't intended to be used on Windows; I've had
+        # reports of coloredlogs spewing extremely verbose errno 10057 warning
+        # messages to the console (once for each log message I suppose).
+        if syslog_enabled not in (None, False) and not WINDOWS:
             from coloredlogs.syslog import enable_system_logging
             if syslog_enabled is True:
                 # If the caller passed syslog=True then we leave the choice of
