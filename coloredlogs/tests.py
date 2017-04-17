@@ -46,7 +46,7 @@ from coloredlogs import (
     set_level,
     walk_propagation_tree,
 )
-from coloredlogs.syslog import SystemLogging
+from coloredlogs.syslog import SystemLogging, match_syslog_handler
 from coloredlogs.converter import capture, convert
 
 # External test dependencies.
@@ -65,6 +65,9 @@ PLAIN_TEXT_PATTERN = re.compile(r'''
     \s (?P<severity> [A-Z]+ )
     \s (?P<message> .* )
 ''', re.VERBOSE)
+
+# The pathname of the system log file on Ubuntu Linux (my laptops and Travis CI).
+UNIX_SYSTEM_LOG = '/var/log/syslog'
 
 
 def setUpModule():
@@ -162,6 +165,29 @@ class ColoredLogsTestCase(unittest.TestCase):
             if syslog and os.path.isfile('/var/log/syslog'):
                 with open('/var/log/syslog') as handle:
                     assert any(expected_message in line for line in handle)
+
+    def test_syslog_shortcut_simple(self):
+        """Make sure that ``coloredlogs.install(syslog=True)`` works."""
+        with cleanup_handlers():
+            expected_message = random_string(50)
+            coloredlogs.install(syslog=True)
+            logging.info("%s", expected_message)
+            if os.path.isfile(UNIX_SYSTEM_LOG):
+                with open(UNIX_SYSTEM_LOG) as handle:
+                    assert any(expected_message in line for line in handle)
+
+    def test_syslog_shortcut_enhanced(self):
+        """Make sure that ``coloredlogs.install(syslog='warn')`` works."""
+        with cleanup_handlers():
+            the_expected_message = random_string(50)
+            not_an_expected_message = random_string(50)
+            coloredlogs.install(syslog='warn')
+            logging.info("%s", not_an_expected_message)
+            logging.warning("%s", the_expected_message)
+            if os.path.isfile(UNIX_SYSTEM_LOG):
+                with open(UNIX_SYSTEM_LOG) as handle:
+                    assert any(the_expected_message in line for line in handle)
+                    assert not any(not_an_expected_message in line for line in handle)
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
@@ -413,3 +439,15 @@ def mocked_colorama_module(init_function):
         sys.modules[module_name] = saved_module
     else:
         sys.modules.pop(module_name, None)
+
+
+@contextlib.contextmanager
+def cleanup_handlers():
+    """Context manager to cleanup output handlers."""
+    # There's nothing to set up so we immediately yield control.
+    yield
+    # After the with block ends we cleanup any output handlers.
+    for match_func in match_stream_handler, match_syslog_handler:
+        handler, logger = find_handler(logging.getLogger(), match_func)
+        if handler and logger:
+            logger.removeHandler(handler)

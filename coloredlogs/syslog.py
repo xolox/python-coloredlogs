@@ -135,7 +135,6 @@ def enable_system_logging(programname=None, fmt=None, logger=None, reconfigure=T
     fmt = fmt or DEFAULT_LOG_FORMAT
     level = level_to_number(kw.get('level', DEFAULT_LOG_LEVEL))
     # Check whether system logging is already enabled.
-    match_syslog_handler = lambda handler: isinstance(handler, logging.handlers.SysLogHandler)
     handler, logger = replace_handler(logger, match_syslog_handler, reconfigure)
     # Make sure reconfiguration is allowed or not relevant.
     if not (handler and not reconfigure):
@@ -222,3 +221,17 @@ def find_syslog_address():
         return LOG_DEVICE_UNIX
     else:
         return 'localhost', logging.handlers.SYSLOG_UDP_PORT
+
+
+def match_syslog_handler(handler):
+    """
+    Identify system logging handlers.
+
+    :param handler: The :class:`~logging.Handler` class to check.
+    :returns: :data:`True` if the handler is a
+              :class:`~logging.handlers.SysLogHandler`,
+              :data:`False` otherwise.
+
+    This function can be used as a callback for :func:`.find_handler()`.
+    """
+    return isinstance(handler, logging.handlers.SysLogHandler)
