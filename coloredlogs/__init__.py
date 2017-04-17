@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 10, 2017
+# Last Change: April 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -136,11 +136,11 @@ differs from Python's :mod:`logging` module in two aspects:
 2. When logging to the terminal or system log is initialized by
    :func:`install()` or :func:`.enable_system_logging()` the effective
    level [#]_ of the selected logger [#]_ is compared against the requested
-   level [#]_ and if the effective level is more restrictive than the
-   requested level, the logger's level will be set to the requested level.
-   The reason for this is to work around a combination of design choices in
-   Python's :mod:`logging` module that can easily confuse people who aren't
-   already intimately familiar with it:
+   level [#]_ and if the effective level is more restrictive than the requested
+   level, the logger's level will be set to the requested level (this happens
+   in :func:`adjust_level()`). The reason for this is to work around a
+   combination of design choices in Python's :mod:`logging` module that can
+   easily confuse people who aren't already intimately familiar with it:
 
    - All loggers are initialized with the level :data:`logging.NOTSET`.
 
@@ -297,7 +297,7 @@ def install(level=None, **kw):
                    be called without arguments (defaults to :data:`False`). The
                    `syslog` argument may also be a number or string, in this
                    case it is assumed to be a logging level which is passed on
-                   to :func:`~coloredlogs.syslog.enable_system_logging()`.
+                   to :func:`.enable_system_logging()`.
 
     The :func:`coloredlogs.install()` function is similar to
     :func:`logging.basicConfig()`, both functions take a lot of optional
@@ -425,9 +425,8 @@ def install(level=None, **kw):
         # Create a (possibly colored) formatter.
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
         handler.setFormatter(formatter_type(**formatter_options))
-        # Adjust the level of the selected logger?
-        if logger.getEffectiveLevel() > level:
-            logger.setLevel(level)
+        # Adjust the level of the selected logger.
+        adjust_level(logger, level)
         # Install the stream handler.
         logger.addHandler(handler)
 
@@ -487,12 +486,41 @@ def set_level(level):
     If no root handler exists yet this automatically calls :func:`install()`.
     """
     handler, logger = find_handler(logging.getLogger(), match_stream_handler)
-    if handler:
+    if handler and logger:
         # Change the level of the existing handler.
         handler.setLevel(level_to_number(level))
+        # Adjust the level of the selected logger.
+        adjust_level(logger, level)
     else:
         # Create a new handler with the given level.
         install(level=level)
+
+
+def adjust_level(logger, level):
+    """
+    Increase a logger's verbosity up to the requested level.
+
+    :param logger: The logger to change (a :class:`~logging.Logger` object).
+    :param level: The log level to enable (a string or number).
+
+    This function is used by functions like :func:`install()`,
+    :func:`increase_verbosity()` and :func:`.enable_system_logging()` to adjust
+    a logger's level so that log messages up to the requested log level are
+    propagated to the configured output handler(s).
+
+    It uses :func:`logging.Logger.getEffectiveLevel()` to check whether
+    `logger` propagates or swallows log messages of the requested `level` and
+    sets the logger's level to the requested level if it would otherwise
+    swallow log messages.
+
+    Effectively this function will "widen the scope of logging" when asked to
+    do so but it will never "narrow the scope of logging". This is because I am
+    convinced that filtering of log messages should (primarily) be decided by
+    handlers.
+    """
+    level = level_to_number(level)
+    if logger.getEffectiveLevel() > level:
+        logger.setLevel(level)
 
 
 def find_defined_levels():

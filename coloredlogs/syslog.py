@@ -1,7 +1,7 @@
 # Easy to use system logging for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 10, 2017
+# Last Change: April 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -36,6 +36,7 @@ import sys
 from coloredlogs import (
     DEFAULT_LOG_LEVEL,
     ProgramNameFilter,
+    adjust_level,
     find_program_name,
     level_to_number,
     replace_handler,
@@ -147,9 +148,8 @@ def enable_system_logging(programname=None, fmt=None, logger=None, reconfigure=T
             # Connect the formatter, handler and logger.
             handler.setFormatter(logging.Formatter(fmt))
             logger.addHandler(handler)
-            # Adjust the level of the selected logger?
-            if logger.getEffectiveLevel() > level:
-                logger.setLevel(level)
+            # Adjust the level of the selected logger.
+            adjust_level(logger, level)
     return handler
 
 
