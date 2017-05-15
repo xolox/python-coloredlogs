@@ -279,7 +279,9 @@ def install(level=None, **kw):
     :param field_styles: A dictionary with custom field styles (defaults to
                          :data:`DEFAULT_FIELD_STYLES`).
     :param stream: The stream where log messages should be written to (a
-                   file-like object, defaults to :data:`sys.stderr`).
+                   file-like object, defaults to :data:`None`, which means to
+                   the value of :data:`sys.stderr` at logging time (rather
+                   than its value when this function is called)).
     :param isatty: :data:`True` to use a :class:`ColoredFormatter`,
                    :data:`False` to use a normal :class:`~logging.Formatter`
                    (defaults to auto-detection using
@@ -330,7 +332,7 @@ def install(level=None, **kw):
     """
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
-    stream = kw.get('stream', sys.stderr)
+    stream = kw.get('stream', None)
     # Get the log level from an argument, environment variable or default and
     # convert the names of log levels to numbers to enable numeric comparison.
     if level is None:
@@ -339,9 +341,11 @@ def install(level=None, **kw):
     # Remove any existing stream handler that writes to stdout or stderr, even
     # if the stream handler wasn't created by coloredlogs because multiple
     # stream handlers (in the same hierarchy) writing to stdout or stderr would
-    # create duplicate output.
-    standard_streams = (sys.stdout, sys.stderr)
-    match_streams = standard_streams if stream in standard_streams else (stream,)
+    # create duplicate output.  `None' is a synonym for the possibly dynamic
+    # value of the stderr attribute of the sys module.
+    match_streams = ([sys.stdout, sys.stderr]
+                     if stream in [sys.stdout, sys.stderr, None]
+                     else [stream])
     match_handler = lambda handler: match_stream_handler(handler, match_streams)
     handler, logger = replace_handler(logger, match_handler, reconfigure)
     # Make sure reconfiguration is allowed or not relevant.
@@ -384,7 +388,7 @@ def install(level=None, **kw):
                 # Auto-detect terminal support on other platforms.
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
-        handler = logging.StreamHandler(stream)
+        handler = logging.StreamHandler(stream) if stream else _StderrHandler()
         handler.setLevel(level)
         # Prepare the arguments to the formatter. The caller is
         # allowed to customize `fmt' and/or `datefmt' as desired.
@@ -775,6 +779,18 @@ def walk_propagation_tree(logger):
         else:
             # The propagation chain stops here.
             logger = None
+
+
+# This class is copy-pasted from the stdlib module present in 2.7+... minus the
+# docstrings, which flake8 doesn't like.
+
+class _StderrHandler(logging.StreamHandler):
+    def __init__(self, level=logging.NOTSET):
+        logging.Handler.__init__(self, level)
+
+    @property
+    def stream(self):
+        return sys.stderr
 
 
 class ColoredFormatter(logging.Formatter):
