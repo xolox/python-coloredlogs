@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 10, 2017
+# Last Change: May 18, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Sphinx documentation configuration for the `coloredlogs` package."""
@@ -69,6 +69,7 @@ pygments_style = 'sphinx'
 # From: http://twistedmatrix.com/trac/ticket/4582.
 intersphinx_mapping = dict(
     python=('https://docs.python.org/2', None),
+    capturer=('https://capturer.readthedocs.io/en/latest', None),
     humanfriendly=('https://humanfriendly.readthedocs.io/en/latest', None),
 )
 
@@ -76,7 +77,7 @@ intersphinx_mapping = dict(
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'classic'
+html_theme = 'nature'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'coloredlogsdoc'

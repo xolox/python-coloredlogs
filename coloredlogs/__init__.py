@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 17, 2017
+# Last Change: May 18, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -25,7 +25,7 @@ The easiest way to get started is by importing :mod:`coloredlogs` and calling
 The :mod:`~coloredlogs.install()` function creates a :class:`ColoredFormatter`
 that injects `ANSI escape sequences`_ into the log output.
 
-.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+.. _ANSI escape sequences: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 
 Environment variables
 =====================

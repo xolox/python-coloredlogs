@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # Setup script for the `coloredlogs' package.
-
+#
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: April 17, 2017
+# Last Change: May 18, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -54,7 +54,7 @@ def get_install_requires():
 
 def get_extras_require():
     """Add conditional dependencies for Windows (when creating wheel distributions)."""
-    extras_require = {}
+    extras_require = dict(cron='capturer>=2.4')
     if have_environment_marker_support():
         expression = ':sys_platform == "win32"'
         extras_require[expression] = 'colorama'

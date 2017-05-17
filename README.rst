@@ -25,6 +25,7 @@ defined by my verboselogs_ package: if you install both `coloredlogs` and
 
 .. contents::
    :local:
+   :depth: 1
 
 Format of log messages
 ----------------------
@@ -80,24 +81,49 @@ Colored output from cron
 When `coloredlogs` is used in a cron_ job, the output that's e-mailed to you by
 cron won't contain any ANSI escape sequences because `coloredlogs` realizes
 that it's not attached to an interactive terminal. If you'd like to have colors
-e-mailed to you by cron there's a simple way to set it up::
+e-mailed to you by cron there are two ways to make it happen:
+
+.. contents::
+   :local:
+
+You can use this feature without using `coloredlogs` in your Python modules,
+but please note that only normal text, bold text and text with one of the
+foreground colors black, red, green, yellow, blue, magenta, cyan and white
+(these are the portable ANSI color codes) are supported.
+
+Modifying your crontab
+~~~~~~~~~~~~~~~~~~~~~~
+
+Here's an example of a minimal crontab::
 
     MAILTO="your-email-address@here"
     CONTENT_TYPE="text/html"
     * * * * * root coloredlogs --to-html your-command
 
 The ``coloredlogs`` program is installed when you install the `coloredlogs`
-package. When you execute ``coloredlogs --to-html your-command`` it runs
+Python package. When you execute ``coloredlogs --to-html your-command`` it runs
 ``your-command`` under the external program ``script`` (you need to have this
 installed). This makes ``your-command`` think that it's attached to an
 interactive terminal which means it will output ANSI escape sequences which
 will then be converted to HTML by the ``coloredlogs`` program. Yes, this is a
 bit convoluted, but it works great :-)
 
-You can use this feature without using `coloredlogs` in your Python modules,
-but please note that only normal text, bold text and text with one of the
-foreground colors black, red, green, yellow, blue, magenta, cyan and white
-(these are the portable ANSI color codes) are supported.
+Modifying your Python code
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ColoredCronMailer_ class provides a context manager that automatically
+enables HTML output when the ``$CONTENT_TYPE`` variable has been correctly set
+in the crontab.
+
+This requires my capturer_ package which you can install using ``pip install
+'coloredlogs[cron]'``. The ``[cron]`` extra will pull in capturer_ 2.4 or newer
+which is required to capture the output while silencing it - otherwise you'd
+get duplicate output in the emails sent by ``cron``.
+
+The context manager can also be used to retroactively silence output that has
+already been produced, this can be useful to avoid spammy cron jobs that have
+nothing useful to do but still email their output to the system administrator
+every few minutes :-).
 
 Contact
 -------
@@ -116,14 +142,16 @@ This software is licensed under the `MIT license`_.
 
 
 .. External references:
-.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+.. _ANSI escape sequences: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+.. _capturer: https://pypi.python.org/pypi/capturer
 .. _Colorama: https://pypi.python.org/pypi/colorama
-.. _ColoredFormatter: http://coloredlogs.readthedocs.io/en/latest/#coloredlogs.ColoredFormatter
+.. _ColoredCronMailer: https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.converter.ColoredCronMailer
+.. _ColoredFormatter: https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.ColoredFormatter
 .. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
-.. _logging.Formatter: http://docs.python.org/2/library/logging.html#logging.Formatter
+.. _logging.Formatter: https://docs.python.org/2/library/logging.html#logging.Formatter
 .. _logging: https://docs.python.org/2/library/logging.html
-.. _MIT license: http://en.wikipedia.org/wiki/MIT_License
+.. _MIT license: https://en.wikipedia.org/wiki/MIT_License
 .. _online documentation: https://coloredlogs.readthedocs.io/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
