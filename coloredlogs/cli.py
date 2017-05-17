@@ -1,7 +1,7 @@
 # Command line interface for the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 14, 2015
+# Last Change: May 18, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -44,7 +44,7 @@ import tempfile
 import webbrowser
 
 # External dependencies.
-from humanfriendly.terminal import connected_to_terminal, usage
+from humanfriendly.terminal import connected_to_terminal, output, usage, warning
 
 # Modules included in our package.
 from coloredlogs.converter import capture, convert
@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    """Command line interface for the `coloredlogs` program."""
+    """Command line interface for the ``coloredlogs`` program."""
     actions = []
     try:
         # Parse the command line arguments.
@@ -78,7 +78,7 @@ def main():
             usage(__doc__)
             return
     except Exception as e:
-        sys.stderr.write("Error: %s\n" % e)
+        warning("Error: %s", e)
         sys.exit(1)
     for function in actions:
         function()
@@ -92,11 +92,11 @@ def convert_command_output(*command):
     (emulating an interactive terminal), intercepts the output of the command
     and converts ANSI escape sequences in the output to HTML.
     """
-    html_output = convert(capture(command))
+    html = convert(capture(command))
     if connected_to_terminal():
         fd, temporary_file = tempfile.mkstemp(suffix='.html')
         with open(temporary_file, 'w') as handle:
-            handle.write(html_output)
+            handle.write(html)
         webbrowser.open(temporary_file)
     else:
-        print(html_output)
+        output(html)
