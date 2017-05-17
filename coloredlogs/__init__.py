@@ -180,7 +180,6 @@ Classes and functions
 
 # Standard library modules.
 import collections
-import copy
 import logging
 import os
 import re
@@ -873,11 +872,28 @@ class ColoredFormatter(logging.Formatter):
             # documented the only (IMHO) clean way to customize its behavior is
             # to change incoming LogRecord objects before they get to the base
             # formatter. However we don't want to break other formatters and
-            # handlers, so we'll copy the log record.
-            record = copy.copy(record)
-            record.msg = ansi_wrap(coerce_string(record.msg), **style)
+            # handlers, so we copy the log record.
+            #
+            # In the past this used copy.copy() but as reported in issue #29
+            # (which is reproducible) this can cause deadlocks. The following
+            # Python voodoo is intended to accomplish the same thing as
+            # copy.copy() without all of the generalization and overhead that
+            # we don't need for our -very limited- use case.
+            #
+            # For more details refer to issue 29 on GitHub:
+            # https://github.com/xolox/python-coloredlogs/issues/29
+            copy = Empty()
+            copy.__class__ = logging.LogRecord
+            copy.__dict__.update(record.__dict__)
+            copy.msg = ansi_wrap(coerce_string(record.msg), **style)
+            record = copy
         # Delegate the remaining formatting to the base formatter.
         return logging.Formatter.format(self, record)
+
+
+class Empty(object):
+
+    """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
 
 
 class HostNameFilter(logging.Filter):
