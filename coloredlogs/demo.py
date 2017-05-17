@@ -1,7 +1,7 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 9, 2016
+# Last Change: May 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """A simple demonstration of the `coloredlogs` package."""
@@ -27,7 +27,7 @@ DEMO_DELAY = float(os.environ.get('COLOREDLOGS_DEMO_DELAY', '1'))
 
 
 def demonstrate_colored_logging():
-    """A simple demonstration of the `coloredlogs` package."""
+    """Interactively demonstrate the :mod:`coloredlogs` package."""
     # Initialize colored output to the terminal, default to the
     # DEBUG logging level but enable the user the customize it.
     coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'SPAM'))

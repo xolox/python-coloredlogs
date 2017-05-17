@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: April 17, 2017
+# Last Change: May 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -396,7 +396,7 @@ class ColoredLogsTestCase(unittest.TestCase):
 
 
 def main(*arguments, **options):
-    """Simple wrapper to run the command line interface."""
+    """Wrap the command line interface to make it easier to test."""
     capture = options.get('capture', False)
     saved_argv = sys.argv
     saved_stdout = sys.stdout
