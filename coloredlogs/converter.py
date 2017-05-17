@@ -29,10 +29,13 @@ EIGHT_COLOR_PALETTE = (
     'white',
 )
 
-# Regular expression that matches strings we want to convert. Used to separate
-# all special strings and literal output in a single pass (this allows us to
-# properly encode the output without resorting to nasty hacks).
-token_pattern = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
+# Compiled regular expression that matches leading spaces (indentation).
+INDENT_PATTERN = re.compile('^ +', re.MULTILINE)
+
+# Compiled regular expression that matches strings we want to convert. Used to
+# separate all special strings and literal output in a single pass (this allows
+# us to properly encode the output without resorting to nasty hacks).
+TOKEN_PATTERN = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
 
 
 def capture(command, encoding='UTF-8'):
@@ -93,7 +96,7 @@ def convert(text, code=True, tabsize=4):
     :returns: The text converted to HTML (a string).
     """
     output = []
-    for token in token_pattern.split(text):
+    for token in TOKEN_PATTERN.split(text):
         if token.startswith(('http://', 'https://', 'www.')):
             url = token
             if '://' not in token:
@@ -151,7 +154,7 @@ def encode_whitespace(text, tabsize=4):
     # Convert leading spaces (that is to say spaces at the start of the string
     # and/or directly after a line ending) into non-breaking spaces, otherwise
     # HTML rendering engines will simply ignore these spaces.
-    text = re.sub('^ +', encode_whitespace_cb, text, 0, re.MULTILINE)
+    text = re.sub(INDENT_PATTERN, encode_whitespace_cb, text)
     # Convert runs of multiple spaces into non-breaking spaces to avoid HTML
     # rendering engines from visually collapsing runs of spaces into a single
     # space. We specifically don't replace single spaces for several reasons:
