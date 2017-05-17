@@ -199,7 +199,7 @@ WINDOWS = sys.platform.startswith('win')
 NEED_COLORAMA = WINDOWS
 
 # Semi-standard module versioning.
-__version__ = '6.2'
+__version__ = '6.3'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
