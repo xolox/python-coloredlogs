@@ -21,10 +21,10 @@ from humanfriendly.terminal import ANSI_CSI, clean_terminal_output
 EIGHT_COLOR_PALETTE = (
     'black',
     'red',
-    'rgb(78, 154, 6)',  # green
-    'rgb(196, 160, 0)',  # yellow
+    'rgb(78,154,6)',  # green
+    'rgb(196,160,0)',  # yellow
     'blue',
-    'rgb(117, 80, 123)',  # magenta
+    'rgb(117,80,123)',  # magenta
     'cyan',
     'white',
 )
@@ -95,7 +95,7 @@ def convert(text):
             if '://' not in token:
                 url = 'http://' + url
             text = url.partition('://')[2]
-            token = u'<a href="%s" style="color: inherit;">%s</a>' % (html_encode(url), html_encode(text))
+            token = u'<a href="%s" style="color:inherit">%s</a>' % (html_encode(url), html_encode(text))
         elif token.startswith(ANSI_CSI):
             ansi_codes = token[len(ANSI_CSI):-1].split(';')
             if ansi_codes == ['0']:
@@ -104,11 +104,11 @@ def convert(text):
                 styles = []
                 for code in ansi_codes:
                     if code == '1':
-                        styles.append('font-weight: bold;')
+                        styles.append('font-weight:bold')
                     elif code.startswith('3') and len(code) == 2:
-                        styles.append('color: %s;' % EIGHT_COLOR_PALETTE[int(code[1])])
+                        styles.append('color:%s' % EIGHT_COLOR_PALETTE[int(code[1])])
                 if styles:
-                    token = '<span style="%s">' % ' '.join(styles)
+                    token = '<span style="%s">' % ';'.join(styles)
                 else:
                     token = ''
         else:
