@@ -81,11 +81,14 @@ def capture(command, encoding='UTF-8'):
     return u'\n'.join(clean_terminal_output(output))
 
 
-def convert(text):
+def convert(text, code=True):
     """
     Convert text with ANSI escape sequences to HTML.
 
     :param text: The text with ANSI escape sequences (a string).
+    :param code: Whether to wrap the returned HTML fragment in a
+                 ``<code>...</code>`` element (a boolean, defaults
+                 to :data:`True`).
     :returns: The text converted to HTML (a string).
     """
     output = []
@@ -115,7 +118,10 @@ def convert(text):
             token = html_encode(token)
             token = encode_whitespace(token)
         output.append(token)
-    return ''.join(output)
+    html = ''.join(output)
+    if code:
+        html = '<code>%s</code>' % html
+    return html
 
 
 def encode_whitespace(text):

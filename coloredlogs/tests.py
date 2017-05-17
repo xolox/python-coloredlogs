@@ -343,8 +343,8 @@ class ColoredLogsTestCase(unittest.TestCase):
         assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
         html_encoded_text = convert(ansi_encoded_text)
         assert html_encoded_text == (
-            'I&nbsp;like&nbsp;<span style="font-weight:bold;color:blue">birds</span>&nbsp;-&nbsp;'
-            '<a href="http://www.eelstheband.com" style="color:inherit">www.eelstheband.com</a>'
+            '<code>I&nbsp;like&nbsp;<span style="font-weight:bold;color:blue">birds</span>&nbsp;-&nbsp;'
+            '<a href="http://www.eelstheband.com" style="color:inherit">www.eelstheband.com</a></code>'
         )
 
     def test_output_interception(self):
