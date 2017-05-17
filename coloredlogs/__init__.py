@@ -891,9 +891,15 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter.format(self, record)
 
 
-class Empty(object):
-
-    """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
+if sys.version_info[:2] <= (2, 6):
+    # On Python 2.6 the logging.LogRecord class is an old-style class
+    # which means our empty class also needs to be an old-style class.
+    class Empty:
+        """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
+else:
+    # On Python 2.7 and up logging.LogRecord is a new-style class.
+    class Empty(object):
+        """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
 
 
 class HostNameFilter(logging.Filter):
