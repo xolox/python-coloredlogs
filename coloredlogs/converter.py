@@ -1,7 +1,7 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 9, 2016
+# Last Change: May 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Convert text with ANSI escape sequences to HTML."""
@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 
 # External dependencies.
-from humanfriendly.terminal import clean_terminal_output
+from humanfriendly.terminal import ANSI_CSI, clean_terminal_output
 
 # Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
 EIGHT_COLOR_PALETTE = (
@@ -96,8 +96,8 @@ def convert(text):
                 url = 'http://' + url
             text = url.partition('://')[2]
             token = u'<a href="%s" style="color: inherit;">%s</a>' % (html_encode(url), html_encode(text))
-        elif token.startswith('\x1b['):
-            ansi_codes = token[2:-1].split(';')
+        elif token.startswith(ANSI_CSI):
+            ansi_codes = token[len(ANSI_CSI):-1].split(';')
             if ansi_codes == ['0']:
                 token = '</span>'
             else:
