@@ -199,7 +199,7 @@ WINDOWS = sys.platform.startswith('win')
 NEED_COLORAMA = WINDOWS
 
 # Semi-standard module versioning.
-__version__ = '6.3'
+__version__ = '6.4'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
@@ -781,7 +781,13 @@ def walk_propagation_tree(logger):
 
 class ColoredFormatter(logging.Formatter):
 
-    """Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs."""
+    """
+    Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs.
+
+    .. note:: If you want to use :class:`ColoredFormatter` on Windows then you
+              may need to call :func:`colorama.init()`. This is done for you
+              when you call :func:`coloredlogs.install()`.
+    """
 
     def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None):
         """
