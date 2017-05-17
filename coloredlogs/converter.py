@@ -113,7 +113,12 @@ def convert(text, code=True, tabsize=4):
                     if code == '1':
                         styles.append('font-weight:bold')
                     elif code.startswith('3') and len(code) == 2:
-                        styles.append('color:%s' % EIGHT_COLOR_PALETTE[int(code[1])])
+                        try:
+                            color_index = int(code[1])
+                            css_color = EIGHT_COLOR_PALETTE[color_index]
+                            styles.append('color:%s' % css_color)
+                        except IndexError:
+                            pass
                 if styles:
                     token = '<span style="%s">' % ';'.join(styles)
                 else:
