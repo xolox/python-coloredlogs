@@ -1,17 +1,32 @@
-language: python
 sudo: false
-python:
-  - "2.6"
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "pypy"
+language: python
+matrix:
+  include:
+  - os: linux
+    python: "2.6"
+  - os: linux
+    python: "2.7"
+  - os: linux
+    python: "3.4"
+  - os: linux
+    python: "3.5"
+  - os: linux
+    python: "3.6"
+  - os: linux
+    python: "pypy"
+  - os: osx
+    language: generic
 install:
-  - pip install --requirement=requirements-flake8.txt
-  - pip install coveralls
-  - LC_ALL=C pip install .
+  - scripts/travis.sh pip install pip-accel
+  - scripts/travis.sh pip-accel install coveralls
+  - scripts/travis.sh pip-accel install --requirement=requirements-checks.txt
+  - scripts/travis.sh pip-accel install --requirement=requirements-tests.txt
+  - scripts/travis.sh LC_ALL=C pip install .
 script:
-  - make check
-  - coverage run setup.py test
+  - scripts/travis.sh make check
+  - scripts/travis.sh make test
 after_success:
-  coveralls
+  - scripts/travis.sh coveralls
+branches:
+  except:
+    - /^[0-9]/

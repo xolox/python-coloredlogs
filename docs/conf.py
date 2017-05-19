@@ -1,10 +1,16 @@
-"""Documentation build configuration file for the `coloredlogs` package."""
+# Colored terminal output for Python's logging module.
+#
+# Author: Peter Odding <peter@peterodding.com>
+# Last Change: May 18, 2017
+# URL: https://coloredlogs.readthedocs.io
+
+"""Sphinx documentation configuration for the `coloredlogs` package."""
 
 import os
 import sys
 
 # Add the 'coloredlogs' source distribution's root directory to the module path.
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(os.pardir))
 
 # -- General configuration -----------------------------------------------------
 
@@ -12,7 +18,12 @@ sys.path.insert(0, os.path.abspath('..'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
+    'humanfriendly.sphinx',
 ]
+
+# Sort members by the source order instead of alphabetically.
+autodoc_member_order = 'bysource'
 
 # Paths that contain templates, relative to this directory.
 templates_path = ['templates']
@@ -25,14 +36,14 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'coloredlogs'
-copyright = u'2015, Peter Odding'
+copyright = u'2017, Peter Odding'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
 # Find the package version and make it the release.
-from coloredlogs import __version__ as coloredlogs_version
+from coloredlogs import __version__ as coloredlogs_version  # noqa
 
 # The short X.Y version.
 version = '.'.join(coloredlogs_version.split('.')[:2])
@@ -57,25 +68,16 @@ pygments_style = 'sphinx'
 # Refer to the Python standard library.
 # From: http://twistedmatrix.com/trac/ticket/4582.
 intersphinx_mapping = dict(
-    python=('http://docs.python.org', None),
-    humanfriendly=('http://humanfriendly.readthedocs.org/en/latest', None),
+    python=('https://docs.python.org/2', None),
+    capturer=('https://capturer.readthedocs.io/en/latest', None),
+    humanfriendly=('https://humanfriendly.readthedocs.io/en/latest', None),
 )
 
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'nature'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'coloredlogsdoc'
-
-
-def setup(app):
-    """
-    Configure the autodoc extension not to skip ``__init__()`` members.
-
-    Based on http://stackoverflow.com/a/5599712/788200.
-    """
-    app.connect('autodoc-skip-member', (lambda app, what, name, obj, skip, options:
-                                        False if name == '__init__' and obj.__doc__ else skip))

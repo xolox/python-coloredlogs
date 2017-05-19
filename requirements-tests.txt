@@ -1,0 +1,6 @@
+capturer >= 2.2
+coverage >= 4.2
+mock >= 1.0.1
+pytest >= 3.0.3
+pytest-cov >= 2.3.1
+verboselogs >= 1.5
