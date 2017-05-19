@@ -834,9 +834,9 @@ class ColoredFormatter(logging.Formatter):
                         _fmt = overridefmt[level].get('fmt', fmt)
                         _datefmt = overridefmt[level].get('datefmt', datefmt)
                         self.formatters[level] = logging.Formatter(
-                                self.colorize_format(_fmt),
-                                _datefmt)
-
+                            self.colorize_format(_fmt),
+                            _datefmt
+                        )
                 except Exception:
                     self.formatters.pop(level, None)
 

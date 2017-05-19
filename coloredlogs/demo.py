@@ -48,7 +48,8 @@ def demonstrate_colored_logging():
 
 
 def demonstrate_colored_logging_with_different_formatters():
-    """A simple demonstration of the `coloredlogs` package."""
+    """Interactively demonstrate the :mod:`coloredlogs` package with different formatters
+    """
     # Initialize colored output to the terminal, default to the
     # DEBUG logging level but enable the user the customize it.
     FORMATS = {
@@ -60,29 +61,25 @@ def demonstrate_colored_logging_with_different_formatters():
         # "WARNING": {}
     }
     FIELD_STYLES = dict(
-            asctime=dict(color='green'),
-            hostname=dict(color='magenta'),
-            levelname=dict(color='blue', bold=False),
-            programname=dict(color='cyan'),
-            name=dict(color='blue'),
-            module=dict(color='cyan'),
-            lineno=dict(color='magenta')
+        asctime=dict(color='green'),
+        hostname=dict(color='magenta'),
+        levelname=dict(color='blue', bold=False),
+        programname=dict(color='cyan'),
+        name=dict(color='blue'),
+        module=dict(color='cyan'),
+        lineno=dict(color='magenta')
     )
 
     LEVEL_STYLES = {
-                'DEBUG':    {"color": "blue"},
-                'INFO':     {"color": "green"},
-                'WARNING':  {"color": "yellow"},
-                'ERROR':    {"color": "red"},
-                'CRITICAL': {"color": 'red'},
-                'FATAL': {"color": 'red'}
-            }
-    fmt = (
-            "%(asctime)s - %(levelname)s - "
-            "%(module)s - %(message)s"
-        )
+        'DEBUG': {"color": "blue"},
+        'INFO': {"color": "green"},
+        'WARNING': {"color": "yellow"},
+        'ERROR': {"color": "red"},
+        'CRITICAL': {"color": 'red'},
+        'FATAL': {"color": 'red'}
+    }
+
     coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'DEBUG'),
-                        # fmt=fmt,
                         field_styles=FIELD_STYLES,
                         level_styles=LEVEL_STYLES,
                         overridefmt=FORMATS)
