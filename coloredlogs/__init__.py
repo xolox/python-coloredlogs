@@ -787,8 +787,6 @@ def walk_propagation_tree(logger):
 
 class ColoredFormatter(logging.Formatter):
 
-    formatters = {}
-
     """
     Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs.
 
@@ -796,6 +794,8 @@ class ColoredFormatter(logging.Formatter):
               may need to call :func:`colorama.init()`. This is done for you
               when you call :func:`coloredlogs.install()`.
     """
+
+    formatters = {}
 
     def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None, overridefmt=None):
         """

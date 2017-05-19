@@ -48,10 +48,10 @@ def demonstrate_colored_logging():
 
 
 def demonstrate_colored_logging_with_different_formatters():
-    """Interactively demonstrate the :mod:`coloredlogs` package with different formatters
-    """
+    """Interactively demonstrate the :mod:`coloredlogs` package with different formatters"""
     # Initialize colored output to the terminal, default to the
     # DEBUG logging level but enable the user the customize it.
+
     FORMATS = {
         "INFO": {'fmt': "%(asctime)s - %(levelname)s - "
                         "%(module)s - %(message)s"},
@@ -98,5 +98,7 @@ def demonstrate_colored_logging_with_different_formatters():
         logger.exception(e)
         time.sleep(DEMO_DELAY)
     logger.info("Done, exiting ..")
+
+
 demonstrate_colored_logging()
 demonstrate_colored_logging_with_different_formatters()
