@@ -1,30 +1,36 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 14, 2015
-# URL: https://coloredlogs.readthedocs.org
+# Last Change: May 17, 2017
+# URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
 
 # Standard library modules.
+import contextlib
+import imp
 import logging
 import logging.handlers
 import os
 import random
 import re
 import string
+import subprocess
 import sys
 import tempfile
 import unittest
 
 # External dependencies.
 from humanfriendly.terminal import ansi_wrap
+from mock import MagicMock
 
 # The module we're testing.
 import coloredlogs
 import coloredlogs.cli
 from coloredlogs import (
     CHROOT_FILES,
+    ColoredFormatter,
+    NameNormalizer,
     decrease_verbosity,
     find_defined_levels,
     find_handler,
@@ -35,12 +41,12 @@ from coloredlogs import (
     install,
     is_verbose,
     level_to_number,
-    NameNormalizer,
+    match_stream_handler,
     parse_encoded_styles,
     set_level,
     walk_propagation_tree,
 )
-from coloredlogs.syslog import SystemLogging
+from coloredlogs.syslog import SystemLogging, match_syslog_handler
 from coloredlogs.converter import capture, convert
 
 # External test dependencies.
@@ -59,6 +65,9 @@ PLAIN_TEXT_PATTERN = re.compile(r'''
     \s (?P<severity> [A-Z]+ )
     \s (?P<message> .* )
 ''', re.VERBOSE)
+
+# The pathname of the system log file on Ubuntu Linux (my laptops and Travis CI).
+UNIX_SYSTEM_LOG = '/var/log/syslog'
 
 
 def setUpModule():
@@ -123,6 +132,31 @@ class ColoredLogsTestCase(unittest.TestCase):
             output = capturer.get_text()
             assert find_program_name() in output
 
+    def test_colorama_enabled(self):
+        """Test that colorama is enabled (through mocking)."""
+        init_function = MagicMock()
+        with mocked_colorama_module(init_function):
+            # Configure logging to the terminal.
+            coloredlogs.install()
+            # Ensure that our mock method was called.
+            assert init_function.called
+
+    def test_colorama_missing(self):
+        """Test that colorama is missing (through mocking)."""
+        def init_function():
+            raise ImportError
+        with mocked_colorama_module(init_function):
+            # Configure logging to the terminal. It is expected that internally
+            # an ImportError is raised, but the exception is caught and colored
+            # output is disabled.
+            coloredlogs.install()
+            # Find the handler that was created by coloredlogs.install().
+            handler, logger = find_handler(logging.getLogger(), match_stream_handler)
+            # Make sure that logging to the terminal was initialized.
+            assert isinstance(handler.formatter, logging.Formatter)
+            # Make sure colored logging is disabled.
+            assert not isinstance(handler.formatter, ColoredFormatter)
+
     def test_system_logging(self):
         """Make sure the :mod:`coloredlogs.syslog` module works."""
         expected_message = random_string(50)
@@ -131,6 +165,29 @@ class ColoredLogsTestCase(unittest.TestCase):
             if syslog and os.path.isfile('/var/log/syslog'):
                 with open('/var/log/syslog') as handle:
                     assert any(expected_message in line for line in handle)
+
+    def test_syslog_shortcut_simple(self):
+        """Make sure that ``coloredlogs.install(syslog=True)`` works."""
+        with cleanup_handlers():
+            expected_message = random_string(50)
+            coloredlogs.install(syslog=True)
+            logging.info("%s", expected_message)
+            if os.path.isfile(UNIX_SYSTEM_LOG):
+                with open(UNIX_SYSTEM_LOG) as handle:
+                    assert any(expected_message in line for line in handle)
+
+    def test_syslog_shortcut_enhanced(self):
+        """Make sure that ``coloredlogs.install(syslog='warn')`` works."""
+        with cleanup_handlers():
+            the_expected_message = random_string(50)
+            not_an_expected_message = random_string(50)
+            coloredlogs.install(syslog='warn')
+            logging.info("%s", not_an_expected_message)
+            logging.warning("%s", the_expected_message)
+            if os.path.isfile(UNIX_SYSTEM_LOG):
+                with open(UNIX_SYSTEM_LOG) as handle:
+                    assert any(the_expected_message in line for line in handle)
+                    assert not any(not_an_expected_message in line for line in handle)
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
@@ -172,7 +229,10 @@ class ColoredLogsTestCase(unittest.TestCase):
         # VERBOSE -> DEBUG.
         increase_verbosity()
         assert get_level() == logging.DEBUG
-        # DEBUG -> NOTSET.
+        # DEBUG -> SPAM.
+        increase_verbosity()
+        assert get_level() == logging.SPAM
+        # SPAM -> NOTSET.
         increase_verbosity()
         assert get_level() == logging.NOTSET
         # NOTSET -> NOTSET.
@@ -184,7 +244,10 @@ class ColoredLogsTestCase(unittest.TestCase):
         # Start from a known state.
         set_level(logging.INFO)
         assert get_level() == logging.INFO
-        # INFO -> WARNING.
+        # INFO -> NOTICE.
+        decrease_verbosity()
+        assert get_level() == logging.NOTICE
+        # NOTICE -> WARNING.
         decrease_verbosity()
         assert get_level() == logging.WARNING
         # WARNING -> ERROR.
@@ -280,14 +343,33 @@ class ColoredLogsTestCase(unittest.TestCase):
         assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
         html_encoded_text = convert(ansi_encoded_text)
         assert html_encoded_text == (
-            'I&nbsp;like&nbsp;<span style="font-weight: bold; color: blue;">birds</span>&nbsp;-&nbsp;'
-            '<a href="http://www.eelstheband.com" style="color: inherit;">www.eelstheband.com</a>'
+            '<code>I like <span style="font-weight:bold;color:blue">birds</span> - '
+            '<a href="http://www.eelstheband.com" style="color:inherit">www.eelstheband.com</a></code>'
         )
 
     def test_output_interception(self):
         """Test capturing of output from external commands."""
         expected_output = 'testing, 1, 2, 3 ..'
-        assert capture(['sh', '-c', 'echo -n %s' % expected_output]) == expected_output
+        actual_output = capture(['echo', expected_output])
+        assert actual_output.strip() == expected_output.strip()
+
+    def test_auto_install(self):
+        """Test :func:`coloredlogs.auto_install()`."""
+        needle = random_string()
+        command_line = [sys.executable, '-c', 'import logging; logging.info(%r)' % needle]
+        # Sanity check that log messages aren't enabled by default.
+        with CaptureOutput() as capturer:
+            os.environ['COLOREDLOGS_AUTO_INSTALL'] = 'false'
+            subprocess.call(command_line)
+            output = capturer.get_text()
+        assert needle not in output
+        # Test that the $COLOREDLOGS_AUTO_INSTALL environment variable can be
+        # used to automatically call coloredlogs.install() during initialization.
+        with CaptureOutput() as capturer:
+            os.environ['COLOREDLOGS_AUTO_INSTALL'] = 'true'
+            subprocess.call(command_line)
+            output = capturer.get_text()
+        assert needle in output
 
     def test_cli_demo(self):
         """Test the command line colored logging demonstration."""
@@ -314,7 +396,7 @@ class ColoredLogsTestCase(unittest.TestCase):
 
 
 def main(*arguments, **options):
-    """Simple wrapper to run the command line interface."""
+    """Wrap the command line interface to make it easier to test."""
     capture = options.get('capture', False)
     saved_argv = sys.argv
     saved_stdout = sys.stdout
@@ -333,3 +415,39 @@ def main(*arguments, **options):
 def random_string(length=25):
     """Generate a random string."""
     return ''.join(random.choice(string.ascii_letters) for i in range(25))
+
+
+@contextlib.contextmanager
+def mocked_colorama_module(init_function):
+    """Context manager to ease testing of colorama integration."""
+    module_name = 'colorama'
+    # Create a fake module shadowing colorama.
+    fake_module = imp.new_module(module_name)
+    setattr(fake_module, 'init', init_function)
+    # Temporarily reconfigure coloredlogs to use colorama.
+    need_colorama = coloredlogs.NEED_COLORAMA
+    coloredlogs.NEED_COLORAMA = True
+    # Install the fake colorama module.
+    saved_module = sys.modules.get(module_name, None)
+    sys.modules[module_name] = fake_module
+    # We've finished setting up, yield control.
+    yield
+    # Restore the original setting.
+    coloredlogs.NEED_COLORAMA = need_colorama
+    # Clean up the mock module.
+    if saved_module is not None:
+        sys.modules[module_name] = saved_module
+    else:
+        sys.modules.pop(module_name, None)
+
+
+@contextlib.contextmanager
+def cleanup_handlers():
+    """Context manager to cleanup output handlers."""
+    # There's nothing to set up so we immediately yield control.
+    yield
+    # After the with block ends we cleanup any output handlers.
+    for match_func in match_stream_handler, match_syslog_handler:
+        handler, logger = find_handler(logging.getLogger(), match_func)
+        if handler and logger:
+            logger.removeHandler(handler)

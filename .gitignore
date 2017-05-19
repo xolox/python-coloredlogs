@@ -63,3 +63,9 @@ target/
 .idea/*
 
 
+.cache
+.eggs
+*.egg-info/
+.*.swp
+*.pyc
+

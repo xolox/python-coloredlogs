@@ -1,8 +1,8 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 23, 2015
-# URL: https://coloredlogs.readthedocs.org
+# Last Change: May 17, 2017
+# URL: https://coloredlogs.readthedocs.io
 
 """A simple demonstration of the `coloredlogs` package."""
 
@@ -27,12 +27,12 @@ DEMO_DELAY = float(os.environ.get('COLOREDLOGS_DEMO_DELAY', '1'))
 
 
 def demonstrate_colored_logging():
-    """A simple demonstration of the `coloredlogs` package."""
+    """Interactively demonstrate the :mod:`coloredlogs` package."""
     # Initialize colored output to the terminal, default to the
     # DEBUG logging level but enable the user the customize it.
-    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'DEBUG'))
+    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'SPAM'))
     # Print some examples with different timestamps.
-    for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
+    for level in ['spam', 'debug', 'verbose', 'info', 'notice', 'warn', 'error', 'critical']:
         if hasattr(logger, level):
             getattr(logger, level)("message with level %r", level)
             time.sleep(DEMO_DELAY)
@@ -74,7 +74,8 @@ def demonstrate_colored_logging_with_different_formatters():
                 'INFO':     {"color": "green"},
                 'WARNING':  {"color": "yellow"},
                 'ERROR':    {"color": "red"},
-                'CRITICAL': {"color": 'red'}
+                'CRITICAL': {"color": 'red'},
+                'FATAL': {"color": 'red'}
             }
     fmt = (
             "%(asctime)s - %(levelname)s - "
@@ -86,7 +87,8 @@ def demonstrate_colored_logging_with_different_formatters():
                         level_styles=LEVEL_STYLES,
                         overridefmt=FORMATS)
     # Print some examples with different timestamps.
-    for level in ['debug', 'verbose', 'info', 'warn', 'error', 'critical']:
+    for level in ['spam', 'debug', 'verbose', 'info', 'notice', 'warn',
+                  'error', 'critical']:
         if hasattr(logger, level):
             getattr(logger, level)("message with level %r", level)
             time.sleep(DEMO_DELAY)
@@ -99,5 +101,5 @@ def demonstrate_colored_logging_with_different_formatters():
         logger.exception(e)
         time.sleep(DEMO_DELAY)
     logger.info("Done, exiting ..")
-# demonstrate_colored_logging()
+demonstrate_colored_logging()
 demonstrate_colored_logging_with_different_formatters()

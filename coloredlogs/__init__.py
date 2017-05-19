@@ -1,8 +1,8 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 14, 2015
-# URL: https://coloredlogs.readthedocs.org
+# Last Change: May 18, 2017
+# URL: https://coloredlogs.readthedocs.io
 
 """
 Colored terminal output for Python's :mod:`logging` module.
@@ -25,7 +25,7 @@ The easiest way to get started is by importing :mod:`coloredlogs` and calling
 The :mod:`~coloredlogs.install()` function creates a :class:`ColoredFormatter`
 that injects `ANSI escape sequences`_ into the log output.
 
-.. _ANSI escape sequences: http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+.. _ANSI escape sequences: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 
 Environment variables
 =====================
@@ -36,6 +36,8 @@ The following environment variables can be used to configure the
 =============================  ============================  ==================================
 Environment variable           Default value                 Type of value
 =============================  ============================  ==================================
+``$COLOREDLOGS_AUTO_INSTALL``  'false'                       a boolean that controls whether
+                                                             :func:`auto_install()` is called
 ``$COLOREDLOGS_LOG_LEVEL``     'INFO'                        a log level name
 ``$COLOREDLOGS_LOG_FORMAT``    :data:`DEFAULT_LOG_FORMAT`    a log format string
 ``$COLOREDLOGS_DATE_FORMAT``   :data:`DEFAULT_DATE_FORMAT`   a date/time format string
@@ -119,16 +121,65 @@ following screen shot:
    :align: center
    :width: 80%
 
+.. _notes about log levels:
+
+Some notes about log levels
+===========================
+
+With regards to the handling of log levels, the :mod:`coloredlogs` package
+differs from Python's :mod:`logging` module in two aspects:
+
+1. While the :mod:`logging` module uses the default logging level
+   :data:`logging.WARNING`, the :mod:`coloredlogs` package has always used
+   :data:`logging.INFO` as its default log level.
+
+2. When logging to the terminal or system log is initialized by
+   :func:`install()` or :func:`.enable_system_logging()` the effective
+   level [#]_ of the selected logger [#]_ is compared against the requested
+   level [#]_ and if the effective level is more restrictive than the requested
+   level, the logger's level will be set to the requested level (this happens
+   in :func:`adjust_level()`). The reason for this is to work around a
+   combination of design choices in Python's :mod:`logging` module that can
+   easily confuse people who aren't already intimately familiar with it:
+
+   - All loggers are initialized with the level :data:`logging.NOTSET`.
+
+   - When a logger's level is set to :data:`logging.NOTSET` the
+     :func:`~logging.Logger.getEffectiveLevel()` method will
+     fall back to the level of the parent logger.
+
+   - The parent of all loggers is the root logger and the root logger has its
+     level set to :data:`logging.WARNING` by default (after importing the
+     :mod:`logging` module).
+
+   Effectively all user defined loggers inherit the default log level
+   :data:`logging.WARNING` from the root logger, which isn't very intuitive for
+   those who aren't already familiar with the hierarchical nature of the
+   :mod:`logging` module.
+
+   By avoiding this potentially confusing behavior (see `#14`_, `#18`_, `#21`_,
+   `#23`_ and `#24`_), while at the same time allowing the caller to specify a
+   logger object, my goal and hope is to provide sane defaults that can easily
+   be changed when the need arises.
+
+   .. [#] Refer to :func:`logging.Logger.getEffectiveLevel()` for details.
+   .. [#] The logger that is passed as an argument by the caller or the root
+          logger which is selected as a default when no logger is provided.
+   .. [#] The log level that is passed as an argument by the caller or the
+          default log level :data:`logging.INFO` when no level is provided.
+
+   .. _#14: https://github.com/xolox/python-coloredlogs/issues/14
+   .. _#18: https://github.com/xolox/python-coloredlogs/issues/18
+   .. _#21: https://github.com/xolox/python-coloredlogs/pull/21
+   .. _#23: https://github.com/xolox/python-coloredlogs/pull/23
+   .. _#24: https://github.com/xolox/python-coloredlogs/issues/24
+
 Classes and functions
 =====================
 """
 
-# Semi-standard module versioning.
-__version__ = '5.0.1.internal'
-
 # Standard library modules.
 import collections
-import copy
 import logging
 import os
 import re
@@ -136,19 +187,22 @@ import socket
 import sys
 
 # External dependencies.
+from humanfriendly import coerce_boolean
 from humanfriendly.compat import coerce_string, is_string
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_supports_colors
 from humanfriendly.text import split
 
+# Windows requires special handling and the first step is detecting it :-).
+WINDOWS = sys.platform.startswith('win')
+
 # Optional external dependency (only needed on Windows).
-NEED_COLORAMA = sys.platform.startswith('win')
-HAVE_COLORAMA = False
-if NEED_COLORAMA:
-    try:
-        import colorama
-        HAVE_COLORAMA = True
-    except ImportError:
-        pass
+NEED_COLORAMA = WINDOWS
+
+# Semi-standard module versioning.
+__version__ = '7.0'
+
+DEFAULT_LOG_LEVEL = logging.INFO
+"""The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
 
 DEFAULT_LOG_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s'
 """The default log format for :class:`ColoredFormatter` objects (a string)."""
@@ -177,13 +231,33 @@ DEFAULT_FIELD_STYLES = dict(
 """Mapping of log format names to default font styles."""
 
 DEFAULT_LEVEL_STYLES = dict(
+    spam=dict(color='green'),
     debug=dict(color='green'),
-    info=dict(),
     verbose=dict(color='blue'),
+    info=dict(),
+    notice=dict(color='magenta'),
     warning=dict(color='yellow'),
     error=dict(color='red'),
     critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
 """Mapping of log level names to default font styles."""
+
+
+def auto_install():
+    """
+    Automatically call :func:`install()` when ``$COLOREDLOGS_AUTO_INSTALL`` is set.
+
+    The `coloredlogs` package includes a `path configuration file`_ that
+    automatically imports the :mod:`coloredlogs` module and calls
+    :func:`auto_install()` when the environment variable
+    ``$COLOREDLOGS_AUTO_INSTALL`` is set.
+
+    This function uses :func:`~humanfriendly.coerce_boolean()` to check whether
+    the value of ``$COLOREDLOGS_AUTO_INSTALL`` should be considered :data:`True`.
+
+    .. _path configuration file: https://docs.python.org/2/library/site.html#module-site
+    """
+    if coerce_boolean(os.environ.get('COLOREDLOGS_AUTO_INSTALL', 'false')):
+        install()
 
 
 def install(level=None, **kw):
@@ -191,7 +265,7 @@ def install(level=None, **kw):
     Enable colored terminal output for Python's :mod:`logging` module.
 
     :param level: The default logging level (an integer or a string with a
-                  level name, defaults to :data:`logging.INFO`).
+                  level name, defaults to :data:`DEFAULT_LOG_LEVEL`).
     :param logger: The logger to which the stream handler should be attached (a
                    :class:`~logging.Logger` object, defaults to the root logger).
     :param fmt: Set the logging format (a string like those accepted by
@@ -206,7 +280,8 @@ def install(level=None, **kw):
     :param field_styles: A dictionary with custom field styles (defaults to
                          :data:`DEFAULT_FIELD_STYLES`).
     :param stream: The stream where log messages should be written to (a
-                   file-like object, defaults to :data:`sys.stderr`).
+                   file-like object). This defaults to :data:`None` which
+                   means :class:`StandardErrorHandler` is used.
     :param isatty: :data:`True` to use a :class:`ColoredFormatter`,
                    :data:`False` to use a normal :class:`~logging.Formatter`
                    (defaults to auto-detection using
@@ -216,8 +291,11 @@ def install(level=None, **kw):
                         the previous configuration.
     :param use_chroot: Refer to :class:`HostNameFilter`.
     :param programname: Refer to :class:`ProgramNameFilter`.
-    :param syslog: If :data:`True` then :func:`~coloredlogs.syslog.enable_system_logging()`
-                   will be called without arguments (defaults to :data:`False`).
+    :param syslog: If :data:`True` then :func:`.enable_system_logging()` will
+                   be called without arguments (defaults to :data:`False`). The
+                   `syslog` argument may also be a number or string, in this
+                   case it is assumed to be a logging level which is passed on
+                   to :func:`.enable_system_logging()`.
 
     The :func:`coloredlogs.install()` function is similar to
     :func:`logging.basicConfig()`, both functions take a lot of optional
@@ -246,39 +324,63 @@ def install(level=None, **kw):
     4. :func:`HostNameFilter.install()` and :func:`ProgramNameFilter.install()`
        are called to enable the use of additional fields in the log format.
 
-    5. The formatter is added to the handler and the handler is added to the
-       logger. The logger's level is set to :data:`logging.NOTSET` so that each
-       handler gets to decide which records they filter. This makes it possible
-       to have controllable verbosity on the terminal while logging at full
-       verbosity to the system log or a file.
+    5. If the logger's level is too restrictive it is relaxed (refer to `notes
+       about log levels`_ for details).
+
+    6. The formatter is added to the handler and the handler is added to the
+       logger.
     """
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
-    stream = kw.get('stream', sys.stderr)
+    stream = kw.get('stream', None)
+    # Get the log level from an argument, environment variable or default and
+    # convert the names of log levels to numbers to enable numeric comparison.
+    if level is None:
+        level = os.environ.get('COLOREDLOGS_LOG_LEVEL', DEFAULT_LOG_LEVEL)
+    level = level_to_number(level)
     # Remove any existing stream handler that writes to stdout or stderr, even
     # if the stream handler wasn't created by coloredlogs because multiple
     # stream handlers (in the same hierarchy) writing to stdout or stderr would
-    # create duplicate output.
-    standard_streams = (sys.stdout, sys.stderr)
-    match_streams = standard_streams if stream in standard_streams else (stream,)
+    # create duplicate output.  `None' is a synonym for the possibly dynamic
+    # value of the stderr attribute of the sys module.
+    match_streams = ([sys.stdout, sys.stderr]
+                     if stream in [sys.stdout, sys.stderr, None]
+                     else [stream])
     match_handler = lambda handler: match_stream_handler(handler, match_streams)
     handler, logger = replace_handler(logger, match_handler, reconfigure)
     # Make sure reconfiguration is allowed or not relevant.
     if not (handler and not reconfigure):
         # Make it easy to enable system logging.
-        if kw.get('syslog', False):
-            from coloredlogs import syslog
-            syslog.enable_system_logging()
+        syslog_enabled = kw.get('syslog')
+        # We ignore the value `None' because it means the caller didn't opt in
+        # to system logging and `False' because it means the caller explicitly
+        # opted out of system logging.
+        #
+        # We never enable system logging on Windows because it is my impression
+        # that SysLogHandler isn't intended to be used on Windows; I've had
+        # reports of coloredlogs spewing extremely verbose errno 10057 warning
+        # messages to the console (once for each log message I suppose).
+        if syslog_enabled not in (None, False) and not WINDOWS:
+            from coloredlogs.syslog import enable_system_logging
+            if syslog_enabled is True:
+                # If the caller passed syslog=True then we leave the choice of
+                # default log level up to the coloredlogs.syslog module.
+                enable_system_logging()
+            else:
+                # Values other than (None, True, False) are assumed to
+                # represent a logging level for system logging.
+                enable_system_logging(level=syslog_enabled)
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
         if use_colors or use_colors is None:
             if NEED_COLORAMA:
-                if HAVE_COLORAMA:
+                try:
                     # On Windows we can only use ANSI escape
                     # sequences if Colorama is available.
+                    import colorama
                     colorama.init()
                     use_colors = True
-                else:
+                except ImportError:
                     # If Colorama isn't available then we specifically
                     # shouldn't emit ANSI escape sequences!
                     use_colors = False
@@ -286,10 +388,8 @@ def install(level=None, **kw):
                 # Auto-detect terminal support on other platforms.
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
-        handler = logging.StreamHandler(stream)
-        if level is None:
-            level = os.environ.get('COLOREDLOGS_LOG_LEVEL') or 'INFO'
-        handler.setLevel(level_to_number(level))
+        handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
+        handler.setLevel(level)
         # Prepare the arguments to the formatter. The caller is
         # allowed to customize `fmt' and/or `datefmt' as desired.
         formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'),
@@ -335,8 +435,9 @@ def install(level=None, **kw):
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
 
         handler.setFormatter(formatter_type(**formatter_options))
+        # Adjust the level of the selected logger.
+        adjust_level(logger, level)
         # Install the stream handler.
-        logger.setLevel(logging.NOTSET)
         logger.addHandler(handler)
 
 
@@ -372,7 +473,7 @@ def is_verbose():
 
     :returns: ``True`` if the root handler is verbose, ``False`` if not.
     """
-    return get_level() < logging.INFO
+    return get_level() < DEFAULT_LOG_LEVEL
 
 
 def get_level():
@@ -380,10 +481,10 @@ def get_level():
     Get the logging level of the root handler.
 
     :returns: The logging level of the root handler (an integer) or
-              :data:`logging.INFO` (if no root handler exists).
+              :data:`DEFAULT_LOG_LEVEL` (if no root handler exists).
     """
     handler, logger = find_handler(logging.getLogger(), match_stream_handler)
-    return handler.level if handler else logging.INFO
+    return handler.level if handler else DEFAULT_LOG_LEVEL
 
 
 def set_level(level):
@@ -395,12 +496,41 @@ def set_level(level):
     If no root handler exists yet this automatically calls :func:`install()`.
     """
     handler, logger = find_handler(logging.getLogger(), match_stream_handler)
-    if handler:
+    if handler and logger:
         # Change the level of the existing handler.
         handler.setLevel(level_to_number(level))
+        # Adjust the level of the selected logger.
+        adjust_level(logger, level)
     else:
         # Create a new handler with the given level.
         install(level=level)
+
+
+def adjust_level(logger, level):
+    """
+    Increase a logger's verbosity up to the requested level.
+
+    :param logger: The logger to change (a :class:`~logging.Logger` object).
+    :param level: The log level to enable (a string or number).
+
+    This function is used by functions like :func:`install()`,
+    :func:`increase_verbosity()` and :func:`.enable_system_logging()` to adjust
+    a logger's level so that log messages up to the requested log level are
+    propagated to the configured output handler(s).
+
+    It uses :func:`logging.Logger.getEffectiveLevel()` to check whether
+    `logger` propagates or swallows log messages of the requested `level` and
+    sets the logger's level to the requested level if it would otherwise
+    swallow log messages.
+
+    Effectively this function will "widen the scope of logging" when asked to
+    do so but it will never "narrow the scope of logging". This is because I am
+    convinced that filtering of log messages should (primarily) be decided by
+    handlers.
+    """
+    level = level_to_number(level)
+    if logger.getEffectiveLevel() > level:
+        logger.setLevel(level)
 
 
 def find_defined_levels():
@@ -448,7 +578,7 @@ def level_to_number(value):
             value = defined_levels[value.upper()]
         except KeyError:
             # Don't fail on unsupported log levels.
-            value = logging.INFO
+            value = DEFAULT_LOG_LEVEL
     return value
 
 
@@ -546,9 +676,9 @@ def find_program_name():
               3. The string 'python'.
     """
     # Gotcha: sys.argv[0] is '-c' if Python is started with the -c option.
-    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '')
-            or (os.path.basename(sys.executable) if sys.executable else '')
-            or 'python')
+    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '') or
+            (os.path.basename(sys.executable) if sys.executable else '') or
+            'python')
 
 
 def replace_handler(logger, match_handler, reconfigure):
@@ -657,8 +787,15 @@ def walk_propagation_tree(logger):
 
 class ColoredFormatter(logging.Formatter):
 
-    """Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs."""
     formatters = {}
+
+    """
+    Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs.
+
+    .. note:: If you want to use :class:`ColoredFormatter` on Windows then you
+              may need to call :func:`colorama.init()`. This is done for you
+              when you call :func:`coloredlogs.install()`.
+    """
 
     def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None, overridefmt=None):
         """
@@ -691,7 +828,7 @@ class ColoredFormatter(logging.Formatter):
         if overridefmt is not None and isinstance(overridefmt, dict):
 
             for level in ['INFO', 'WARNING', 'DEBUG',
-                          'CRITICAL', 'ERROR', 'VERBOSE']:
+                          'CRITICAL', 'ERROR', 'VERBOSE', 'FATAL']:
                 try:
                     if overridefmt.get(level) is not None:
                         _fmt = overridefmt[level].get('fmt', fmt)
@@ -765,14 +902,37 @@ class ColoredFormatter(logging.Formatter):
             # documented the only (IMHO) clean way to customize its behavior is
             # to change incoming LogRecord objects before they get to the base
             # formatter. However we don't want to break other formatters and
-            # handlers, so we'll copy the log record.
-            record = copy.copy(record)
-            record.msg = ansi_wrap(coerce_string(record.msg), **style)
+            # handlers, so we copy the log record.
+            #
+            # In the past this used copy.copy() but as reported in issue #29
+            # (which is reproducible) this can cause deadlocks. The following
+            # Python voodoo is intended to accomplish the same thing as
+            # copy.copy() without all of the generalization and overhead that
+            # we don't need for our -very limited- use case.
+            #
+            # For more details refer to issue 29 on GitHub:
+            # https://github.com/xolox/python-coloredlogs/issues/29
+            copy = Empty()
+            copy.__class__ = logging.LogRecord
+            copy.__dict__.update(record.__dict__)
+            copy.msg = ansi_wrap(coerce_string(record.msg), **style)
+            record = copy
         # Delegate the remaining formatting to the base formatter.
         if self.formatters.get(record.levelname):
             return self.formatters.get(record.levelname).format(record)
         else:
             return logging.Formatter.format(self, record)
+
+
+if sys.version_info[:2] <= (2, 6):
+    # On Python 2.6 the logging.LogRecord class is an old-style class
+    # which means our empty class also needs to be an old-style class.
+    class Empty:
+        """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
+else:
+    # On Python 2.7 and up logging.LogRecord is a new-style class.
+    class Empty(object):
+        """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
 
 
 class HostNameFilter(logging.Filter):
@@ -877,6 +1037,29 @@ class ProgramNameFilter(logging.Filter):
         record.programname = self.programname
         # Don't filter the record.
         return 1
+
+
+class StandardErrorHandler(logging.StreamHandler):
+
+    """
+    A :class:`~logging.StreamHandler` that gets the value of :data:`sys.stderr` for each log message.
+
+    The :class:`StandardErrorHandler` class enables `monkey patching of
+    sys.stderr <https://github.com/xolox/python-coloredlogs/pull/31>`_. It's
+    basically the same as the ``logging._StderrHandler`` class present in
+    Python 3 but it will available regardless of Python version. This handler
+    is used by :func:`coloredlogs.install()` to improve compatibility with the
+    Python standard library.
+    """
+
+    def __init__(self, level=logging.NOTSET):
+        """Initialize a :class:`StandardErrorHandler` object."""
+        logging.Handler.__init__(self, level)
+
+    @property
+    def stream(self):
+        """Get the value of :data:`sys.stderr` (a file-like object)."""
+        return sys.stderr
 
 
 class NameNormalizer(object):
