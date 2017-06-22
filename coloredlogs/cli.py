@@ -49,6 +49,7 @@ from humanfriendly.terminal import connected_to_terminal, output, usage, warning
 # Modules included in our package.
 from coloredlogs.converter import capture, convert
 from coloredlogs.demo import demonstrate_colored_logging
+from coloredlogs.demo import demonstrate_colored_logging_with_different_formatters
 
 # Initialize a logger for this module.
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ def main():
     try:
         # Parse the command line arguments.
         options, arguments = getopt.getopt(sys.argv[1:], 'cdh', [
-            'convert', 'to-html', 'demo', 'help',
+            'convert', 'to-html', 'demo', 'demo-with-formatter', 'help',
         ])
         # Map command line options to actions.
         for option, value in options:
@@ -69,6 +70,8 @@ def main():
                 arguments = []
             elif option in ('-d', '--demo'):
                 actions.append(demonstrate_colored_logging)
+            elif option in ('-f', '--demo-with-formatter'):
+                actions.append(demonstrate_colored_logging_with_different_formatters)
             elif option in ('-h', '--help'):
                 usage(__doc__)
                 return
