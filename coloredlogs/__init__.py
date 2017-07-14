@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 18, 2017
+# Last Change: July 14, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -873,14 +873,23 @@ class ColoredFormatter(logging.Formatter):
         class.
         """
         style = self.nn.get(self.level_styles, record.levelname)
-        if style:
+        # After the introduction of the `Empty' class it was reported in issue
+        # 33 that format() can be called when `Empty' has already been garbage
+        # collected. This explains the (otherwise rather out of place) `Empty
+        # is not None' check in the following `if' statement. The reasoning
+        # here is that it's much better to log a message without formatting
+        # then to raise an exception ;-).
+        #
+        # For more details refer to issue 33 on GitHub:
+        # https://github.com/xolox/python-coloredlogs/issues/33
+        if style and Empty is not None:
             # Due to the way that Python's logging module is structured and
             # documented the only (IMHO) clean way to customize its behavior is
             # to change incoming LogRecord objects before they get to the base
             # formatter. However we don't want to break other formatters and
             # handlers, so we copy the log record.
             #
-            # In the past this used copy.copy() but as reported in issue #29
+            # In the past this used copy.copy() but as reported in issue 29
             # (which is reproducible) this can cause deadlocks. The following
             # Python voodoo is intended to accomplish the same thing as
             # copy.copy() without all of the generalization and overhead that
