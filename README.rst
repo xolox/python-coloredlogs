@@ -25,7 +25,6 @@ defined by my verboselogs_ package: if you install both `coloredlogs` and
 
 .. contents::
    :local:
-   :depth: 1
 
 Format of log messages
 ----------------------
@@ -45,6 +44,30 @@ This log format results in the following output::
 You can customize the log format and styling using environment variables as
 well as programmatically, please refer to the `online documentation`_ for
 details.
+
+Enabling millisecond precision
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're switching from `logging.basicConfig()`_ to `coloredlogs.install()`_
+you may notice that timestamps no longer include milliseconds. This is because
+coloredlogs doesn't output milliseconds in timestamps unless you explicitly
+tell it to. There are two ways to do that:
+
+1. The easy way is to pass the `milliseconds` argument to
+   `coloredlogs.install()`_::
+
+    coloredlogs.install(milliseconds=True)
+
+2. Alternatively you can change the log format `to include 'msecs'`_::
+
+    %(asctime)s,%(msecs)03d %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s
+
+   Here's what the call to `coloredlogs.install()`_ would then look like::
+
+    coloredlogs.install(fmt='%(asctime)s,%(msecs)03d %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s')
+
+   Customizing the log format also enables you to change the delimiter that
+   separates seconds from milliseconds (the comma above).
 
 Usage
 -----
@@ -147,12 +170,15 @@ This software is licensed under the `MIT license`_.
 .. _Colorama: https://pypi.python.org/pypi/colorama
 .. _ColoredCronMailer: https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.converter.ColoredCronMailer
 .. _ColoredFormatter: https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.ColoredFormatter
+.. _coloredlogs.install(): https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.install
 .. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
+.. _logging.basicConfig(): https://docs.python.org/2/library/logging.html#logging.basicConfig
 .. _logging.Formatter: https://docs.python.org/2/library/logging.html#logging.Formatter
 .. _logging: https://docs.python.org/2/library/logging.html
 .. _MIT license: https://en.wikipedia.org/wiki/MIT_License
 .. _online documentation: https://coloredlogs.readthedocs.io/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
+.. _to include 'msecs': https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs

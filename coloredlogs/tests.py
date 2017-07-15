@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 17, 2017
+# Last Change: July 15, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -59,6 +59,18 @@ from humanfriendly.compat import StringIO
 PLAIN_TEXT_PATTERN = re.compile(r'''
     (?P<date> \d{4}-\d{2}-\d{2} )
     \s (?P<time> \d{2}:\d{2}:\d{2} )
+    \s (?P<hostname> \S+ )
+    \s (?P<logger_name> \w+ )
+    \[ (?P<process_id> \d+ ) \]
+    \s (?P<severity> [A-Z]+ )
+    \s (?P<message> .* )
+''', re.VERBOSE)
+
+# Compiled regular expression that matches a single line of output produced by
+# the default log format with milliseconds=True.
+PATTERN_INCLUDING_MILLISECONDS = re.compile(r'''
+    (?P<date> \d{4}-\d{2}-\d{2} )
+    \s (?P<time> \d{2}:\d{2}:\d{2},\d{3} )
     \s (?P<hostname> \S+ )
     \s (?P<logger_name> \w+ )
     \[ (?P<process_id> \d+ ) \]
@@ -307,6 +319,19 @@ class ColoredLogsTestCase(unittest.TestCase):
         grand_child_name = '%s.%s' % (child_name, random_string())
         grand_child = logging.getLogger(grand_child_name)
         return root, parent, child, grand_child
+
+    def test_support_for_milliseconds(self):
+        """Make sure milliseconds are hidden by default but can be easily enabled."""
+        # Check that the default log format doesn't include milliseconds.
+        stream = StringIO()
+        install(reconfigure=True, stream=stream)
+        logging.info("This should not include milliseconds.")
+        assert all(map(PLAIN_TEXT_PATTERN.match, stream.getvalue().splitlines()))
+        # Check that milliseconds can be enabled via a shortcut.
+        stream = StringIO()
+        install(milliseconds=True, reconfigure=True, stream=stream)
+        logging.info("This should include milliseconds.")
+        assert all(map(PATTERN_INCLUDING_MILLISECONDS.match, stream.getvalue().splitlines()))
 
     def test_plain_text_output_format(self):
         """Inspect the plain text output of coloredlogs."""

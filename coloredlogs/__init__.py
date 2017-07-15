@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: July 14, 2017
+# Last Change: July 15, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -273,6 +273,9 @@ def install(level=None, **kw):
                 :data:`DEFAULT_LOG_FORMAT`).
     :param datefmt: Set the date/time format (a string, defaults to
                     :data:`DEFAULT_DATE_FORMAT`).
+    :param milliseconds: :data:`True` to show milliseconds like :mod:`logging`
+                         does by default, :data:`False` to hide milliseconds
+                         (the default is :data:`False`, see `#16`_).
     :param level_styles: A dictionary with custom level styles (defaults to
                          :data:`DEFAULT_LEVEL_STYLES`).
     :param field_styles: A dictionary with custom field styles (defaults to
@@ -327,6 +330,8 @@ def install(level=None, **kw):
 
     6. The formatter is added to the handler and the handler is added to the
        logger.
+
+    .. _issue 16: https://github.com/xolox/python-coloredlogs/issues/16
     """
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
@@ -401,6 +406,20 @@ def install(level=None, **kw):
         # back to the default).
         if not formatter_options['datefmt']:
             formatter_options['datefmt'] = os.environ.get('COLOREDLOGS_DATE_FORMAT') or DEFAULT_DATE_FORMAT
+        # Python's logging module shows milliseconds by default through special
+        # handling in the logging.Formatter.formatTime() method [1]. Because
+        # coloredlogs always defines a `datefmt' it bypasses this special
+        # handling, which is fine because ever since publishing coloredlogs
+        # I've never needed millisecond precision ;-). However there are users
+        # of coloredlogs that do want milliseconds to be shown [2] so we
+        # provide a shortcut to make it easy.
+        #
+        # [1] https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
+        # [2] https://github.com/xolox/python-coloredlogs/issues/16
+        if kw.get('milliseconds') and '%(msecs)' not in formatter_options['fmt']:
+            formatter_options['fmt'] = formatter_options['fmt'].replace(
+                '%(asctime)s', '%(asctime)s,%(msecs)03d',
+            )
         # Do we need to make %(hostname) available to the formatter?
         HostNameFilter.install(
             handler=handler,
