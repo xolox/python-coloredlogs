@@ -1,3 +1,4 @@
 include *.rst
 include *.txt
 include coloredlogs.pth
+graft docs
