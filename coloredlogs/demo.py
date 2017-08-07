@@ -32,7 +32,7 @@ def demonstrate_colored_logging():
     # DEBUG logging level but enable the user the customize it.
     coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'SPAM'))
     # Print some examples with different timestamps.
-    for level in ['spam', 'debug', 'verbose', 'info', 'notice', 'warning', 'error', 'critical']:
+    for level in ['spam', 'debug', 'verbose', 'info', 'success', 'notice', 'warning', 'error', 'critical']:
         if hasattr(logger, level):
             getattr(logger, level)("message with level %r", level)
             time.sleep(DEMO_DELAY)

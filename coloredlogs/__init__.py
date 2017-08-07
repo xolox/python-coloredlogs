@@ -237,6 +237,7 @@ DEFAULT_LEVEL_STYLES = dict(
     info=dict(),
     notice=dict(color='magenta'),
     warning=dict(color='yellow'),
+    success=dict(color='green', bold=CAN_USE_BOLD_FONT),
     error=dict(color='red'),
     critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
 """Mapping of log level names to default font styles."""
