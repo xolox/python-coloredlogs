@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: July 15, 2017
+# Last Change: August 7, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -199,7 +199,7 @@ WINDOWS = sys.platform.startswith('win')
 NEED_COLORAMA = WINDOWS
 
 # Semi-standard module versioning.
-__version__ = '7.1'
+__version__ = '7.2'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
