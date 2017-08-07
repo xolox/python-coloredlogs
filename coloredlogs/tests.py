@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: July 15, 2017
+# Last Change: August 7, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -262,7 +262,10 @@ class ColoredLogsTestCase(unittest.TestCase):
         # NOTICE -> WARNING.
         decrease_verbosity()
         assert get_level() == logging.WARNING
-        # WARNING -> ERROR.
+        # WARNING -> SUCCESS.
+        decrease_verbosity()
+        assert get_level() == logging.SUCCESS
+        # SUCCESS -> ERROR.
         decrease_verbosity()
         assert get_level() == logging.ERROR
         # ERROR -> CRITICAL.
