@@ -1,7 +1,7 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 17, 2017
+# Last Change: August 7, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """A simple demonstration of the `coloredlogs` package."""
@@ -32,7 +32,7 @@ def demonstrate_colored_logging():
     # DEBUG logging level but enable the user the customize it.
     coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'SPAM'))
     # Print some examples with different timestamps.
-    for level in ['spam', 'debug', 'verbose', 'info', 'notice', 'warn', 'error', 'critical']:
+    for level in ['spam', 'debug', 'verbose', 'info', 'notice', 'warning', 'error', 'critical']:
         if hasattr(logger, level):
             getattr(logger, level)("message with level %r", level)
             time.sleep(DEMO_DELAY)

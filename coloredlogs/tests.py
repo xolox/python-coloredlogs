@@ -97,7 +97,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         # Make sure the default levels are translated as expected.
         assert level_to_number('debug') == logging.DEBUG
         assert level_to_number('info') == logging.INFO
-        assert level_to_number('warn') == logging.WARNING
+        assert level_to_number('warning') == logging.WARNING
         assert level_to_number('error') == logging.ERROR
         assert level_to_number('fatal') == logging.FATAL
         # Make sure bogus level names don't blow up.
@@ -189,11 +189,11 @@ class ColoredLogsTestCase(unittest.TestCase):
                     assert any(expected_message in line for line in handle)
 
     def test_syslog_shortcut_enhanced(self):
-        """Make sure that ``coloredlogs.install(syslog='warn')`` works."""
+        """Make sure that ``coloredlogs.install(syslog='warning')`` works."""
         with cleanup_handlers():
             the_expected_message = random_string(50)
             not_an_expected_message = random_string(50)
-            coloredlogs.install(syslog='warn')
+            coloredlogs.install(syslog='warning')
             logging.info("%s", not_an_expected_message)
             logging.warning("%s", the_expected_message)
             if os.path.isfile(UNIX_SYSTEM_LOG):
@@ -350,7 +350,7 @@ class ColoredLogsTestCase(unittest.TestCase):
         for method, severity in ((logger.debug, 'DEBUG'),
                                  (logger.info, 'INFO'),
                                  (logger.verbose, 'VERBOSE'),
-                                 (logger.warning, 'WARN'),
+                                 (logger.warning, 'WARNING'),
                                  (logger.error, 'ERROR'),
                                  (logger.critical, 'CRITICAL')):
             # Prepare the text.
