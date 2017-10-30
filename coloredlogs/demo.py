@@ -16,8 +16,10 @@ import coloredlogs
 # If my verbose logger is installed, we'll use that for the demo.
 try:
     from verboselogs import VerboseLogger as getLogger
+    default_log_level = 'SPAM'
 except ImportError:
     from logging import getLogger
+    default_log_level = 'DEBUG'
 
 # Initialize a logger for this module.
 logger = getLogger(__name__)
@@ -30,7 +32,7 @@ def demonstrate_colored_logging():
     """Interactively demonstrate the :mod:`coloredlogs` package."""
     # Initialize colored output to the terminal, default to the
     # DEBUG logging level but enable the user the customize it.
-    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'SPAM'))
+    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', default_log_level))
     # Print some examples with different timestamps.
     for level in ['spam', 'debug', 'verbose', 'info', 'success', 'notice', 'warning', 'error', 'critical']:
         if hasattr(logger, level):
