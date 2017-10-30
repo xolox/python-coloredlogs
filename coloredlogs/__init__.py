@@ -814,8 +814,7 @@ class ColoredFormatter(logging.Formatter):
         Initialize a :class:`ColoredFormatter` object.
 
         :param fmt: A log format string (defaults to :data:`DEFAULT_LOG_FORMAT`).
-        :param datefmt: A date/time format string (defaults to
-                        :data:`DEFAULT_DATE_FORMAT`).
+        :param datefmt: A date/time format string.
         :param level_styles: A dictionary with custom level styles
                              (defaults to :data:`DEFAULT_LEVEL_STYLES`).
         :param field_styles: A dictionary with custom field styles
@@ -826,17 +825,32 @@ class ColoredFormatter(logging.Formatter):
         initializer of the base class.
         """
         self.nn = NameNormalizer()
-        # The default values of the following arguments are defined here so
-        # that Sphinx doesn't embed the default values in the generated
+        # The default value of the following argument is defined here so
+        # that Sphinx doesn't embed the default value in the generated
         # documentation (because the result is awkward to read).
         fmt = fmt or DEFAULT_LOG_FORMAT
-        datefmt = datefmt or DEFAULT_DATE_FORMAT
         # Initialize instance attributes.
         self.level_styles = self.nn.normalize_keys(DEFAULT_LEVEL_STYLES if level_styles is None else level_styles)
         self.field_styles = self.nn.normalize_keys(DEFAULT_FIELD_STYLES if field_styles is None else field_styles)
         # Rewrite the format string to inject ANSI escape sequences and
         # initialize the superclass with the rewritten format string.
         logging.Formatter.__init__(self, self.colorize_format(fmt), datefmt)
+
+    def formatTime(self, record, datefmt=None):
+        """
+        Applies custom date/time formatting.
+
+        :param record: An instance of a log record
+        :param datefmt: A date/time format string (defaults to
+                        :data:`DEFAULT_DATE_FORMAT`).
+        :returns: A formatted string representing the time that record was created.
+
+        This function sets a default format if none is provided, and then
+        forwards the record and format string to :func:`~logging.Formatter.format()`.
+        """
+        datefmt = datefmt or DEFAULT_DATE_FORMAT
+        return super(ColoredFormatter, self).formatTime(record, datefmt)
+
 
     def colorize_format(self, fmt):
         """
