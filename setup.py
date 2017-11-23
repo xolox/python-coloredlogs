@@ -3,7 +3,7 @@
 # Setup script for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 18, 2017
+# Last Change: November 23, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -48,7 +48,7 @@ def get_install_requires():
     install_requires = get_requirements('requirements.txt')
     if 'bdist_wheel' not in sys.argv:
         if sys.platform == 'win32':
-            install_requires.extend('colorama')
+            install_requires.append('colorama')
     return sorted(install_requires)
 
 
