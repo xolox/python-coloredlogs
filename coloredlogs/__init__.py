@@ -272,6 +272,8 @@ def install(level=None, **kw):
     :param fmt: Set the logging format (a string like those accepted by
                 :class:`~logging.Formatter`, defaults to
                 :data:`DEFAULT_LOG_FORMAT`).
+    :param overridefmt: A dictionary with custom level logging formats
+                :defaults to data:`DEFAULT_LOG_FORMAT`).
     :param datefmt: Set the date/time format (a string, defaults to
                     :data:`DEFAULT_DATE_FORMAT`).
     :param milliseconds: :data:`True` to show milliseconds like :mod:`logging`
@@ -396,7 +398,8 @@ def install(level=None, **kw):
         handler.setLevel(level)
         # Prepare the arguments to the formatter. The caller is
         # allowed to customize `fmt' and/or `datefmt' as desired.
-        formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
+        formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'),
+                                 overridefmt=kw.get('overridefmt'))
         # Come up with a default log format?
         if not formatter_options['fmt']:
             # Use the log format defined by the environment variable
@@ -447,7 +450,10 @@ def install(level=None, **kw):
                 if value is not None:
                     formatter_options[name] = value
         # Create a (possibly colored) formatter.
+        if not use_colors:
+            formatter_options.pop('overridefmt', None)
         formatter_type = ColoredFormatter if use_colors else logging.Formatter
+
         handler.setFormatter(formatter_type(**formatter_options))
         # Adjust the level of the selected logger.
         adjust_level(logger, level)
@@ -809,7 +815,9 @@ class ColoredFormatter(logging.Formatter):
               when you call :func:`coloredlogs.install()`.
     """
 
-    def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None):
+    formatters = {}
+
+    def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None, overridefmt=None):
         """
         Initialize a :class:`ColoredFormatter` object.
 
@@ -830,12 +838,28 @@ class ColoredFormatter(logging.Formatter):
         # that Sphinx doesn't embed the default values in the generated
         # documentation (because the result is awkward to read).
         fmt = fmt or DEFAULT_LOG_FORMAT
+
         datefmt = datefmt or DEFAULT_DATE_FORMAT
         # Initialize instance attributes.
         self.level_styles = self.nn.normalize_keys(DEFAULT_LEVEL_STYLES if level_styles is None else level_styles)
         self.field_styles = self.nn.normalize_keys(DEFAULT_FIELD_STYLES if field_styles is None else field_styles)
         # Rewrite the format string to inject ANSI escape sequences and
         # initialize the superclass with the rewritten format string.
+        if overridefmt is not None and isinstance(overridefmt, dict):
+
+            for level in ['INFO', 'WARNING', 'DEBUG',
+                          'CRITICAL', 'ERROR', 'VERBOSE', 'FATAL']:
+                try:
+                    if overridefmt.get(level) is not None:
+                        _fmt = overridefmt[level].get('fmt', fmt)
+                        _datefmt = overridefmt[level].get('datefmt', datefmt)
+                        self.formatters[level] = logging.Formatter(
+                            self.colorize_format(_fmt),
+                            _datefmt
+                        )
+                except Exception:
+                    self.formatters.pop(level, None)
+
         logging.Formatter.__init__(self, self.colorize_format(fmt), datefmt)
 
     def colorize_format(self, fmt):
@@ -923,7 +947,10 @@ class ColoredFormatter(logging.Formatter):
             copy.msg = ansi_wrap(coerce_string(record.msg), **style)
             record = copy
         # Delegate the remaining formatting to the base formatter.
-        return logging.Formatter.format(self, record)
+        if self.formatters.get(record.levelname):
+            return self.formatters.get(record.levelname).format(record)
+        else:
+            return logging.Formatter.format(self, record)
 
 
 if sys.version_info[:2] <= (2, 6):

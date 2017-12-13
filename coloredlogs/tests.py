@@ -408,6 +408,15 @@ class ColoredLogsTestCase(unittest.TestCase):
         for name in 'debug', 'info', 'warning', 'error', 'critical':
             assert name.upper() in output
 
+    def test_cli_demo_with_formatters(self):
+        """Test the command line colored logging demonstration."""
+        with CaptureOutput() as capturer:
+            main('coloredlogs', '--demo-with-formatter')
+            output = capturer.get_text()
+        # Make sure the output contains all of the expected logging level names.
+        for name in 'debug', 'info', 'error', 'critical':
+            assert name.upper() in output
+
     def test_cli_conversion(self):
         """Test the command line HTML conversion."""
         output = main('coloredlogs', '--convert', 'coloredlogs', '--demo', capture=True)
