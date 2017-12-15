@@ -17,10 +17,9 @@ matrix:
   - os: osx
     language: generic
 install:
-  - scripts/travis.sh pip install pip-accel
-  - scripts/travis.sh pip-accel install coveralls
-  - scripts/travis.sh pip-accel install --requirement=requirements-checks.txt
-  - scripts/travis.sh pip-accel install --requirement=requirements-tests.txt
+  - scripts/travis.sh pip install coveralls
+  - scripts/travis.sh pip install --requirement=requirements-checks.txt
+  - scripts/travis.sh pip install --requirement=requirements-tests.txt
   - scripts/travis.sh LC_ALL=C pip install .
 # The `make test' command below is run under `sudo -E' to enable
 # the test suite to read /var/log/syslog on Travis CI workers.
