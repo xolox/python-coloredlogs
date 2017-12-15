@@ -22,9 +22,11 @@ install:
   - scripts/travis.sh pip-accel install --requirement=requirements-checks.txt
   - scripts/travis.sh pip-accel install --requirement=requirements-tests.txt
   - scripts/travis.sh LC_ALL=C pip install .
+# The `make test' command below is run under `sudo -E' to enable
+# the test suite to read /var/log/syslog on Travis CI workers.
 script:
   - scripts/travis.sh make check
-  - scripts/travis.sh make test
+  - scripts/travis.sh sudo -E make test
 after_success:
   - scripts/travis.sh coveralls
 branches:
