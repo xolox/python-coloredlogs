@@ -1,7 +1,7 @@
 # Command line interface for the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 18, 2017
+# Last Change: December 15, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -24,6 +24,9 @@ Supported options:
     This requires the `script' program to fake the external command into
     thinking that it's attached to an interactive terminal (in order to enable
     output of ANSI escape sequences).
+
+    If the command didn't produce any output then no HTML will be produced on
+    standard output, this is to avoid empty emails from cron jobs.
 
   -d, --demo
 
@@ -92,11 +95,12 @@ def convert_command_output(*command):
     (emulating an interactive terminal), intercepts the output of the command
     and converts ANSI escape sequences in the output to HTML.
     """
-    html = convert(capture(command))
+    captured_output = capture(command)
+    converted_output = convert(captured_output)
     if connected_to_terminal():
         fd, temporary_file = tempfile.mkstemp(suffix='.html')
         with open(temporary_file, 'w') as handle:
-            handle.write(html)
+            handle.write(converted_output)
         webbrowser.open(temporary_file)
-    else:
-        output(html)
+    elif captured_output and not captured_output.isspace():
+        output(converted_output)
