@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: August 7, 2017
+# Last Change: December 15, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -18,10 +18,11 @@ import string
 import subprocess
 import sys
 import tempfile
-import unittest
 
 # External dependencies.
+from humanfriendly.compat import StringIO
 from humanfriendly.terminal import ansi_wrap
+from humanfriendly.testing import TestCase
 from mock import MagicMock
 
 # The module we're testing.
@@ -52,7 +53,6 @@ from coloredlogs.converter import capture, convert
 # External test dependencies.
 from capturer import CaptureOutput
 from verboselogs import VerboseLogger
-from humanfriendly.compat import StringIO
 
 # Compiled regular expression that matches a single line of output produced by
 # the default log format (does not include matching of ANSI escape sequences).
@@ -88,7 +88,7 @@ def setUpModule():
     coloredlogs.demo.DEMO_DELAY = 0
 
 
-class ColoredLogsTestCase(unittest.TestCase):
+class ColoredLogsTestCase(TestCase):
 
     """Container for the `coloredlogs` tests."""
 
@@ -171,35 +171,40 @@ class ColoredLogsTestCase(unittest.TestCase):
 
     def test_system_logging(self):
         """Make sure the :mod:`coloredlogs.syslog` module works."""
+        if not os.access(UNIX_SYSTEM_LOG, os.R_OK):
+            return self.skipTest("%s not available" % UNIX_SYSTEM_LOG)
         expected_message = random_string(50)
         with SystemLogging(programname='coloredlogs-test-suite') as syslog:
+            if not syslog:
+                return self.skipTest("system logging not available")
             logging.info("%s", expected_message)
-            if syslog and os.path.isfile('/var/log/syslog'):
-                with open('/var/log/syslog') as handle:
-                    assert any(expected_message in line for line in handle)
+            with open(UNIX_SYSTEM_LOG) as handle:
+                assert any(expected_message in line for line in handle)
 
     def test_syslog_shortcut_simple(self):
         """Make sure that ``coloredlogs.install(syslog=True)`` works."""
+        if not os.access(UNIX_SYSTEM_LOG, os.R_OK):
+            return self.skipTest("%s not available" % UNIX_SYSTEM_LOG)
         with cleanup_handlers():
             expected_message = random_string(50)
             coloredlogs.install(syslog=True)
             logging.info("%s", expected_message)
-            if os.path.isfile(UNIX_SYSTEM_LOG):
-                with open(UNIX_SYSTEM_LOG) as handle:
-                    assert any(expected_message in line for line in handle)
+            with open(UNIX_SYSTEM_LOG) as handle:
+                assert any(expected_message in line for line in handle)
 
     def test_syslog_shortcut_enhanced(self):
         """Make sure that ``coloredlogs.install(syslog='warning')`` works."""
+        if not os.access(UNIX_SYSTEM_LOG, os.R_OK):
+            return self.skipTest("%s not available" % UNIX_SYSTEM_LOG)
         with cleanup_handlers():
             the_expected_message = random_string(50)
             not_an_expected_message = random_string(50)
             coloredlogs.install(syslog='warning')
             logging.info("%s", not_an_expected_message)
             logging.warning("%s", the_expected_message)
-            if os.path.isfile(UNIX_SYSTEM_LOG):
-                with open(UNIX_SYSTEM_LOG) as handle:
-                    assert any(the_expected_message in line for line in handle)
-                    assert not any(not_an_expected_message in line for line in handle)
+            with open(UNIX_SYSTEM_LOG) as handle:
+                assert any(the_expected_message in line for line in handle)
+                assert not any(not_an_expected_message in line for line in handle)
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
