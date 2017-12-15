@@ -12,9 +12,7 @@ import imp
 import logging
 import logging.handlers
 import os
-import random
 import re
-import string
 import subprocess
 import sys
 import tempfile
@@ -23,6 +21,7 @@ import tempfile
 from humanfriendly.compat import StringIO
 from humanfriendly.terminal import ansi_wrap
 from humanfriendly.testing import TestCase
+from humanfriendly.text import random_string
 from mock import MagicMock
 
 # The module we're testing.
@@ -443,11 +442,6 @@ def main(*arguments, **options):
     finally:
         sys.argv = saved_argv
         sys.stdout = saved_stdout
-
-
-def random_string(length=25):
-    """Generate a random string."""
-    return ''.join(random.choice(string.ascii_letters) for i in range(25))
 
 
 @contextlib.contextmanager
