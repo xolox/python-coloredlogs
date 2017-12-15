@@ -418,6 +418,19 @@ class ColoredLogsTestCase(TestCase):
         # Make sure the output is encoded as HTML.
         assert '<span' in output
 
+    def test_empty_conversion(self):
+        """
+        Test that conversion of empty output produces no HTML.
+
+        This test was added because I found that ``coloredlogs --convert`` when
+        used in a cron job could cause cron to send out what appeared to be
+        empty emails. On more careful inspection the body of those emails was
+        ``<code></code>``. By not emitting the wrapper element when no other
+        HTML is generated, cron will not send out an email.
+        """
+        output = main('coloredlogs', '--convert', 'true', capture=True)
+        assert not output.strip()
+
     def test_implicit_usage_message(self):
         """Test that the usage message is shown when no actions are given."""
         assert 'Usage:' in main('coloredlogs', capture=True)
