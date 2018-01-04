@@ -1,7 +1,7 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 18, 2017
+# Last Change: December 17, 2017
 # URL: https://coloredlogs.readthedocs.io
 
 """Convert text with ANSI escape sequences to HTML."""
@@ -53,8 +53,8 @@ def capture(command, encoding='UTF-8'):
     with open(os.devnull, 'wb') as dev_null:
         # We start by invoking the `script' program in a form that is supported
         # by the Linux implementation [1] but fails command line validation on
-        # the Mac OS X (BSD) implementation [2]: The command is specified
-        # using the -c option and the typescript file is /dev/null.
+        # the MacOS (BSD) implementation [2]: The command is specified using
+        # the -c option and the typescript file is /dev/null.
         #
         # [1] http://man7.org/linux/man-pages/man1/script.1.html
         # [2] https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/script.1.html
@@ -68,7 +68,7 @@ def capture(command, encoding='UTF-8'):
             output = stdout.decode(encoding)
         else:
             # If `script' failed we assume that it didn't understand our command
-            # line invocation which means it's the Mac OS X (BSD) implementation
+            # line invocation which means it's the MacOS (BSD) implementation
             # (in this case we need a temporary file because the command line
             # interface requires it).
             fd, temporary_file = tempfile.mkstemp(prefix='coloredlogs-', suffix='-capture.txt')
@@ -79,6 +79,22 @@ def capture(command, encoding='UTF-8'):
                     output = handle.read()
             finally:
                 os.unlink(temporary_file)
+            # On MacOS when standard input is /dev/null I've observed
+            # the captured output starting with the characters '^D':
+            #
+            #   $ script -q capture.txt echo example </dev/null
+            #   example
+            #   $ xxd capture.txt
+            #   00000000: 5e44 0808 6578 616d 706c 650d 0a         ^D..example..
+            #
+            # I'm not sure why this is here, although I suppose it has to do
+            # with ^D in caret notation signifying end-of-file [1]. What I do
+            # know is that this is an implementation detail that callers of the
+            # capture() function shouldn't be bothered with, so we strip it.
+            #
+            # [1] https://en.wikipedia.org/wiki/End-of-file
+            if output.startswith(b'^D'):
+                output = output[2:]
     # Clean up backspace and carriage return characters and the 'erase line'
     # ANSI escape sequence and return the output as a Unicode string.
     return u'\n'.join(clean_terminal_output(output))
