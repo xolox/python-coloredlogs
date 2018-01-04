@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: December 15, 2017
+# Last Change: January 5, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -77,9 +77,6 @@ PATTERN_INCLUDING_MILLISECONDS = re.compile(r'''
     \s (?P<message> .* )
 ''', re.VERBOSE)
 
-# The pathname of the system log file on Ubuntu Linux (my laptops and Travis CI).
-UNIX_SYSTEM_LOG = '/var/log/syslog'
-
 
 def setUpModule():
     """Speed up the tests by disabling the demo's artificial delay."""
@@ -90,6 +87,20 @@ def setUpModule():
 class ColoredLogsTestCase(TestCase):
 
     """Container for the `coloredlogs` tests."""
+
+    def find_system_log(self):
+        """Find the system log file or skip the current test."""
+        filename = ('/var/log/system.log' if sys.platform == 'darwin' else (
+            '/var/log/syslog' if 'linux' in sys.platform else None
+        ))
+        if not filename:
+            self.skipTest("Location of system log file unknown!")
+        elif not os.path.isfile(filename):
+            self.skipTest("System log file not found! (%s)" % filename)
+        elif not os.access(filename, os.R_OK):
+            self.skipTest("Insufficient permissions to read system log file! (%s)" % filename)
+        else:
+            return filename
 
     def test_level_to_number(self):
         """Make sure :func:`level_to_number()` works as intended."""
@@ -170,38 +181,35 @@ class ColoredLogsTestCase(TestCase):
 
     def test_system_logging(self):
         """Make sure the :mod:`coloredlogs.syslog` module works."""
-        if not os.access(UNIX_SYSTEM_LOG, os.R_OK):
-            return self.skipTest("%s not available" % UNIX_SYSTEM_LOG)
+        system_log_file = self.find_system_log()
         expected_message = random_string(50)
         with SystemLogging(programname='coloredlogs-test-suite') as syslog:
             if not syslog:
                 return self.skipTest("system logging not available")
             logging.info("%s", expected_message)
-            with open(UNIX_SYSTEM_LOG) as handle:
+            with open(system_log_file) as handle:
                 assert any(expected_message in line for line in handle)
 
     def test_syslog_shortcut_simple(self):
         """Make sure that ``coloredlogs.install(syslog=True)`` works."""
-        if not os.access(UNIX_SYSTEM_LOG, os.R_OK):
-            return self.skipTest("%s not available" % UNIX_SYSTEM_LOG)
+        system_log_file = self.find_system_log()
         with cleanup_handlers():
             expected_message = random_string(50)
             coloredlogs.install(syslog=True)
             logging.info("%s", expected_message)
-            with open(UNIX_SYSTEM_LOG) as handle:
+            with open(system_log_file) as handle:
                 assert any(expected_message in line for line in handle)
 
     def test_syslog_shortcut_enhanced(self):
         """Make sure that ``coloredlogs.install(syslog='warning')`` works."""
-        if not os.access(UNIX_SYSTEM_LOG, os.R_OK):
-            return self.skipTest("%s not available" % UNIX_SYSTEM_LOG)
+        system_log_file = self.find_system_log()
         with cleanup_handlers():
             the_expected_message = random_string(50)
             not_an_expected_message = random_string(50)
             coloredlogs.install(syslog='warning')
             logging.info("%s", not_an_expected_message)
             logging.warning("%s", the_expected_message)
-            with open(UNIX_SYSTEM_LOG) as handle:
+            with open(system_log_file) as handle:
                 assert any(the_expected_message in line for line in handle)
                 assert not any(not_an_expected_message in line for line in handle)
 
