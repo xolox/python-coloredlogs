@@ -940,7 +940,8 @@ class ColoredFormatter(logging.Formatter):
         # that Sphinx doesn't embed the default value in the generated
         # documentation (because the result is awkward to read).
         datefmt = datefmt or DEFAULT_DATE_FORMAT
-        return super(ColoredFormatter, self).formatTime(record, datefmt)
+        # Delegate the remaining formatting to the base formatter.
+        return logging.Formatter.formatTime(self, record, datefmt)
 
 
 if sys.version_info[:2] <= (2, 6):
