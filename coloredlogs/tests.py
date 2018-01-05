@@ -20,7 +20,7 @@ import tempfile
 # External dependencies.
 from humanfriendly.compat import StringIO
 from humanfriendly.terminal import ansi_wrap
-from humanfriendly.testing import TestCase
+from humanfriendly.testing import PatchedItem, TestCase, retry
 from humanfriendly.text import random_string
 from mock import MagicMock
 
@@ -47,7 +47,7 @@ from coloredlogs import (
     walk_propagation_tree,
 )
 from coloredlogs.syslog import SystemLogging, match_syslog_handler
-from coloredlogs.converter import capture, convert
+from coloredlogs.converter import ColoredCronMailer, capture, convert
 
 # External test dependencies.
 from capturer import CaptureOutput
@@ -180,38 +180,41 @@ class ColoredLogsTestCase(TestCase):
             assert not isinstance(handler.formatter, ColoredFormatter)
 
     def test_system_logging(self):
-        """Make sure the :mod:`coloredlogs.syslog` module works."""
+        """Make sure the :class:`coloredlogs.syslog.SystemLogging` context manager works."""
         system_log_file = self.find_system_log()
         expected_message = random_string(50)
         with SystemLogging(programname='coloredlogs-test-suite') as syslog:
             if not syslog:
-                return self.skipTest("system logging not available")
+                return self.skipTest("couldn't connect to syslog daemon")
             logging.info("%s", expected_message)
-            with open(system_log_file) as handle:
-                assert any(expected_message in line for line in handle)
+        # Retry the following test (for up to 60 seconds) to give the
+        # logging daemon time to write our log message to disk. This
+        # appears to be needed on MacOS workers on Travis CI, see:
+        # https://travis-ci.org/xolox/python-coloredlogs/jobs/325245853
+        retry(lambda: check_contents(system_log_file, expected_message, True))
 
     def test_syslog_shortcut_simple(self):
         """Make sure that ``coloredlogs.install(syslog=True)`` works."""
         system_log_file = self.find_system_log()
+        expected_message = random_string(50)
         with cleanup_handlers():
-            expected_message = random_string(50)
             coloredlogs.install(syslog=True)
             logging.info("%s", expected_message)
-            with open(system_log_file) as handle:
-                assert any(expected_message in line for line in handle)
+        # See the comments in test_system_logging() on why this is retried.
+        retry(lambda: check_contents(system_log_file, expected_message, True))
 
     def test_syslog_shortcut_enhanced(self):
         """Make sure that ``coloredlogs.install(syslog='warning')`` works."""
         system_log_file = self.find_system_log()
+        the_expected_message = random_string(50)
+        not_an_expected_message = random_string(50)
         with cleanup_handlers():
-            the_expected_message = random_string(50)
-            not_an_expected_message = random_string(50)
             coloredlogs.install(syslog='warning')
             logging.info("%s", not_an_expected_message)
             logging.warning("%s", the_expected_message)
-            with open(system_log_file) as handle:
-                assert any(the_expected_message in line for line in handle)
-                assert not any(not_an_expected_message in line for line in handle)
+        # See the comments in test_system_logging() on why this is retried.
+        retry(lambda: check_contents(system_log_file, the_expected_message, True))
+        retry(lambda: check_contents(system_log_file, not_an_expected_message, False))
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
@@ -393,6 +396,18 @@ class ColoredLogsTestCase(TestCase):
         actual_output = capture(['echo', expected_output])
         assert actual_output.strip() == expected_output.strip()
 
+    def test_enable_colored_cron_mailer(self):
+        """Test that automatic ANSI to HTML conversion when running under ``cron`` can be enabled."""
+        with PatchedItem(os.environ, 'CONTENT_TYPE', 'text/html'):
+            with ColoredCronMailer() as mailer:
+                assert mailer.is_enabled
+
+    def test_disable_colored_cron_mailer(self):
+        """Test that automatic ANSI to HTML conversion when running under ``cron`` can be disabled."""
+        with PatchedItem(os.environ, 'CONTENT_TYPE', 'text/plain'):
+            with ColoredCronMailer() as mailer:
+                assert not mailer.is_enabled
+
     def test_auto_install(self):
         """Test :func:`coloredlogs.auto_install()`."""
         needle = random_string()
@@ -446,6 +461,12 @@ class ColoredLogsTestCase(TestCase):
     def test_explicit_usage_message(self):
         """Test that the usage message is shown when ``--help`` is given."""
         assert 'Usage:' in main('coloredlogs', '--help', capture=True)
+
+
+def check_contents(filename, contents, match):
+    """Check if a line in a file contains an expected string."""
+    with open(filename) as handle:
+        assert any(contents in line for line in handle) == match
 
 
 def main(*arguments, **options):
