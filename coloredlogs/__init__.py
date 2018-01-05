@@ -814,8 +814,8 @@ class ColoredFormatter(logging.Formatter):
         Initialize a :class:`ColoredFormatter` object.
 
         :param fmt: A log format string (defaults to :data:`DEFAULT_LOG_FORMAT`).
-        :param datefmt: A date/time format string (defaults to
-                        :data:`DEFAULT_DATE_FORMAT`).
+        :param datefmt: A date/time format string (defaults to :data:`None`,
+                        but see the documentation of :func:`formatTime()`).
         :param level_styles: A dictionary with custom level styles
                              (defaults to :data:`DEFAULT_LEVEL_STYLES`).
         :param field_styles: A dictionary with custom field styles
@@ -830,8 +830,6 @@ class ColoredFormatter(logging.Formatter):
         # that Sphinx doesn't embed the default values in the generated
         # documentation (because the result is awkward to read).
         fmt = fmt or DEFAULT_LOG_FORMAT
-        datefmt = datefmt or DEFAULT_DATE_FORMAT
-        # Initialize instance attributes.
         self.level_styles = self.nn.normalize_keys(DEFAULT_LEVEL_STYLES if level_styles is None else level_styles)
         self.field_styles = self.nn.normalize_keys(DEFAULT_FIELD_STYLES if field_styles is None else field_styles)
         # Rewrite the format string to inject ANSI escape sequences and
@@ -924,6 +922,25 @@ class ColoredFormatter(logging.Formatter):
             record = copy
         # Delegate the remaining formatting to the base formatter.
         return logging.Formatter.format(self, record)
+
+    def formatTime(self, record, datefmt=None):
+        """
+        Format the date/time of a log record.
+
+        :param record: A :class:`~logging.LogRecord` object.
+        :param datefmt: A date/time format string (defaults to
+                        :data:`DEFAULT_DATE_FORMAT`).
+        :returns: The formatted date/time (a string).
+
+        This method overrides :func:`~logging.Formatter.formatTime()` to set
+        `datefmt` to :data:`DEFAULT_DATE_FORMAT` when the caller hasn't
+        specified a date format.
+        """
+        # The default value of the following argument is defined here so
+        # that Sphinx doesn't embed the default value in the generated
+        # documentation (because the result is awkward to read).
+        datefmt = datefmt or DEFAULT_DATE_FORMAT
+        return super(ColoredFormatter, self).formatTime(record, datefmt)
 
 
 if sys.version_info[:2] <= (2, 6):
