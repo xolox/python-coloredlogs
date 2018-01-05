@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 18, 2017
+# Last Change: January 5, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Sphinx documentation configuration for the `coloredlogs` package."""
@@ -36,7 +36,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'coloredlogs'
-copyright = u'2017, Peter Odding'
+copyright = u'2018, Peter Odding'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
