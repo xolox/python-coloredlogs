@@ -20,7 +20,7 @@ import tempfile
 # External dependencies.
 from humanfriendly.compat import StringIO
 from humanfriendly.terminal import ansi_wrap
-from humanfriendly.testing import PatchedItem, TestCase
+from humanfriendly.testing import PatchedItem, TestCase, retry
 from humanfriendly.text import random_string
 from mock import MagicMock
 
@@ -191,8 +191,11 @@ class ColoredLogsTestCase(TestCase):
             # in the system log DEBUG and INFO messages don't. This explains
             # the importance of the level of the log message below.
             logging.error("%s", expected_message)
-        with open(system_log_file) as handle:
-            assert any(expected_message in line for line in handle)
+        # Retry the following assertion (for up to 60 seconds) to give the
+        # logging daemon time to write our log message to disk. This
+        # appears to be needed on MacOS workers on Travis CI, see:
+        # https://travis-ci.org/xolox/python-coloredlogs/jobs/325245853
+        retry(lambda: check_contents(system_log_file, expected_message, True))
 
     def test_syslog_shortcut_simple(self):
         """Make sure that ``coloredlogs.install(syslog=True)`` works."""
@@ -202,8 +205,8 @@ class ColoredLogsTestCase(TestCase):
             # See test_system_logging() for the importance of this log level.
             coloredlogs.install(syslog=True)
             logging.error("%s", expected_message)
-        with open(system_log_file) as handle:
-            assert any(expected_message in line for line in handle)
+        # See the comments in test_system_logging() on why this is retried.
+        retry(lambda: check_contents(system_log_file, expected_message, True))
 
     def test_syslog_shortcut_enhanced(self):
         """Make sure that ``coloredlogs.install(syslog='warning')`` works."""
@@ -215,10 +218,9 @@ class ColoredLogsTestCase(TestCase):
             coloredlogs.install(syslog='error')
             logging.warning("%s", not_an_expected_message)
             logging.error("%s", the_expected_message)
-        with open(system_log_file) as handle:
-            assert any(the_expected_message in line for line in handle)
-        with open(system_log_file) as handle:
-            assert not any(not_an_expected_message in line for line in handle)
+        # See the comments in test_system_logging() on why this is retried.
+        retry(lambda: check_contents(system_log_file, the_expected_message, True))
+        retry(lambda: check_contents(system_log_file, not_an_expected_message, False))
 
     def test_name_normalization(self):
         """Make sure :class:`~coloredlogs.NameNormalizer` works as intended."""
@@ -465,6 +467,12 @@ class ColoredLogsTestCase(TestCase):
     def test_explicit_usage_message(self):
         """Test that the usage message is shown when ``--help`` is given."""
         assert 'Usage:' in main('coloredlogs', '--help', capture=True)
+
+
+def check_contents(filename, contents, match):
+    """Check if a line in a file contains an expected string."""
+    with open(filename) as handle:
+        assert any(contents in line for line in handle) == match
 
 
 def main(*arguments, **options):
