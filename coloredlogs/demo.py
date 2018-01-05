@@ -1,7 +1,7 @@
 # Demonstration of the coloredlogs package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: August 7, 2017
+# Last Change: January 4, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """A simple demonstration of the `coloredlogs` package."""
@@ -28,13 +28,24 @@ DEMO_DELAY = float(os.environ.get('COLOREDLOGS_DEMO_DELAY', '1'))
 
 def demonstrate_colored_logging():
     """Interactively demonstrate the :mod:`coloredlogs` package."""
-    # Initialize colored output to the terminal, default to the
-    # DEBUG logging level but enable the user the customize it.
-    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', 'SPAM'))
+    # Determine the available logging levels and order them by numeric value.
+    decorated_levels = []
+    defined_levels = coloredlogs.find_defined_levels()
+    normalizer = coloredlogs.NameNormalizer()
+    for name, level in defined_levels.items():
+        if name != 'NOTSET':
+            item = (level, normalizer.normalize_name(name))
+            if item not in decorated_levels:
+                decorated_levels.append(item)
+    ordered_levels = [name for level, name in sorted(decorated_levels)]
+    # Initialize colored output to the terminal, default to the most
+    # verbose logging level but enable the user the customize it.
+    coloredlogs.install(level=os.environ.get('COLOREDLOGS_LOG_LEVEL', ordered_levels[0]))
     # Print some examples with different timestamps.
-    for level in ['spam', 'debug', 'verbose', 'info', 'success', 'notice', 'warning', 'error', 'critical']:
-        if hasattr(logger, level):
-            getattr(logger, level)("message with level %r", level)
+    for level_name in ordered_levels:
+        log_method = getattr(logger, level_name, None)
+        if log_method:
+            log_method("message with level %r", level_name)
             time.sleep(DEMO_DELAY)
     # Show how exceptions are logged.
     try:
