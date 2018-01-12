@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 5, 2018
+# Last Change: January 12, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -231,7 +231,7 @@ DEFAULT_FIELD_STYLES = dict(
 """Mapping of log format names to default font styles."""
 
 DEFAULT_LEVEL_STYLES = dict(
-    spam=dict(color='green'),
+    spam=dict(color='green', faint=True),
     debug=dict(color='green'),
     verbose=dict(color='blue'),
     info=dict(),

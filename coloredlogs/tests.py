@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 5, 2018
+# Last Change: January 12, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -19,9 +19,9 @@ import tempfile
 
 # External dependencies.
 from humanfriendly.compat import StringIO
-from humanfriendly.terminal import ansi_wrap
+from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_style, ansi_wrap
 from humanfriendly.testing import PatchedItem, TestCase, retry
-from humanfriendly.text import random_string
+from humanfriendly.text import format, random_string
 from mock import MagicMock
 
 # The module we're testing.
@@ -47,7 +47,12 @@ from coloredlogs import (
     walk_propagation_tree,
 )
 from coloredlogs.syslog import SystemLogging, match_syslog_handler
-from coloredlogs.converter import ColoredCronMailer, capture, convert
+from coloredlogs.converter import (
+    ColoredCronMailer,
+    EIGHT_COLOR_PALETTE,
+    capture,
+    convert,
+)
 
 # External test dependencies.
 from capturer import CaptureOutput
@@ -388,13 +393,48 @@ class ColoredLogsTestCase(TestCase):
 
     def test_html_conversion(self):
         """Check the conversion from ANSI escape sequences to HTML."""
-        ansi_encoded_text = 'I like %s - www.eelstheband.com' % ansi_wrap('birds', bold=True, color='blue')
-        assert ansi_encoded_text == 'I like \x1b[1;34mbirds\x1b[0m - www.eelstheband.com'
-        html_encoded_text = convert(ansi_encoded_text)
-        assert html_encoded_text == (
-            '<code>I like <span style="font-weight:bold;color:blue">birds</span> - '
-            '<a href="http://www.eelstheband.com" style="color:inherit">www.eelstheband.com</a></code>'
+        # Check conversion of colored text.
+        for color_name, ansi_code in ANSI_COLOR_CODES.items():
+            ansi_encoded_text = 'plain text followed by %s text' % ansi_wrap(color_name, color=color_name)
+            expected_html = format(
+                '<code>plain text followed by <span style="color:{css}">{name}</span> text</code>',
+                css=EIGHT_COLOR_PALETTE[ansi_code], name=color_name,
+            )
+            self.assertEquals(expected_html, convert(ansi_encoded_text))
+        # Check conversion of bright colored text.
+        expected_html = '<code><span style="color:#FF0">bright yellow</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('bright yellow', color='yellow', bright=True)))
+        # Check conversion of bold text.
+        expected_html = '<code><span style="font-weight:bold">bold text</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('bold text', bold=True)))
+        # Check conversion of underlined text.
+        expected_html = '<code><span style="text-decoration:underline">underlined text</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('underlined text', underline=True)))
+        # Check conversion of strike-through text.
+        expected_html = '<code><span style="text-decoration:line-through">strike-through text</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('strike-through text', strike_through=True)))
+        # Check conversion of inverse text.
+        expected_html = '<code><span style="background-color:#FFC706;color:#000">inverse</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('inverse', color='yellow', inverse=True)))
+        # Check conversion of URLs.
+        for sample_text in 'www.python.org', 'http://coloredlogs.rtfd.org', 'https://coloredlogs.rtfd.org':
+            sample_url = sample_text if '://' in sample_text else ('http://' + sample_text)
+            expected_html = '<code><a href="%s" style="color:inherit">%s</a></code>' % (sample_url, sample_text)
+            self.assertEquals(expected_html, convert(sample_text))
+        # Check that the capture pattern for URLs doesn't match ANSI escape
+        # sequences and also check that the short hand for the 0 reset code is
+        # supported. These are tests for regressions of bugs found in
+        # coloredlogs <= 8.0.
+        reset_short_hand = '\x1b[0m'
+        blue_underlined = ansi_style(color='blue', underline=True)
+        ansi_encoded_text = '<%shttps://coloredlogs.readthedocs.io%s>' % (blue_underlined, reset_short_hand)
+        expected_html = (
+            '<code>&lt;<span style="text-decoration:underline;color:#006FB8">'
+            '<a href="https://coloredlogs.readthedocs.io" style="color:inherit">'
+            'https://coloredlogs.readthedocs.io'
+            '</a></span>&gt;</code>'
         )
+        self.assertEquals(expected_html, convert(ansi_encoded_text))
 
     def test_output_interception(self):
         """Test capturing of output from external commands."""

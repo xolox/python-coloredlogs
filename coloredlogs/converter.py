@@ -1,7 +1,7 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: December 17, 2017
+# Last Change: January 12, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Convert text with ANSI escape sequences to HTML."""
@@ -15,19 +15,51 @@ import subprocess
 import tempfile
 
 # External dependencies.
-from humanfriendly.terminal import ANSI_CSI, clean_terminal_output, output
-
-# Portable color codes from http://en.wikipedia.org/wiki/ANSI_escape_code#Colors.
-EIGHT_COLOR_PALETTE = (
-    'black',
-    'red',
-    'rgb(78,154,6)',  # green
-    'rgb(196,160,0)',  # yellow
-    'blue',
-    'rgb(117,80,123)',  # magenta
-    'cyan',
-    'white',
+from humanfriendly.terminal import (
+    ANSI_CSI,
+    ANSI_TEXT_STYLES,
+    clean_terminal_output,
+    output,
 )
+
+EIGHT_COLOR_PALETTE = (
+    '#010101',  # black
+    '#DE382B',  # red
+    '#39B54A',  # green
+    '#FFC706',  # yellow
+    '#006FB8',  # blue
+    '#762671',  # magenta
+    '#2CB5E9',  # cyan
+    '#CCC',     # white
+)
+"""
+A tuple of strings mapping basic color codes to CSS colors.
+
+The items in this tuple correspond to the eight basic color codes for black,
+red, green, yellow, blue, magenta, cyan and white as defined in the original
+standard for ANSI escape sequences. The CSS colors are based on the `Ubuntu
+color scheme`_ described on Wikipedia and they are encoded as hexadecimal
+values to get the shortest strings, which reduces the size (in bytes) of
+conversion output.
+
+.. _Ubuntu color scheme: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+"""
+
+BRIGHT_COLOR_PALETTE = (
+    '#808080',  # black
+    '#F00',     # red
+    '#0F0',     # green
+    '#FF0',     # yellow
+    '#00F',     # blue
+    '#F0F',     # magenta
+    '#0FF',     # cyan
+    '#FFF',     # white
+)
+"""
+A tuple of strings mapping bright color codes to CSS colors.
+
+This tuple maps the bright color variants of :data:`EIGHT_COLOR_PALETTE`.
+"""
 
 # Compiled regular expression that matches leading spaces (indentation).
 INDENT_PATTERN = re.compile('^ +', re.MULTILINE)
@@ -35,7 +67,21 @@ INDENT_PATTERN = re.compile('^ +', re.MULTILINE)
 # Compiled regular expression that matches strings we want to convert. Used to
 # separate all special strings and literal output in a single pass (this allows
 # us to properly encode the output without resorting to nasty hacks).
-TOKEN_PATTERN = re.compile('(https?://\\S+|www\\.\\S+|\x1b\\[.*?m)', re.UNICODE)
+TOKEN_PATTERN = re.compile('''
+    # Wrap the pattern in a capture group so that re.split() includes the
+    # substrings that match the pattern in the resulting list of strings.
+    (
+        # Match URLs with supported schemes and domain names.
+        (?: https?:// | www\\. )
+        # Scan until the end of the URL by matching non-whitespace characters
+        # that are also not escape characters.
+        [^\s\x1b]+
+        # Alternatively ...
+        |
+        # Match (what looks like) ANSI escape sequences.
+        \x1b \[ .*? m
+    )
+''', re.UNICODE | re.VERBOSE)
 
 
 def capture(command, encoding='UTF-8'):
@@ -112,33 +158,64 @@ def convert(text, code=True, tabsize=4):
     :returns: The text converted to HTML (a string).
     """
     output = []
+    compatible_text_styles = {
+        # The following ANSI text styles have an obvious mapping to CSS.
+        str(ANSI_TEXT_STYLES['bold']): 'font-weight:bold',
+        str(ANSI_TEXT_STYLES['strike_through']): 'text-decoration:line-through',
+        str(ANSI_TEXT_STYLES['underline']): 'text-decoration:underline',
+    }
     for token in TOKEN_PATTERN.split(text):
         if token.startswith(('http://', 'https://', 'www.')):
-            url = token
-            if '://' not in token:
-                url = 'http://' + url
-            text = url.partition('://')[2]
-            token = u'<a href="%s" style="color:inherit">%s</a>' % (html_encode(url), html_encode(text))
+            url = token if '://' in token else ('http://' + token)
+            token = u'<a href="%s" style="color:inherit">%s</a>' % (html_encode(url), html_encode(token))
         elif token.startswith(ANSI_CSI):
             ansi_codes = token[len(ANSI_CSI):-1].split(';')
-            if ansi_codes == ['0']:
-                token = '</span>'
-            else:
-                styles = []
-                for code in ansi_codes:
-                    if code == '1':
-                        styles.append('font-weight:bold')
-                    elif code.startswith('3') and len(code) == 2:
-                        try:
-                            color_index = int(code[1])
-                            css_color = EIGHT_COLOR_PALETTE[color_index]
+            # First we check for a reset code to close the previous <span>
+            # element. As explained on Wikipedia [1] an absence of codes
+            # implies a reset code as well: "No parameters at all in ESC[m acts
+            # like a 0 reset code".
+            # [1] https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
+            if '0' in ansi_codes or not ansi_codes:
+                output.append('</span>')
+            # Now we're ready to generate the next <span> element (if any) in
+            # the knowledge that we're emitting opening <span> and closing
+            # </span> tags in the correct order.
+            styles = []
+            is_faint = str(ANSI_TEXT_STYLES['faint']) in ansi_codes
+            is_inverse = str(ANSI_TEXT_STYLES['inverse']) in ansi_codes
+            for code in ansi_codes:
+                if code in compatible_text_styles:
+                    styles.append(compatible_text_styles[code])
+                elif code.isdigit() and len(code) == 2:
+                    if code.startswith('3'):
+                        color_palette = EIGHT_COLOR_PALETTE
+                    elif code.startswith('9'):
+                        color_palette = BRIGHT_COLOR_PALETTE
+                    else:
+                        continue
+                    color_index = int(code[1])
+                    if 0 <= color_index < len(color_palette):
+                        css_color = color_palette[color_index]
+                        if is_inverse:
+                            styles.extend((
+                                'background-color:%s' % css_color,
+                                'color:%s' % select_text_color(*parse_hex_color(css_color)),
+                            ))
+                        else:
+                            if is_faint:
+                                # Because I wasn't sure how to implement faint
+                                # colors based on normal colors I looked at how
+                                # gnome-terminal (my terminal of choice)
+                                # handles this and it appears to just
+                                # pick a somewhat darker color.
+                                css_color = '#%02X%02X%02X' % tuple(
+                                    max(0, n - 40) for n in parse_hex_color(css_color)
+                                )
                             styles.append('color:%s' % css_color)
-                        except IndexError:
-                            pass
-                if styles:
-                    token = '<span style="%s">' % ';'.join(styles)
-                else:
-                    token = ''
+            if styles:
+                token = '<span style="%s">' % ';'.join(styles)
+            else:
+                token = ''
         else:
             token = html_encode(token)
         output.append(token)
@@ -214,6 +291,50 @@ def html_encode(text):
     text = text.replace('>', '&gt;')
     text = text.replace('"', '&quot;')
     return text
+
+
+def parse_hex_color(value):
+    """
+    Convert a CSS color in hexadecimal notation into its R, G, B components.
+
+    :param value: A CSS color in hexadecimal notation (a string like '#000000').
+    :return: A tuple with three integers (with values between 0 and 255)
+             corresponding to the R, G and B components of the color.
+    :raises: :exc:`~exceptions.ValueError` on values that can't be parsed.
+    """
+    if value.startswith('#'):
+        value = value[1:]
+    if len(value) == 3:
+        return (
+            int(value[0] * 2, 16),
+            int(value[1] * 2, 16),
+            int(value[2] * 2, 16),
+        )
+    elif len(value) == 6:
+        return (
+            int(value[0:2], 16),
+            int(value[2:4], 16),
+            int(value[4:6], 16),
+        )
+    else:
+        raise ValueError()
+
+
+def select_text_color(r, g, b):
+    """
+    Choose a suitable color for the inverse text style.
+
+    :param r: The amount of red (an integer between 0 and 255).
+    :param g: The amount of green (an integer between 0 and 255).
+    :param b: The amount of blue (an integer between 0 and 255).
+    :returns: A CSS color in hexadecimal notation (a string).
+
+    In inverse mode the color that is normally used for the text is instead
+    used for the background, however this can render the text unreadable. The
+    purpose of :func:`select_text_color()` is to make an effort to select a
+    suitable text color. Based on http://stackoverflow.com/a/3943023/112731.
+    """
+    return '#000' if (r * 0.299 + g * 0.587 + b * 0.114) > 186 else '#FFF'
 
 
 class ColoredCronMailer(object):
