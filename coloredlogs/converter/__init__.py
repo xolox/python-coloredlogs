@@ -32,6 +32,9 @@ from coloredlogs.converter.colors import (
 # Compiled regular expression that matches leading spaces (indentation).
 INDENT_PATTERN = re.compile('^ +', re.MULTILINE)
 
+# Compiled regular expression that matches a tag followed by a space at the start of a line.
+TAG_INDENT_PATTERN = re.compile('^(<[^>]+>) ', re.MULTILINE)
+
 # Compiled regular expression that matches strings we want to convert. Used to
 # separate all special strings and literal output in a single pass (this allows
 # us to properly encode the output without resorting to nasty hacks).
@@ -256,7 +259,7 @@ def encode_whitespace(text, tabsize=4):
     # The conversion of leading spaces we just did misses a corner case where a
     # line starts with an HTML tag but the first visible text is a space. Web
     # browsers seem to ignore these spaces, so we need to convert them.
-    text = re.sub('^(<[^>]+>) ', r'\1&nbsp;', text, 0, re.MULTILINE)
+    text = re.sub(TAG_INDENT_PATTERN, r'\1&nbsp;', text)
     # Convert runs of multiple spaces into non-breaking spaces to avoid HTML
     # rendering engines from visually collapsing runs of spaces into a single
     # space. We specifically don't replace single spaces for several reasons:
