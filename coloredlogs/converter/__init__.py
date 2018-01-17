@@ -256,7 +256,7 @@ def encode_whitespace(text, tabsize=4):
     # The conversion of leading spaces we just did misses a corner case where a
     # line starts with an HTML tag but the first visible text is a space. Web
     # browsers seem to ignore these spaces, so we need to convert them.
-    text = re.sub('^(<[^>]+>) ', r'\1&nbsp;', text, flags=re.MULTILINE)
+    text = re.sub('^(<[^>]+>) ', r'\1&nbsp;', text, 0, re.MULTILINE)
     # Convert runs of multiple spaces into non-breaking spaces to avoid HTML
     # rendering engines from visually collapsing runs of spaces into a single
     # space. We specifically don't replace single spaces for several reasons:
