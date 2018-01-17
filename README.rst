@@ -26,6 +26,51 @@ defined by my verboselogs_ package: if you install both `coloredlogs` and
 .. contents::
    :local:
 
+Installation
+------------
+
+The `coloredlogs` package is available on PyPI_ which means installation should
+be as simple as:
+
+.. code-block:: sh
+
+   $ pip install coloredlogs
+
+There's actually a multitude of ways to install Python packages (e.g. the `per
+user site-packages directory`_, `virtual environments`_ or just installing
+system wide) and I have no intention of getting into that discussion here, so
+if this intimidates you then read up on your options before returning to these
+instructions ;-).
+
+Usage
+-----
+
+Here's an example of how easy it is to get started:
+
+.. code-block:: python
+
+   import coloredlogs, logging
+
+   # Create a logger object.
+   logger = logging.getLogger(__name__)
+
+   # By default the install() function installs a handler on the root logger,
+   # this means that log messages from your code and log messages from the
+   # libraries that you use will all show up on the terminal.
+   coloredlogs.install(level='DEBUG')
+
+   # If you don't want to see log messages from libraries, you can pass a
+   # specific logger object to the install() function. In this case only log
+   # messages originating from that logger will show up on the terminal.
+   coloredlogs.install(level='DEBUG', logger=logger)
+
+   # Some examples.
+   logger.debug("this is a debugging message")
+   logger.info("this is an informational message")
+   logger.warning("this is a warning message")
+   logger.error("this is an error message")
+   logger.critical("this is a critical message")
+
 Format of log messages
 ----------------------
 
@@ -69,34 +114,7 @@ tell it to. There are two ways to do that:
    Customizing the log format also enables you to change the delimiter that
    separates seconds from milliseconds (the comma above).
 
-Usage
------
 
-Here's an example of how easy it is to get started:
-
-.. code-block:: python
-
-   import coloredlogs, logging
-
-   # Create a logger object.
-   logger = logging.getLogger(__name__)
-
-   # By default the install() function installs a handler on the root logger,
-   # this means that log messages from your code and log messages from the
-   # libraries that you use will all show up on the terminal.
-   coloredlogs.install(level='DEBUG')
-
-   # If you don't want to see log messages from libraries, you can pass a
-   # specific logger object to the install() function. In this case only log
-   # messages originating from that logger will show up on the terminal.
-   coloredlogs.install(level='DEBUG', logger=logger)
-
-   # Some examples.
-   logger.debug("this is a debugging message")
-   logger.info("this is an informational message")
-   logger.warning("this is a warning message")
-   logger.error("this is an error message")
-   logger.critical("this is a critical message")
 
 Colored output from cron
 ------------------------
@@ -178,7 +196,9 @@ This software is licensed under the `MIT license`_.
 .. _logging: https://docs.python.org/2/library/logging.html
 .. _MIT license: https://en.wikipedia.org/wiki/MIT_License
 .. _online documentation: https://coloredlogs.readthedocs.io/
+.. _per user site-packages directory: https://www.python.org/dev/peps/pep-0370/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
 .. _to include 'msecs': https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
+.. _virtual environments: http://docs.python-guide.org/en/latest/dev/virtualenvs/
