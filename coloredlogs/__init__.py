@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 12, 2018
+# Last Change: January 14, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -646,10 +646,28 @@ def parse_encoded_styles(text, normalize_key=None):
      'critical': {'bold': True, 'color': 'red'}}
     """
     parsed_styles = {}
-    for token in split(text, ';'):
-        name, _, styles = token.partition('=')
-        parsed_styles[name] = dict(('color', word) if word in ANSI_COLOR_CODES else
-                                   (word, True) for word in split(styles, ','))
+    for assignment in split(text, ';'):
+        name, _, styles = assignment.partition('=')
+        target = parsed_styles.setdefault(name, {})
+        for token in split(styles, ','):
+            # When this code was originally written, setting background colors
+            # wasn't supported yet, so there was no need to disambiguate
+            # between the text color and background color. This explains why
+            # a color name or number implies setting the text color (for
+            # backwards compatibility).
+            if token.isdigit():
+                target['color'] = int(token)
+            elif token in ANSI_COLOR_CODES:
+                target['color'] = token
+            elif '=' in token:
+                name, _, value = token.partition('=')
+                if name in ('color', 'background'):
+                    if value.isdigit():
+                        target[name] = int(value)
+                    elif value in ANSI_COLOR_CODES:
+                        target[name] = value
+            else:
+                target[token] = True
     return parsed_styles
 
 

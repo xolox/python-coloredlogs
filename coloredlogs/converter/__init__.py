@@ -1,7 +1,7 @@
 # Program to convert text with ANSI escape sequences to HTML.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 12, 2018
+# Last Change: January 17, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Convert text with ANSI escape sequences to HTML."""
@@ -22,44 +22,12 @@ from humanfriendly.terminal import (
     output,
 )
 
-EIGHT_COLOR_PALETTE = (
-    '#010101',  # black
-    '#DE382B',  # red
-    '#39B54A',  # green
-    '#FFC706',  # yellow
-    '#006FB8',  # blue
-    '#762671',  # magenta
-    '#2CB5E9',  # cyan
-    '#CCC',     # white
+# Modules included in our package.
+from coloredlogs.converter.colors import (
+    BRIGHT_COLOR_PALETTE,
+    EIGHT_COLOR_PALETTE,
+    EXTENDED_COLOR_PALETTE,
 )
-"""
-A tuple of strings mapping basic color codes to CSS colors.
-
-The items in this tuple correspond to the eight basic color codes for black,
-red, green, yellow, blue, magenta, cyan and white as defined in the original
-standard for ANSI escape sequences. The CSS colors are based on the `Ubuntu
-color scheme`_ described on Wikipedia and they are encoded as hexadecimal
-values to get the shortest strings, which reduces the size (in bytes) of
-conversion output.
-
-.. _Ubuntu color scheme: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-"""
-
-BRIGHT_COLOR_PALETTE = (
-    '#808080',  # black
-    '#F00',     # red
-    '#0F0',     # green
-    '#FF0',     # yellow
-    '#00F',     # blue
-    '#F0F',     # magenta
-    '#0FF',     # cyan
-    '#FFF',     # white
-)
-"""
-A tuple of strings mapping bright color codes to CSS colors.
-
-This tuple maps the bright color variants of :data:`EIGHT_COLOR_PALETTE`.
-"""
 
 # Compiled regular expression that matches leading spaces (indentation).
 INDENT_PATTERN = re.compile('^ +', re.MULTILINE)
@@ -158,11 +126,12 @@ def convert(text, code=True, tabsize=4):
     :returns: The text converted to HTML (a string).
     """
     output = []
+    in_span = False
     compatible_text_styles = {
         # The following ANSI text styles have an obvious mapping to CSS.
-        str(ANSI_TEXT_STYLES['bold']): 'font-weight:bold',
-        str(ANSI_TEXT_STYLES['strike_through']): 'text-decoration:line-through',
-        str(ANSI_TEXT_STYLES['underline']): 'text-decoration:underline',
+        ANSI_TEXT_STYLES['bold']: {'font-weight': 'bold'},
+        ANSI_TEXT_STYLES['strike_through']: {'text-decoration': 'line-through'},
+        ANSI_TEXT_STYLES['underline']: {'text-decoration': 'underline'},
     }
     for token in TOKEN_PATTERN.split(text):
         if token.startswith(('http://', 'https://', 'www.')):
@@ -170,50 +139,81 @@ def convert(text, code=True, tabsize=4):
             token = u'<a href="%s" style="color:inherit">%s</a>' % (html_encode(url), html_encode(token))
         elif token.startswith(ANSI_CSI):
             ansi_codes = token[len(ANSI_CSI):-1].split(';')
+            if all(c.isdigit() for c in ansi_codes):
+                ansi_codes = list(map(int, ansi_codes))
             # First we check for a reset code to close the previous <span>
             # element. As explained on Wikipedia [1] an absence of codes
             # implies a reset code as well: "No parameters at all in ESC[m acts
             # like a 0 reset code".
             # [1] https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
-            if '0' in ansi_codes or not ansi_codes:
+            if in_span and (0 in ansi_codes or not ansi_codes):
                 output.append('</span>')
+                in_span = False
             # Now we're ready to generate the next <span> element (if any) in
             # the knowledge that we're emitting opening <span> and closing
             # </span> tags in the correct order.
-            styles = []
-            is_faint = str(ANSI_TEXT_STYLES['faint']) in ansi_codes
-            is_inverse = str(ANSI_TEXT_STYLES['inverse']) in ansi_codes
-            for code in ansi_codes:
-                if code in compatible_text_styles:
-                    styles.append(compatible_text_styles[code])
-                elif code.isdigit() and len(code) == 2:
-                    if code.startswith('3'):
-                        color_palette = EIGHT_COLOR_PALETTE
-                    elif code.startswith('9'):
-                        color_palette = BRIGHT_COLOR_PALETTE
-                    else:
-                        continue
-                    color_index = int(code[1])
-                    if 0 <= color_index < len(color_palette):
-                        css_color = color_palette[color_index]
-                        if is_inverse:
-                            styles.extend((
-                                'background-color:%s' % css_color,
-                                'color:%s' % select_text_color(*parse_hex_color(css_color)),
-                            ))
-                        else:
-                            if is_faint:
-                                # Because I wasn't sure how to implement faint
-                                # colors based on normal colors I looked at how
-                                # gnome-terminal (my terminal of choice)
-                                # handles this and it appears to just
-                                # pick a somewhat darker color.
-                                css_color = '#%02X%02X%02X' % tuple(
-                                    max(0, n - 40) for n in parse_hex_color(css_color)
-                                )
-                            styles.append('color:%s' % css_color)
+            styles = {}
+            is_faint = (ANSI_TEXT_STYLES['faint'] in ansi_codes)
+            is_inverse = (ANSI_TEXT_STYLES['inverse'] in ansi_codes)
+            while ansi_codes:
+                number = ansi_codes.pop(0)
+                # Try to match a compatible text style.
+                if number in compatible_text_styles:
+                    styles.update(compatible_text_styles[number])
+                    continue
+                # Try to extract a text and/or background color.
+                text_color = None
+                background_color = None
+                if 30 <= number <= 37:
+                    # 30-37 sets the text color from the eight color palette.
+                    text_color = EIGHT_COLOR_PALETTE[number - 30]
+                elif 40 <= number <= 47:
+                    # 40-47 sets the background color from the eight color palette.
+                    background_color = EIGHT_COLOR_PALETTE[number - 40]
+                elif 90 <= number <= 97:
+                    # 90-97 sets the text color from the high-intensity eight color palette.
+                    text_color = BRIGHT_COLOR_PALETTE[number - 90]
+                elif 100 <= number <= 107:
+                    # 100-107 sets the background color from the high-intensity eight color palette.
+                    background_color = BRIGHT_COLOR_PALETTE[number - 100]
+                elif number in (38, 39) and len(ansi_codes) >= 2 and ansi_codes[0] == 5:
+                    # 38;5;N is a text color in the 256 color mode palette,
+                    # 39;5;N is a background color in the 256 color mode palette.
+                    try:
+                        # Consume the 5 following 38 or 39.
+                        ansi_codes.pop(0)
+                        # Consume the 256 color mode color index.
+                        color_index = ansi_codes.pop(0)
+                        # Set the variable to the corresponding HTML/CSS color.
+                        if number == 38:
+                            text_color = EXTENDED_COLOR_PALETTE[color_index]
+                        elif number == 39:
+                            background_color = EXTENDED_COLOR_PALETTE[color_index]
+                    except (ValueError, IndexError):
+                        pass
+                # Apply the 'faint' or 'inverse' text style
+                # by manipulating the selected color(s).
+                if text_color and is_inverse:
+                    # Use the text color as the background color and pick a
+                    # text color that will be visible on the resulting
+                    # background color.
+                    background_color = text_color
+                    text_color = select_text_color(*parse_hex_color(text_color))
+                if text_color and is_faint:
+                    # Because I wasn't sure how to implement faint colors
+                    # based on normal colors I looked at how gnome-terminal
+                    # (my terminal of choice) handles this and it appears
+                    # to just pick a somewhat darker color.
+                    text_color = '#%02X%02X%02X' % tuple(
+                        max(0, n - 40) for n in parse_hex_color(text_color)
+                    )
+                if text_color:
+                    styles['color'] = text_color
+                if background_color:
+                    styles['background-color'] = background_color
             if styles:
-                token = '<span style="%s">' % ';'.join(styles)
+                token = '<span style="%s">' % ';'.join(k + ':' + v for k, v in sorted(styles.items()))
+                in_span = True
             else:
                 token = ''
         else:
@@ -253,6 +253,10 @@ def encode_whitespace(text, tabsize=4):
     # and/or directly after a line ending) into non-breaking spaces, otherwise
     # HTML rendering engines will simply ignore these spaces.
     text = re.sub(INDENT_PATTERN, encode_whitespace_cb, text)
+    # The conversion of leading spaces we just did misses a corner case where a
+    # line starts with an HTML tag but the first visible text is a space. Web
+    # browsers seem to ignore these spaces, so we need to convert them.
+    text = re.sub('^(<[^>]+>) ', r'\1&nbsp;', text, flags=re.MULTILINE)
     # Convert runs of multiple spaces into non-breaking spaces to avoid HTML
     # rendering engines from visually collapsing runs of spaces into a single
     # space. We specifically don't replace single spaces for several reasons:

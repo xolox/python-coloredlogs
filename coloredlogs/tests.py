@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 12, 2018
+# Last Change: January 17, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -404,6 +404,21 @@ class ColoredLogsTestCase(TestCase):
         # Check conversion of bright colored text.
         expected_html = '<code><span style="color:#FF0">bright yellow</span></code>'
         self.assertEquals(expected_html, convert(ansi_wrap('bright yellow', color='yellow', bright=True)))
+        # Check conversion of text with a background color.
+        expected_html = '<code><span style="background-color:#DE382B">red background</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('red background', background='red')))
+        # Check conversion of text with a bright background color.
+        expected_html = '<code><span style="background-color:#F00">bright red background</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('bright red background', background='red', bright=True)))
+        # Check conversion of text that uses the 256 color mode palette as a foreground color.
+        expected_html = '<code><span style="color:#FFAF00">256 color mode foreground</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('256 color mode foreground', color=214)))
+        # Check conversion of text that uses the 256 color mode palette as a background color.
+        expected_html = '<code><span style="background-color:#AF0000">256 color mode background</span></code>'
+        self.assertEquals(expected_html, convert(ansi_wrap('256 color mode background', background=124)))
+        # Check that invalid 256 color mode indexes don't raise exceptions.
+        expected_html = '<code>plain text expected</code>'
+        self.assertEquals(expected_html, convert('\x1b[38;5;256mplain text expected\x1b[0m'))
         # Check conversion of bold text.
         expected_html = '<code><span style="font-weight:bold">bold text</span></code>'
         self.assertEquals(expected_html, convert(ansi_wrap('bold text', bold=True)))
@@ -429,7 +444,7 @@ class ColoredLogsTestCase(TestCase):
         blue_underlined = ansi_style(color='blue', underline=True)
         ansi_encoded_text = '<%shttps://coloredlogs.readthedocs.io%s>' % (blue_underlined, reset_short_hand)
         expected_html = (
-            '<code>&lt;<span style="text-decoration:underline;color:#006FB8">'
+            '<code>&lt;<span style="color:#006FB8;text-decoration:underline">'
             '<a href="https://coloredlogs.readthedocs.io" style="color:inherit">'
             'https://coloredlogs.readthedocs.io'
             '</a></span>&gt;</code>'

@@ -114,7 +114,11 @@ tell it to. There are two ways to do that:
    Customizing the log format also enables you to change the delimiter that
    separates seconds from milliseconds (the comma above).
 
+Changing text styles and colors
+-------------------------------
 
+The online documentation contains `an example of customizing the text styles and
+colors <https://coloredlogs.readthedocs.io/en/latest/#changing-the-colors-styles>`_.
 
 Colored output from cron
 ------------------------
@@ -126,11 +130,6 @@ e-mailed to you by cron there are two ways to make it happen:
 
 .. contents::
    :local:
-
-You can use this feature without using `coloredlogs` in your Python modules,
-but please note that only normal text, bold text and text with one of the
-foreground colors black, red, green, yellow, blue, magenta, cyan and white
-(these are the portable ANSI color codes) are supported.
 
 Modifying your crontab
 ~~~~~~~~~~~~~~~~~~~~~~
