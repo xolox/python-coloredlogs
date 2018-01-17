@@ -1,0 +1,10 @@
+$ coloredlogs --demo
+2018-01-14 15:45:54 peter-mbp coloredlogs.demo[23238] SPAM message with level spam (5)
+2018-01-14 15:45:55 peter-mbp coloredlogs.demo[23238] DEBUG message with level debug (10)
+2018-01-14 15:45:56 peter-mbp coloredlogs.demo[23238] VERBOSE message with level verbose (15)
+2018-01-14 15:45:57 peter-mbp coloredlogs.demo[23238] INFO message with level info (20)
+2018-01-14 15:45:58 peter-mbp coloredlogs.demo[23238] NOTICE message with level notice (25)
+2018-01-14 15:45:59 peter-mbp coloredlogs.demo[23238] WARNING message with level warning (30)
+2018-01-14 15:46:00 peter-mbp coloredlogs.demo[23238] SUCCESS message with level success (35)
+2018-01-14 15:46:01 peter-mbp coloredlogs.demo[23238] ERROR message with level error (40)
+2018-01-14 15:46:02 peter-mbp coloredlogs.demo[23238] CRITICAL message with level critical (50)

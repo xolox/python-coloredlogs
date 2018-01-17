@@ -1,0 +1,11 @@
+$ export COLOREDLOGS_LOG_FORMAT='[%(hostname)s] %(asctime)s %(message)s'
+$ coloredlogs --demo
+[peter-mbp] 2018-01-14 15:45:44 message with level spam (5)
+[peter-mbp] 2018-01-14 15:45:45 message with level debug (10)
+[peter-mbp] 2018-01-14 15:45:46 message with level verbose (15)
+[peter-mbp] 2018-01-14 15:45:47 message with level info (20)
+[peter-mbp] 2018-01-14 15:45:48 message with level notice (25)
+[peter-mbp] 2018-01-14 15:45:49 message with level warning (30)
+[peter-mbp] 2018-01-14 15:45:50 message with level success (35)
+[peter-mbp] 2018-01-14 15:45:51 message with level error (40)
+[peter-mbp] 2018-01-14 15:45:52 message with level critical (50)

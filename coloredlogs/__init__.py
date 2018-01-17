@@ -54,26 +54,49 @@ Here we'll take a look at some examples of how you can customize
 .. contents::
    :local:
 
+About the defaults
+------------------
+
+Here's a screen shot of the default configuration for easy comparison with the
+screen shots of the following customizations (this is the same screen shot that
+is shown in the introduction):
+
+.. image:: images/defaults.png
+   :alt: Screen shot of colored logging with defaults.
+
+The screen shot above was taken from ``urxvt`` which doesn't support faint text
+colors, otherwise the color of green used for `debug` messages would have
+differed slightly from the color of green used for `spam` messages.
+
+Apart from the `faint` style of the `spam` level, the default configuration of
+`coloredlogs` sticks to the eight color palette defined by the original ANSI
+standard, in order to provide a somewhat consistent experience across terminals
+and terminal emulators.
+
+Available text styles and colors
+--------------------------------
+
+Of course you are free to customize the default configuration, in this case you
+can use any text style or color that you know is supported by your terminal.
+You can use the ``humanfriendly --demo`` command to try out the supported text
+styles and colors:
+
+.. image:: http://humanfriendly.readthedocs.io/en/latest/_images/ansi-demo.png
+   :alt: Screen shot of the 'humanfriendly --demo' command.
+
 Changing the log format
 -----------------------
 
 The simplest customization is to change the log format, for example:
 
-.. code-block:: sh
-
-   $ export COLOREDLOGS_LOG_FORMAT='[%(hostname)s] %(asctime)s - %(message)s'
-   $ coloredlogs --demo
-   [peter-macbook] 2015-10-22 23:42:28 - message with level 'debug'
-   [peter-macbook] 2015-10-22 23:42:29 - message with level 'verbose'
-   ...
+.. literalinclude:: examples/custom-log-format.txt
+   :language: sh
 
 Here's what that looks like in a terminal (I always work in terminals with a
 black background and white text):
 
 .. image:: images/custom-log-format.png
    :alt: Screen shot of colored logging with custom log format.
-   :align: center
-   :width: 80%
 
 Changing the date/time format
 -----------------------------
@@ -81,45 +104,36 @@ Changing the date/time format
 You can also change the date/time format, for example you can remove the date
 part and leave only the time:
 
-.. code-block:: sh
-
-   $ export COLOREDLOGS_LOG_FORMAT='%(asctime)s - %(message)s'
-   $ export COLOREDLOGS_DATE_FORMAT='%H:%M:%S'
-   $ coloredlogs --demo
-   23:45:22 - message with level 'debug'
-   23:45:23 - message with level 'verbose'
-   ...
+.. literalinclude:: examples/custom-datetime-format.txt
+   :language: sh
 
 Here's what it looks like in a terminal:
 
 .. image:: images/custom-datetime-format.png
    :alt: Screen shot of colored logging with custom date/time format.
-   :align: center
-   :width: 80%
 
 Changing the colors/styles
 --------------------------
 
 Finally you can customize the colors and text styles that are used:
 
-.. code-block:: sh
+.. literalinclude:: examples/custom-colors.txt
+   :language: sh
 
-   $ export COLOREDLOGS_LOG_FORMAT='%(asctime)s - %(message)s'
-   $ export COLOREDLOGS_DATE_FORMAT='%H:%M:%S'
-   $ export COLOREDLOGS_FIELD_STYLES='' # no styles
-   $ export COLOREDLOGS_LEVEL_STYLES='warning=yellow;error=red;critical=red,bold'
-   $ coloredlogs --demo
-   23:45:22 - message with level 'debug'
-   23:45:23 - message with level 'verbose'
-   ...
+Here's an explanation of the features used here:
 
-The difference isn't apparent from the above text but take a look at the
-following screen shot:
+- The numbers used in ``$COLOREDLOGS_LEVEL_STYLES`` demonstrate the use of 256
+  color mode (the numbers refer to the 256 color mode palette which is fixed).
+
+- The `success` level demonstrates the use of a text style (bold).
+
+- The `critical` level demonstrates the use of a background color (red).
+
+Of course none of this can be seen in the shell transcript quoted above, but
+take a look at the following screen shot:
 
 .. image:: images/custom-colors.png
    :alt: Screen shot of colored logging with custom colors.
-   :align: center
-   :width: 80%
 
 .. _notes about log levels:
 

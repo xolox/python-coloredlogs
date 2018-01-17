@@ -16,11 +16,11 @@ automatically pulls in Colorama_ as a dependency and enables ANSI escape
 sequence translation using Colorama. Here is a screen shot of the demo that is
 printed when the command ``coloredlogs --demo`` is executed:
 
-.. image:: https://peterodding.com/code/python/coloredlogs/screenshots/terminal.png
+.. image:: https://coloredlogs.readthedocs.io/en/latest/_images/defaults.png
 
-Note that the screenshot above includes the custom logging level `VERBOSE`
-defined by my verboselogs_ package: if you install both `coloredlogs` and
-`verboselogs` it will Just Work (`verboselogs` is of course not required to use
+Note that the screenshot above includes custom logging levels defined by my
+verboselogs_ package: if you install both `coloredlogs` and `verboselogs` it
+will Just Work (`verboselogs` is of course not required to use
 `coloredlogs`).
 
 .. contents::

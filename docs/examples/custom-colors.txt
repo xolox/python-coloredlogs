@@ -1,0 +1,14 @@
+$ export COLOREDLOGS_LOG_FORMAT='%(asctime)s - %(message)s'
+$ export COLOREDLOGS_DATE_FORMAT='%H:%M:%S'
+$ export COLOREDLOGS_FIELD_STYLES='' # no styles
+$ export COLOREDLOGS_LEVEL_STYLES='spam=22;debug=28;verbose=34;notice=220;warning=202;success=118,bold;error=124;critical=background=red'
+$ coloredlogs --demo
+15:45:23 - message with level spam (5)
+15:45:24 - message with level debug (10)
+15:45:25 - message with level verbose (15)
+15:45:26 - message with level info (20)
+15:45:27 - message with level notice (25)
+15:45:28 - message with level warning (30)
+15:45:29 - message with level success (35)
+15:45:30 - message with level error (40)
+15:45:31 - message with level critical (50)

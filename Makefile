@@ -1,7 +1,7 @@
 # Makefile for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: December 15, 2017
+# Last Change: January 14, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 WORKON_HOME ?= $(HOME)/.virtualenvs
@@ -15,14 +15,15 @@ default:
 	@echo
 	@echo 'Usage:'
 	@echo
-	@echo '    make install    install the package in a virtual environment'
-	@echo '    make reset      recreate the virtual environment'
-	@echo '    make check      check coding style (PEP-8, PEP-257)'
-	@echo '    make test       run the test suite, report coverage'
-	@echo '    make tox        run the tests on all Python versions'
-	@echo '    make docs       update documentation using Sphinx'
-	@echo '    make publish    publish changes to GitHub/PyPI'
-	@echo '    make clean      cleanup all temporary files'
+	@echo '    make install        install the package in a virtual environment'
+	@echo '    make reset          recreate the virtual environment'
+	@echo '    make check          check coding style (PEP-8, PEP-257)'
+	@echo '    make test           run the test suite, report coverage'
+	@echo '    make tox            run the tests on all Python versions'
+	@echo '    make docs           update documentation using Sphinx'
+	@echo '    make screenshots    generate screenshots of coloredlogs'
+	@echo '    make publish        publish changes to GitHub/PyPI'
+	@echo '    make clean          cleanup all temporary files'
 	@echo
 
 install:
@@ -53,6 +54,10 @@ docs: install
 	@pip install --quiet sphinx
 	@cd docs && sphinx-build -nb html -d build/doctrees . build/html
 
+screenshots: install
+	@pip install --quiet executor
+	@python scripts/generate-screenshots.py
+
 publish: install
 	git push origin && git push --tags origin
 	$(MAKE) clean
@@ -66,4 +71,4 @@ clean:
 	@find -depth -type d -name __pycache__ -exec rm -Rf {} \;
 	@find -type f -name '*.pyc' -delete
 
-.PHONY: default install reset check test tox docs publish clean
+.PHONY: default install reset check test tox docs screenshots publish clean
