@@ -948,7 +948,10 @@ class ColoredFormatter(logging.Formatter):
             # For more details refer to issue 29 on GitHub:
             # https://github.com/xolox/python-coloredlogs/issues/29
             copy = Empty()
-            copy.__class__ = logging.LogRecord
+            if hasattr(logging, 'getLogRecordFactory'):
+                copy.__class__ = logging.getLogRecordFactory()
+            else:
+                copy.__class__ = logging.LogRecord
             copy.__dict__.update(record.__dict__)
             copy.msg = ansi_wrap(coerce_string(record.msg), **style)
             record = copy
