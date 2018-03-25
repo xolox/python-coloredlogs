@@ -893,20 +893,18 @@ class ColoredFormatter(logging.Formatter):
         are part of the same whitespace separated token they'll be highlighted
         together in the style defined for the `name` field.
         """
-        result = []
-        for token in fmt.split():
+        def replace(match):
+            token = match.group(0)
             # Look for field names in the token.
             for match in re.finditer(r'%\((\w+)\)', token):
                 # Check if a style is defined for the matched field name.
                 style = self.nn.get(self.field_styles, match.group(1))
                 if style:
                     # If a style is defined we apply it.
-                    token = ansi_wrap(token, **style)
                     # The style of the first field name that has a style defined
                     # `wins' (within each whitespace separated token).
-                    break
-            result.append(token)
-        return ' '.join(result)
+                    return ansi_wrap(token, **style)
+        return re.sub(r'\S+', replace, fmt)
 
     def format(self, record):
         """
