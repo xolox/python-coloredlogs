@@ -124,6 +124,7 @@ setup(name='coloredlogs',
       url='https://coloredlogs.readthedocs.io',
       author="Peter Odding",
       author_email='peter@peterodding.com',
+      license="MIT",
       packages=find_packages(),
       data_files=[
           (find_pth_directory(), ['coloredlogs.pth']),
