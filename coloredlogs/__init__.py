@@ -904,6 +904,7 @@ class ColoredFormatter(logging.Formatter):
                     # The style of the first field name that has a style defined
                     # `wins' (within each whitespace separated token).
                     return ansi_wrap(token, **style)
+            return token
         return re.sub(r'\S+', replace, fmt)
 
     def format(self, record):
