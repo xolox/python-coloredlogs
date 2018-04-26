@@ -3,7 +3,7 @@
 # Setup script for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: November 23, 2017
+# Last Change: April 26, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -124,7 +124,7 @@ setup(name='coloredlogs',
       url='https://coloredlogs.readthedocs.io',
       author="Peter Odding",
       author_email='peter@peterodding.com',
-      license="MIT",
+      license='MIT',
       packages=find_packages(),
       data_files=[
           (find_pth_directory(), ['coloredlogs.pth']),
@@ -143,6 +143,8 @@ setup(name='coloredlogs',
           'Intended Audience :: Information Technology',
           'Intended Audience :: System Administrators',
           'License :: OSI Approved :: MIT License',
+          'Operating System :: MacOS',
+          'Operating System :: Microsoft :: Windows',
           'Operating System :: POSIX',
           'Operating System :: Unix',
           'Programming Language :: Python',
@@ -153,13 +155,19 @@ setup(name='coloredlogs',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: Implementation :: CPython',
+          'Programming Language :: Python :: Implementation :: PyPy',
+          'Topic :: Communications',
           'Topic :: Scientific/Engineering :: Human Machine Interfaces',
           'Topic :: Software Development',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Software Development :: User Interfaces',
           'Topic :: System',
+          'Topic :: System :: Shells',
+          'Topic :: System :: System Shells',
           'Topic :: System :: Console Fonts',
           'Topic :: System :: Logging',
           'Topic :: System :: Systems Administration',
           'Topic :: Terminals',
+          'Topic :: Utilities',
       ])
