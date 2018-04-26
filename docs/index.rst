@@ -1,29 +1,32 @@
-.. include:: ../README.rst
+coloredlogs: Colored terminal output for Python's logging module
+================================================================
+
+Welcome to the documentation of `coloredlogs` version |release|! The following
+sections are available:
+
+.. contents::
+   :local:
+
+User documentation
+------------------
+
+The readme is the best place to start reading, it's targeted at all users:
+
+.. toctree::
+   readme.rst
 
 API documentation
-=================
+-----------------
 
-The following documentation is based on the source code of version |release| of
-the `coloredlogs` package.
+The following API documentation is automatically generated from the source code:
 
-The most useful entry points into the documentation are
-:func:`~coloredlogs.install()`, :class:`~coloredlogs.ColoredFormatter` and
-:func:`~coloredlogs.syslog.enable_system_logging()`.
+.. toctree::
+   api.rst
 
-The :mod:`coloredlogs` module
------------------------------
+Change log
+----------
 
-.. automodule:: coloredlogs
-   :members:
+The change log lists notable changes to the project:
 
-The :mod:`coloredlogs.converter` module
----------------------------------------
-
-.. automodule:: coloredlogs.converter
-   :members:
-
-The :mod:`coloredlogs.syslog` module
-------------------------------------
-
-.. automodule:: coloredlogs.syslog
-   :members:
+.. toctree::
+   changelog.rst

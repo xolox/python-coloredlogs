@@ -169,9 +169,10 @@ Contact
 -------
 
 The latest version of `coloredlogs` is available on PyPI_ and GitHub_. The
-`online documentation`_ is available on Read The Docs. For bug reports please
-create an issue on GitHub_. If you have questions, suggestions, etc. feel free
-to send me an e-mail at `peter@peterodding.com`_.
+`online documentation`_ is available on Read The Docs and includes a
+changelog_. For bug reports please create an issue on GitHub_. If you have
+questions, suggestions, etc. feel free to send me an e-mail at
+`peter@peterodding.com`_.
 
 License
 -------
@@ -184,10 +185,11 @@ This software is licensed under the `MIT license`_.
 .. External references:
 .. _ANSI escape sequences: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 .. _capturer: https://pypi.python.org/pypi/capturer
+.. _changelog: https://coloredlogs.readthedocs.org/en/latest/changelog.html
 .. _Colorama: https://pypi.python.org/pypi/colorama
-.. _ColoredCronMailer: https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.converter.ColoredCronMailer
-.. _ColoredFormatter: https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.ColoredFormatter
-.. _coloredlogs.install(): https://coloredlogs.readthedocs.io/en/latest/#coloredlogs.install
+.. _ColoredCronMailer: https://coloredlogs.readthedocs.io/en/latest/api.html#coloredlogs.converter.ColoredCronMailer
+.. _ColoredFormatter: https://coloredlogs.readthedocs.io/en/latest/api.html#coloredlogs.ColoredFormatter
+.. _coloredlogs.install(): https://coloredlogs.readthedocs.io/en/latest/api.html#coloredlogs.install
 .. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
 .. _logging.basicConfig(): https://docs.python.org/2/library/logging.html#logging.basicConfig
