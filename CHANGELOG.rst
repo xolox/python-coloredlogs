@@ -11,11 +11,13 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
-Not yet released
-----------------
+`Release 9.1`_ (2018-04-26)
+---------------------------
 
-Added this changelog as requested in `#55`_.
+- Added `license` key to `setup.py` script (`#53`_).
+- Added this changelog (requested in `#55`_).
 
+.. _#53: https://github.com/xolox/python-coloredlogs/pull/53
 .. _#55: https://github.com/xolox/python-coloredlogs/issues/55
 
 `Release 9.0`_ (2018-01-17)
