@@ -14,9 +14,10 @@ to `semantic versioning`_.
 `Release 9.1`_ (2018-04-26)
 ---------------------------
 
-- Added `license` key to `setup.py` script (`#53`_).
+- Added ``license`` key to ``setup.py`` script (`#53`_).
 - Added this changelog (requested in `#55`_).
 
+.. _Release 9.1: https://github.com/xolox/python-coloredlogs/compare/9.0...9.1
 .. _#53: https://github.com/xolox/python-coloredlogs/pull/53
 .. _#55: https://github.com/xolox/python-coloredlogs/issues/55
 
