@@ -897,20 +897,28 @@ class ColoredFormatter(logging.Formatter):
         are part of the same whitespace separated token they'll be highlighted
         together in the style defined for the `name` field.
         """
-        result = []
-        for token in fmt.split():
-            # Look for field names in the token.
-            for match in re.finditer(r'%\((\w+)\)', token):
-                # Check if a style is defined for the matched field name.
-                style = self.nn.get(self.field_styles, match.group(1))
-                if style:
-                    # If a style is defined we apply it.
-                    token = ansi_wrap(token, **style)
-                    # The style of the first field name that has a style defined
-                    # `wins' (within each whitespace separated token).
-                    break
-            result.append(token)
-        return ' '.join(result)
+        return re.sub(r'\S+', self.colorize_callback, fmt)
+
+    def colorize_callback(self, match):
+        """
+        Wrap field names in ANSI escape sequences.
+
+        :param match: A regular expression match object.
+        :returns: The matched text, possibly wrapped in ANSI escape sequences.
+
+        This is a callback for :func:`re.sub()` used by :func:`colorize_format()`.
+        """
+        token = match.group(0)
+        # Look for field names in the token.
+        for match in re.finditer(r'%\((\w+)\)', token):
+            # Check if a style is defined for the matched field name.
+            style = self.nn.get(self.field_styles, match.group(1))
+            if style:
+                # If a style is defined we apply it. The style of the first
+                # field name that has a style defined `wins' (within each
+                # whitespace separated token).
+                return ansi_wrap(token, **style)
+        return token
 
     def format(self, record):
         """
