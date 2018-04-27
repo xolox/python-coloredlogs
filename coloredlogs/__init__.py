@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: April 26, 2018
+# Last Change: April 27, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -858,6 +858,10 @@ class ColoredFormatter(logging.Formatter):
         initializer of the base class.
         """
         self.nn = NameNormalizer()
+        # The use of the logging.getLogRecordFactory() is preferable over
+        # logging.LogRecord in Python 3, but this function isn't available in
+        # Python 2. We'll check the existence of the function just once now.
+        self.log_record_factory = getattr(logging, 'getLogRecordFactory', None)
         # The default values of the following arguments are defined here so
         # that Sphinx doesn't embed the default values in the generated
         # documentation (because the result is awkward to read).
@@ -948,7 +952,11 @@ class ColoredFormatter(logging.Formatter):
             # For more details refer to issue 29 on GitHub:
             # https://github.com/xolox/python-coloredlogs/issues/29
             copy = Empty()
-            copy.__class__ = logging.LogRecord
+            copy.__class__ = (
+                self.log_record_factory()
+                if self.log_record_factory is not None
+                else logging.LogRecord
+            )
             copy.__dict__.update(record.__dict__)
             copy.msg = ansi_wrap(coerce_string(record.msg), **style)
             record = copy
