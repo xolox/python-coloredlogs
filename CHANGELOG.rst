@@ -11,6 +11,22 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 9.2`_ (2018-04-27)
+---------------------------
+
+- Merged pull request `#47`_: Switch to ``logging.getLogRecordFactory()``. In
+  the merge commit I added a small performance enhancement by checking for the
+  existence of ``logging.getLogRecordFactory()`` just once, when a
+  ``ColoredFormatter`` object is instantiated.
+
+- Merged pull request `#52`_: Don't change whitespace in format strings. In the
+  merge commit I promoted the inline function to an instance method so that it
+  can be reused by sub classes of ``ColoredFormatter``.
+
+.. _Release 9.2: https://github.com/xolox/python-coloredlogs/compare/9.1...9.2
+.. _#47: https://github.com/xolox/python-coloredlogs/pull/47
+.. _#52: https://github.com/xolox/python-coloredlogs/pull/52
+
 `Release 9.1`_ (2018-04-26)
 ---------------------------
 
