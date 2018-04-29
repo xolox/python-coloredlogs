@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: April 27, 2018
+# Last Change: April 29, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -431,7 +431,9 @@ def install(level=None, **kw):
         #
         # [1] https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
         # [2] https://github.com/xolox/python-coloredlogs/issues/16
-        if kw.get('milliseconds') and '%(msecs)' not in formatter_options['fmt']:
+        if (kw.get('milliseconds') and
+                ('%(msecs)' not in formatter_options['fmt']) and
+                ('%f' not in formatter_options['datefmt'])):
             formatter_options['fmt'] = formatter_options['fmt'].replace(
                 '%(asctime)s', '%(asctime)s,%(msecs)03d',
             )
@@ -461,7 +463,7 @@ def install(level=None, **kw):
                 if value is not None:
                     formatter_options[name] = value
         # Create a (possibly colored) formatter.
-        formatter_type = ColoredFormatter if use_colors else logging.Formatter
+        formatter_type = ColoredFormatter if use_colors else BasicFormatter
         handler.setFormatter(formatter_type(**formatter_options))
         # Adjust the level of the selected logger.
         adjust_level(logger, level)
@@ -831,10 +833,53 @@ def walk_propagation_tree(logger):
             logger = None
 
 
-class ColoredFormatter(logging.Formatter):
+class BasicFormatter(logging.Formatter):
+
+    """
+    Log :class:`~logging.Formatter` that supports ``%f`` for millisecond formatting.
+
+    This class extends :class:`~logging.Formatter` to enable the use of ``%f``
+    for millisecond formatting in date/time strings, to allow for the type of
+    flexibility requested in issue `#45`_.
+
+    .. _#45: https://github.com/xolox/python-coloredlogs/issues/45
+    """
+
+    def formatTime(self, record, datefmt=None):
+        """
+        Format the date/time of a log record.
+
+        :param record: A :class:`~logging.LogRecord` object.
+        :param datefmt: A date/time format string (defaults to :data:`DEFAULT_DATE_FORMAT`).
+        :returns: The formatted date/time (a string).
+
+        This method overrides :func:`~logging.Formatter.formatTime()` to set
+        `datefmt` to :data:`DEFAULT_DATE_FORMAT` when the caller hasn't
+        specified a date format.
+
+        When the token ``%f`` remains in `datefmt` after formatting by the
+        superclass, the ``%f`` token will be replaced by the value of
+        ``%(msecs)03d`` (refer to issue `#45`_ for use cases).
+        """
+        # The default value of the following argument is defined here so
+        # that Sphinx doesn't embed the default value in the generated
+        # documentation (because the result is awkward to read).
+        datefmt = datefmt or DEFAULT_DATE_FORMAT
+        # Delegate the actual date/time formatting to the base formatter.
+        formatted = logging.Formatter.formatTime(self, record, datefmt)
+        if '%f' in formatted:
+            # Replace %f with the value of %(msecs)03d.
+            formatted = formatted.replace('%f', '%03d' % record.msecs)
+        return formatted
+
+
+class ColoredFormatter(BasicFormatter):
 
     """
     Log :class:`~logging.Formatter` that uses `ANSI escape sequences`_ to create colored logs.
+
+    :class:`ColoredFormatter` inherits from :class:`BasicFormatter` to enable
+    the use of ``%f`` for millisecond formatting in date/time strings.
 
     .. note:: If you want to use :class:`ColoredFormatter` on Windows then you
               may need to call :func:`colorama.init()`. This is done for you
@@ -847,7 +892,8 @@ class ColoredFormatter(logging.Formatter):
 
         :param fmt: A log format string (defaults to :data:`DEFAULT_LOG_FORMAT`).
         :param datefmt: A date/time format string (defaults to :data:`None`,
-                        but see the documentation of :func:`formatTime()`).
+                        but see the documentation of
+                        :func:`BasicFormatter.formatTime()`).
         :param level_styles: A dictionary with custom level styles
                              (defaults to :data:`DEFAULT_LEVEL_STYLES`).
         :param field_styles: A dictionary with custom field styles
@@ -970,26 +1016,6 @@ class ColoredFormatter(logging.Formatter):
             record = copy
         # Delegate the remaining formatting to the base formatter.
         return logging.Formatter.format(self, record)
-
-    def formatTime(self, record, datefmt=None):
-        """
-        Format the date/time of a log record.
-
-        :param record: A :class:`~logging.LogRecord` object.
-        :param datefmt: A date/time format string (defaults to
-                        :data:`DEFAULT_DATE_FORMAT`).
-        :returns: The formatted date/time (a string).
-
-        This method overrides :func:`~logging.Formatter.formatTime()` to set
-        `datefmt` to :data:`DEFAULT_DATE_FORMAT` when the caller hasn't
-        specified a date format.
-        """
-        # The default value of the following argument is defined here so
-        # that Sphinx doesn't embed the default value in the generated
-        # documentation (because the result is awkward to read).
-        datefmt = datefmt or DEFAULT_DATE_FORMAT
-        # Delegate the remaining formatting to the base formatter.
-        return logging.Formatter.formatTime(self, record, datefmt)
 
 
 if sys.version_info[:2] <= (2, 6):

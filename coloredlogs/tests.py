@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 17, 2018
+# Last Change: April 29, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -361,6 +361,13 @@ class ColoredLogsTestCase(TestCase):
         install(milliseconds=True, reconfigure=True, stream=stream)
         logging.info("This should include milliseconds.")
         assert all(map(PATTERN_INCLUDING_MILLISECONDS.match, stream.getvalue().splitlines()))
+
+    def test_support_for_milliseconds_directive(self):
+        """Make sure milliseconds using the ``%f`` directive are supported."""
+        stream = StringIO()
+        install(reconfigure=True, stream=stream, datefmt='%Y-%m-%dT%H:%M:%S.%f%z')
+        logging.info("This should be timestamped according to #45.")
+        assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}\s', stream.getvalue())
 
     def test_plain_text_output_format(self):
         """Inspect the plain text output of coloredlogs."""
