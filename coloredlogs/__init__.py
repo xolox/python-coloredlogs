@@ -213,7 +213,7 @@ WINDOWS = sys.platform.startswith('win')
 NEED_COLORAMA = WINDOWS
 
 # Semi-standard module versioning.
-__version__ = '9.3'
+__version__ = '9.3.1'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
@@ -857,20 +857,18 @@ class BasicFormatter(logging.Formatter):
         `datefmt` to :data:`DEFAULT_DATE_FORMAT` when the caller hasn't
         specified a date format.
 
-        When the token ``%f`` remains in `datefmt` after formatting by the
-        superclass, the ``%f`` token will be replaced by the value of
-        ``%(msecs)03d`` (refer to issue `#45`_ for use cases).
+        When `datefmt` contains the token ``%f`` it will be replaced by the
+        value of ``%(msecs)03d`` (refer to issue `#45`_ for use cases).
         """
         # The default value of the following argument is defined here so
         # that Sphinx doesn't embed the default value in the generated
         # documentation (because the result is awkward to read).
         datefmt = datefmt or DEFAULT_DATE_FORMAT
+        # Replace %f with the value of %(msecs)03d.
+        if '%f' in datefmt:
+            datefmt = datefmt.replace('%f', '%03d' % record.msecs)
         # Delegate the actual date/time formatting to the base formatter.
-        formatted = logging.Formatter.formatTime(self, record, datefmt)
-        if '%f' in formatted:
-            # Replace %f with the value of %(msecs)03d.
-            formatted = formatted.replace('%f', '%03d' % record.msecs)
-        return formatted
+        return logging.Formatter.formatTime(self, record, datefmt)
 
 
 class ColoredFormatter(BasicFormatter):
