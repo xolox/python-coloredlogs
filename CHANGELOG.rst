@@ -11,6 +11,17 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 9.3.1`_ (2018-04-30)
+-----------------------------
+
+Bug fix: Restore MacOS compatibility after publishing release 9.3.
+
+The following build failure became apparent to me just minutes after
+publishing release 9.3 so I decided to change the implementation:
+https://travis-ci.org/xolox/python-coloredlogs/jobs/372806733
+
+.. _Release 9.3.1: https://github.com/xolox/python-coloredlogs/compare/9.3...9.3.1
+
 `Release 9.3`_ (2018-04-29)
 ---------------------------
 
