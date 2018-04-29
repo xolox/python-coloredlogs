@@ -11,6 +11,14 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 9.3`_ (2018-04-29)
+---------------------------
+
+Enable flexible millisecond formatting using the ``%f`` directive (`#45`_).
+
+.. _Release 9.3: https://github.com/xolox/python-coloredlogs/compare/9.2...9.3
+.. _#45: https://github.com/xolox/python-coloredlogs/issues/45
+
 `Release 9.2`_ (2018-04-27)
 ---------------------------
 

@@ -96,12 +96,13 @@ Enabling millisecond precision
 If you're switching from `logging.basicConfig()`_ to `coloredlogs.install()`_
 you may notice that timestamps no longer include milliseconds. This is because
 coloredlogs doesn't output milliseconds in timestamps unless you explicitly
-tell it to. There are two ways to do that:
+tell it to. There are three ways to do that:
 
-1. The easy way is to pass the `milliseconds` argument to
-   `coloredlogs.install()`_::
+1. The easy way is to pass the `milliseconds` argument to `coloredlogs.install()`_::
 
     coloredlogs.install(milliseconds=True)
+
+   This became supported in `release 7.1`_ (due to `#16`_).
 
 2. Alternatively you can change the log format `to include 'msecs'`_::
 
@@ -112,7 +113,12 @@ tell it to. There are two ways to do that:
     coloredlogs.install(fmt='%(asctime)s,%(msecs)03d %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s')
 
    Customizing the log format also enables you to change the delimiter that
-   separates seconds from milliseconds (the comma above).
+   separates seconds from milliseconds (the comma above). This became possible
+   in `release 3.0`_ which added support for user defined log formats.
+
+3. If the use of ``%(msecs)d`` isn't flexible enough you can instead add ``%f``
+   to the date/time format, it will be replaced by the value of ``%(msecs)03d``.
+   Support for the ``%f`` directive was added to `release 9.3`_ (due to `#45`_).
 
 Changing text styles and colors
 -------------------------------
@@ -183,6 +189,8 @@ This software is licensed under the `MIT license`_.
 
 
 .. External references:
+.. _#16: https://github.com/xolox/python-coloredlogs/issues/16
+.. _#45: https://github.com/xolox/python-coloredlogs/issues/45
 .. _ANSI escape sequences: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 .. _capturer: https://pypi.python.org/pypi/capturer
 .. _changelog: https://coloredlogs.readthedocs.org/en/latest/changelog.html
@@ -200,6 +208,9 @@ This software is licensed under the `MIT license`_.
 .. _per user site-packages directory: https://www.python.org/dev/peps/pep-0370/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/coloredlogs
+.. _release 3.0: https://coloredlogs.readthedocs.io/en/latest/changelog.html#release-3-0-2015-10-23
+.. _release 7.1: https://coloredlogs.readthedocs.io/en/latest/changelog.html#release-7-1-2017-07-15
+.. _release 9.3: https://coloredlogs.readthedocs.io/en/latest/changelog.html#release-9-3-2018-04-29
 .. _to include 'msecs': https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
 .. _verboselogs: https://pypi.python.org/pypi/verboselogs
 .. _virtual environments: http://docs.python-guide.org/en/latest/dev/virtualenvs/
