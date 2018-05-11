@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: April 29, 2018
+# Last Change: May 12, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -346,7 +346,7 @@ def install(level=None, **kw):
     6. The formatter is added to the handler and the handler is added to the
        logger.
 
-    .. _issue 16: https://github.com/xolox/python-coloredlogs/issues/16
+    .. _#16: https://github.com/xolox/python-coloredlogs/issues/16
     """
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
