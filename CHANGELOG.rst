@@ -11,6 +11,59 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 10.0`_ (2018-05-13)
+----------------------------
+
+Proper format string parsing, support for ``style='{'`` (`#11`_, `#17`_, `#52`_).
+
+Until now coloredlogs has required differently colored fields in logging format
+strings to be delimited by whitespace, leading to various issues:
+
+- Back in December 2015 issue `#11`_ was reported by someone who had expected
+  to be able to style fields without whitespace in between differently.
+
+- Until `#52`_ was merged (released as 9.2 in April 2018) any whitespace would
+  be collapsed to a single space, simply as a side effect of splitting on
+  whitespace.
+
+- This implementation was so naive that it didn't support whitespace as a
+  padding character in ``%()`` formatting directives, because it wasn't able to
+  distinguish formatting directives from surrounding text.
+
+In order to properly fix `#11`_ I'm now introducing a very different approach
+that does distinguish formatting directives from their surrounding text, which
+means whitespace is no longer required. However in order to reduce the
+conceptual incompatibilities between the old versus new approach whitespace is
+still significant, as follows:
+
+1. First the logging format string is separated into formatting directives
+   versus surrounding text (which means whitespace used as a padding character
+   in a ``%()`` formatting directive is considered to be part of the formatting
+   directive, as it should).
+
+2. Then formatting directives and surrounding text are grouped based on
+   whitespace delimiters (in the surrounding text).
+
+3. For each group styling is selected as follows:
+
+   1. If the group contains a single formatting directive that has a style
+      defined then the whole group is styled accordingly. This is the behavior
+      which provides (some level of) conceptual backwards compatibility.
+
+   2. If the group contains multiple formatting directives that have styles
+      defined then each formatting directive is styled individually and
+      surrounding text isn't styled (this behavior is backwards incompatible
+      but arguably an improvement over the old behavior).
+
+While I was working on the improved format string parsing I figured it was
+easiest to include support for ``style='{'`` (requested in `#17`_) from the
+start in the new implementation, given that I was redoing the affected code
+anyway.
+
+.. _Release 10.0: https://github.com/xolox/python-coloredlogs/compare/9.3.1...10.0
+.. _#11: https://github.com/xolox/python-coloredlogs/issues/11
+.. _#17: https://github.com/xolox/python-coloredlogs/issues/17
+
 `Release 9.3.1`_ (2018-04-30)
 -----------------------------
 
