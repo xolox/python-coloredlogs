@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: May 12, 2018
+# Last Change: May 13, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -204,7 +204,7 @@ import sys
 from humanfriendly import coerce_boolean
 from humanfriendly.compat import coerce_string, is_string
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_supports_colors
-from humanfriendly.text import split
+from humanfriendly.text import format, split
 
 # Windows requires special handling and the first step is detecting it :-).
 WINDOWS = sys.platform.startswith('win')
@@ -256,6 +256,46 @@ DEFAULT_LEVEL_STYLES = dict(
     critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
 """Mapping of log level names to default font styles."""
 
+DEFAULT_FORMAT_STYLE = '%'
+"""The default logging format style (a single character)."""
+
+FORMAT_STYLE_PATTERNS = {
+    '%': r'%\((\w+)\)[#0 +-]*\d*(?:\.\d+)?[hlL]?[diouxXeEfFgGcrs%]',
+    '{': r'{(\w+)[^}]*}',
+    '$': r'\$(\w+)|\${(\w+)}',
+}
+"""
+A dictionary that maps the `style` characters ``%``, ``{`` and ``$`` (see the
+documentation of the :class:`python3:logging.Formatter` class in Python 3.2+)
+to strings containing regular expression patterns that can be used to parse
+format strings in the corresponding style:
+
+``%``
+ A string containing a regular expression that matches a "percent conversion
+ specifier" as defined in the `String Formatting Operations`_ section of the
+ Python documentation. Here's an example of a logging format string in this
+ format: ``%(levelname)s:%(name)s:%(message)s``.
+
+``{``
+ A string containing a regular expression that matches a "replacement field" as
+ defined in the `Format String Syntax`_ section of the Python documentation.
+ Here's an example of a logging format string in this format:
+ ``{levelname}:{name}:{message}``.
+
+``$``
+ A string containing a regular expression that matches a "substitution
+ placeholder" as defined in the `Template Strings`_ section of the Python
+ documentation. Here's an example of a logging format string in this format:
+ ``$levelname:$name:$message``.
+
+These regular expressions are used by :class:`FormatStringParser` to introspect
+and manipulate logging format strings.
+
+.. _String Formatting Operations: https://docs.python.org/2/library/stdtypes.html#string-formatting
+.. _Format String Syntax: https://docs.python.org/2/library/string.html#formatstrings
+.. _Template Strings: https://docs.python.org/3/library/string.html#template-strings
+"""
+
 
 def auto_install():
     """
@@ -288,6 +328,10 @@ def install(level=None, **kw):
                 :data:`DEFAULT_LOG_FORMAT`).
     :param datefmt: Set the date/time format (a string, defaults to
                     :data:`DEFAULT_DATE_FORMAT`).
+    :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                  :data:`DEFAULT_FORMAT_STYLE`). See the documentation of the
+                  :class:`python3:logging.Formatter` class in Python 3.2+. On
+                  older Python versions only ``%`` is supported.
     :param milliseconds: :data:`True` to show milliseconds like :mod:`logging`
                          does by default, :data:`False` to hide milliseconds
                          (the default is :data:`False`, see `#16`_).
@@ -351,6 +395,7 @@ def install(level=None, **kw):
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
     stream = kw.get('stream', None)
+    style = check_style(kw.get('style') or DEFAULT_FORMAT_STYLE)
     # Get the log level from an argument, environment variable or default and
     # convert the names of log levels to numbers to enable numeric comparison.
     if level is None:
@@ -408,9 +453,14 @@ def install(level=None, **kw):
         # Create a stream handler.
         handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
         handler.setLevel(level)
-        # Prepare the arguments to the formatter. The caller is
-        # allowed to customize `fmt' and/or `datefmt' as desired.
+        # Prepare the arguments to the formatter, allowing the caller to
+        # customize the values of `fmt', `datefmt' and `style' as desired.
         formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
+        # Only pass the `style' argument to the formatter when the caller
+        # provided an alternative logging format style. This prevents
+        # TypeError exceptions on Python versions before 3.2.
+        if style != DEFAULT_FORMAT_STYLE:
+            formatter_options['style'] = style
         # Come up with a default log format?
         if not formatter_options['fmt']:
             # Use the log format defined by the environment variable
@@ -431,23 +481,29 @@ def install(level=None, **kw):
         #
         # [1] https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
         # [2] https://github.com/xolox/python-coloredlogs/issues/16
-        if (kw.get('milliseconds') and
-                ('%(msecs)' not in formatter_options['fmt']) and
-                ('%f' not in formatter_options['datefmt'])):
-            formatter_options['fmt'] = formatter_options['fmt'].replace(
-                '%(asctime)s', '%(asctime)s,%(msecs)03d',
-            )
+        if kw.get('milliseconds'):
+            parser = FormatStringParser(style=style)
+            if not (parser.contains_field(formatter_options['fmt'], 'msecs') or
+                    '%f' in formatter_options['datefmt']):
+                pattern = parser.get_pattern('asctime')
+                replacements = {'%': '%(msecs)03d', '{': '{msecs:03}', '$': '${msecs}'}
+                formatter_options['fmt'] = pattern.sub(
+                    r'\g<0>,' + replacements[style],
+                    formatter_options['fmt'],
+                )
         # Do we need to make %(hostname) available to the formatter?
         HostNameFilter.install(
-            handler=handler,
             fmt=formatter_options['fmt'],
+            handler=handler,
+            style=style,
             use_chroot=kw.get('use_chroot', True),
         )
         # Do we need to make %(programname) available to the formatter?
         ProgramNameFilter.install(
-            handler=handler,
             fmt=formatter_options['fmt'],
+            handler=handler,
             programname=kw.get('programname'),
+            style=style,
         )
         # Inject additional formatter arguments specific to ColoredFormatter?
         if use_colors:
@@ -469,6 +525,28 @@ def install(level=None, **kw):
         adjust_level(logger, level)
         # Install the stream handler.
         logger.addHandler(handler)
+
+
+def check_style(value):
+    """
+    Validate a logging format style.
+
+    :param value: The logging format style to validate (any value).
+    :returns: The logging format character (a string of one character).
+    :raises: :exc:`~exceptions.ValueError` when the given style isn't supported.
+
+    On Python 3.2+ this function accepts the logging format styles ``%``, ``{``
+    and ``$`` while on older versions only ``%`` is accepted (because older
+    Python versions don't support alternative logging format styles).
+    """
+    if sys.version_info[:2] >= (3, 2):
+        if value not in FORMAT_STYLE_PATTERNS:
+            msg = "Unsupported logging format style! (%r)"
+            raise ValueError(format(msg, value))
+    elif value != DEFAULT_FORMAT_STYLE:
+        msg = "Format string styles other than %r require Python 3.2+!"
+        raise ValueError(msg, DEFAULT_FORMAT_STYLE)
+    return value
 
 
 def increase_verbosity():
@@ -884,7 +962,7 @@ class ColoredFormatter(BasicFormatter):
               when you call :func:`coloredlogs.install()`.
     """
 
-    def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None):
+    def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None, style=DEFAULT_FORMAT_STYLE):
         """
         Initialize a :class:`ColoredFormatter` object.
 
@@ -892,10 +970,13 @@ class ColoredFormatter(BasicFormatter):
         :param datefmt: A date/time format string (defaults to :data:`None`,
                         but see the documentation of
                         :func:`BasicFormatter.formatTime()`).
+        :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                      :data:`DEFAULT_FORMAT_STYLE`)
         :param level_styles: A dictionary with custom level styles
                              (defaults to :data:`DEFAULT_LEVEL_STYLES`).
         :param field_styles: A dictionary with custom field styles
                              (defaults to :data:`DEFAULT_FIELD_STYLES`).
+        :raises: Refer to :func:`check_style()`.
 
         This initializer uses :func:`colorize_format()` to inject ANSI escape
         sequences in the log format string before it is passed to the
@@ -912,25 +993,43 @@ class ColoredFormatter(BasicFormatter):
         fmt = fmt or DEFAULT_LOG_FORMAT
         self.level_styles = self.nn.normalize_keys(DEFAULT_LEVEL_STYLES if level_styles is None else level_styles)
         self.field_styles = self.nn.normalize_keys(DEFAULT_FIELD_STYLES if field_styles is None else field_styles)
-        # Rewrite the format string to inject ANSI escape sequences and
-        # initialize the superclass with the rewritten format string.
-        logging.Formatter.__init__(self, self.colorize_format(fmt), datefmt)
+        # Rewrite the format string to inject ANSI escape sequences.
+        kw = dict(fmt=self.colorize_format(fmt, style), datefmt=datefmt)
+        # If we were given a non-default logging format style we pass it on
+        # to our superclass. At this point check_style() will have already
+        # complained that the use of alternative logging format styles
+        # requires Python 3.2 or newer.
+        if style != DEFAULT_FORMAT_STYLE:
+            kw['style'] = style
+        # Initialize the superclass with the rewritten format string.
+        logging.Formatter.__init__(self, **kw)
 
-    def colorize_format(self, fmt):
+    def colorize_format(self, fmt, style=DEFAULT_FORMAT_STYLE):
         """
         Rewrite a logging format string to inject ANSI escape sequences.
 
         :param fmt: The log format string.
+        :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                      :data:`DEFAULT_FORMAT_STYLE`).
         :returns: The logging format string with ANSI escape sequences.
 
         This method takes a logging format string like the ones you give to
-        :class:`logging.Formatter`, splits it into whitespace separated tokens
-        and then processes each token as follows:
+        :class:`logging.Formatter` and processes it as follows:
 
-        It looks for ``%(...)`` field names in the token (from left to right). For
-        each field name it checks if the field name has a style defined in the
-        `field_styles` dictionary. The first field name that has a style defined
-        determines the style for the complete token.
+        1. First the logging format string is separated into formatting
+           directives versus surrounding text (according to the given `style`).
+
+        2. Then formatting directives and surrounding text are grouped
+           based on whitespace delimiters (in the surrounding text).
+
+        3. For each group styling is selected as follows:
+
+           1. If the group contains a single formatting directive that has
+              a style defined then the whole group is styled accordingly.
+
+           2. If the group contains multiple formatting directives that
+              have styles defined then each formatting directive is styled
+              individually and surrounding text isn't styled.
 
         As an example consider the default log format (:data:`DEFAULT_LOG_FORMAT`)::
 
@@ -938,31 +1037,32 @@ class ColoredFormatter(BasicFormatter):
 
         The default field styles (:data:`DEFAULT_FIELD_STYLES`) define a style for the
         `name` field but not for the `process` field, however because both fields
-        are part of the same whitespace separated token they'll be highlighted
+        are part of the same whitespace delimited token they'll be highlighted
         together in the style defined for the `name` field.
         """
-        return re.sub(r'\S+', self.colorize_callback, fmt)
-
-    def colorize_callback(self, match):
-        """
-        Wrap field names in ANSI escape sequences.
-
-        :param match: A regular expression match object.
-        :returns: The matched text, possibly wrapped in ANSI escape sequences.
-
-        This is a callback for :func:`re.sub()` used by :func:`colorize_format()`.
-        """
-        token = match.group(0)
-        # Look for field names in the token.
-        for match in re.finditer(r'%\((\w+)\)', token):
-            # Check if a style is defined for the matched field name.
-            style = self.nn.get(self.field_styles, match.group(1))
-            if style:
-                # If a style is defined we apply it. The style of the first
-                # field name that has a style defined `wins' (within each
-                # whitespace separated token).
-                return ansi_wrap(token, **style)
-        return token
+        result = []
+        parser = FormatStringParser(style=style)
+        for group in parser.get_grouped_pairs(fmt):
+            applicable_styles = [self.nn.get(self.field_styles, token.name) for token in group if token.name]
+            if sum(map(bool, applicable_styles)) == 1:
+                # If exactly one (1) field style is available for the group of
+                # tokens then all of the tokens will be styled the same way.
+                # This provides a limited form of backwards compatibility with
+                # the (intended) behavior of coloredlogs before the release of
+                # version 10.
+                result.append(ansi_wrap(
+                    ''.join(token.text for token in group),
+                    **next(s for s in applicable_styles if s)
+                ))
+            else:
+                for token in group:
+                    text = token.text
+                    if token.name:
+                        field_styles = self.nn.get(self.field_styles, token.name)
+                        if field_styles:
+                            text = ansi_wrap(text, **field_styles)
+                    result.append(text)
+        return ''.join(result)
 
     def format(self, record):
         """
@@ -1055,20 +1155,25 @@ class HostNameFilter(logging.Filter):
     """
 
     @classmethod
-    def install(cls, handler, fmt=None, use_chroot=True):
+    def install(cls, handler, fmt=None, use_chroot=True, style=DEFAULT_FORMAT_STYLE):
         """
         Install the :class:`HostNameFilter` on a log handler (only if needed).
 
-        :param handler: The logging handler on which to install the filter.
         :param fmt: The log format string to check for ``%(hostname)``.
+        :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                      :data:`DEFAULT_FORMAT_STYLE`).
+        :param handler: The logging handler on which to install the filter.
         :param use_chroot: Refer to :func:`find_hostname()`.
 
-        If `fmt` is given the filter will only be installed if `fmt` contains
-        ``%(programname)``. If `fmt` is not given the filter is installed
+        If `fmt` is given the filter will only be installed if `fmt` uses the
+        ``hostname`` field. If `fmt` is not given the filter is installed
         unconditionally.
         """
-        if not (fmt and '%(hostname)' not in fmt):
-            handler.addFilter(cls(use_chroot))
+        if fmt:
+            parser = FormatStringParser(style=style)
+            if not parser.contains_field(fmt, 'hostname'):
+                return
+        handler.addFilter(cls(use_chroot))
 
     def __init__(self, use_chroot=True):
         """
@@ -1103,16 +1208,25 @@ class ProgramNameFilter(logging.Filter):
     """
 
     @classmethod
-    def install(cls, handler, fmt, programname=None):
+    def install(cls, handler, fmt, programname=None, style=DEFAULT_FORMAT_STYLE):
         """
         Install the :class:`ProgramNameFilter` (only if needed).
 
         :param fmt: The log format string to check for ``%(programname)``.
+        :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                      :data:`DEFAULT_FORMAT_STYLE`).
         :param handler: The logging handler on which to install the filter.
         :param programname: Refer to :func:`__init__()`.
+
+        If `fmt` is given the filter will only be installed if `fmt` uses the
+        ``programname`` field. If `fmt` is not given the filter is installed
+        unconditionally.
         """
-        if not (fmt and '%(programname)' not in fmt):
-            handler.addFilter(cls(programname))
+        if fmt:
+            parser = FormatStringParser(style=style)
+            if not parser.contains_field(fmt, 'programname'):
+                return
+        handler.addFilter(cls(programname))
 
     def __init__(self, programname=None):
         """
@@ -1152,6 +1266,133 @@ class StandardErrorHandler(logging.StreamHandler):
     def stream(self):
         """Get the value of :data:`sys.stderr` (a file-like object)."""
         return sys.stderr
+
+
+class FormatStringParser(object):
+
+    """
+    Shallow logging format string parser.
+
+    This class enables introspection and manipulation of logging format strings
+    in the three styles supported by the :mod:`logging` module starting from
+    Python 3.2 (``%``, ``{`` and ``$``).
+    """
+
+    def __init__(self, style=DEFAULT_FORMAT_STYLE):
+        """
+        Initialize a :class:`FormatStringParser` object.
+
+        :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                      :data:`DEFAULT_FORMAT_STYLE`).
+        :raises: Refer to :func:`check_style()`.
+        """
+        self.style = check_style(style)
+        self.capturing_pattern = FORMAT_STYLE_PATTERNS[style]
+        # Remove the capture group around the mapping key / field name.
+        self.raw_pattern = self.capturing_pattern.replace(r'(\w+)', r'\w+')
+        # After removing the inner capture group we add an outer capture group
+        # to make the pattern suitable for simple tokenization using re.split().
+        self.tokenize_pattern = re.compile('(%s)' % self.raw_pattern, re.VERBOSE)
+        # Compile a regular expression for finding field names.
+        self.name_pattern = re.compile(self.capturing_pattern, re.VERBOSE)
+
+    def contains_field(self, format_string, field_name):
+        """
+        Get the field names referenced by a format string.
+
+        :param format_string: The logging format string.
+        :returns: A list of strings with field names.
+        """
+        return field_name in self.get_field_names(format_string)
+
+    def get_field_names(self, format_string):
+        """
+        Get the field names referenced by a format string.
+
+        :param format_string: The logging format string.
+        :returns: A list of strings with field names.
+        """
+        return self.name_pattern.findall(format_string)
+
+    def get_grouped_pairs(self, format_string):
+        """
+        Group the results of :func:`get_pairs()` separated by whitespace.
+
+        :param format_string: The logging format string.
+        :returns: A list of lists of :class:`FormatStringToken` objects.
+        """
+        # Step 1: Split simple tokens (without a name) into
+        # their whitespace parts and non-whitespace parts.
+        separated = []
+        pattern = re.compile(r'(\s+)')
+        for token in self.get_pairs(format_string):
+            if token.name:
+                separated.append(token)
+            else:
+                separated.extend(
+                    FormatStringToken(name=None, text=text)
+                    for text in pattern.split(token.text) if text
+                )
+        # Step 2: Group tokens together based on whitespace.
+        current_group = []
+        grouped_pairs = []
+        for token in separated:
+            if token.text.isspace():
+                if current_group:
+                    grouped_pairs.append(current_group)
+                grouped_pairs.append([token])
+                current_group = []
+            else:
+                current_group.append(token)
+        if current_group:
+            grouped_pairs.append(current_group)
+        return grouped_pairs
+
+    def get_pairs(self, format_string):
+        """
+        Tokenize a logging format string and extract field names from tokens.
+
+        :param format_string: The logging format string.
+        :returns: A generator of :class:`FormatStringToken` objects.
+        """
+        for token in self.get_tokens(format_string):
+            match = self.name_pattern.search(token)
+            name = match.group(1) if match else None
+            yield FormatStringToken(name=name, text=token)
+
+    def get_pattern(self, field_name):
+        """
+        Get a regular expression to match a formatting directive that references the given field name.
+
+        :param field_name: The name of the field to match (a string).
+        :returns: A compiled regular expression object.
+        """
+        return re.compile(self.raw_pattern.replace(r'\w+', field_name), re.VERBOSE)
+
+    def get_tokens(self, format_string):
+        """
+        Tokenize a logging format string.
+
+        :param format_string: The logging format string.
+        :returns: A list of strings with formatting directives separated from surrounding text.
+        """
+        return [t for t in self.tokenize_pattern.split(format_string) if t]
+
+
+class FormatStringToken(collections.namedtuple('FormatStringToken', 'text, name')):
+
+    """
+    A named tuple for the results of :func:`FormatStringParser.get_pairs()`.
+
+    .. attribute:: name
+
+       The field name referenced in `text` (a string). If `text` doesn't
+       contain a formatting directive this will be :data:`None`.
+
+    .. attribute:: text
+
+       The text extracted from the logging format string (a string).
+    """
 
 
 class NameNormalizer(object):

@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 5, 2018
+# Last Change: May 12, 2018
 # URL: https://coloredlogs.readthedocs.io
 
 """Sphinx documentation configuration for the `coloredlogs` package."""
@@ -68,7 +68,8 @@ pygments_style = 'sphinx'
 # Refer to the Python standard library.
 # From: http://twistedmatrix.com/trac/ticket/4582.
 intersphinx_mapping = dict(
-    python=('https://docs.python.org/2', None),
+    python2=('https://docs.python.org/2', None),
+    python3=('https://docs.python.org/3', None),
     capturer=('https://capturer.readthedocs.io/en/latest', None),
     humanfriendly=('https://humanfriendly.readthedocs.io/en/latest', None),
 )
