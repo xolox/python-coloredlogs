@@ -136,6 +136,7 @@ setup(name='coloredlogs',
       install_requires=get_install_requires(),
       extras_require=get_extras_require(),
       tests_require=get_requirements('requirements-tests.txt'),
+      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Console',
