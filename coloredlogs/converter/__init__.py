@@ -38,7 +38,7 @@ TAG_INDENT_PATTERN = re.compile('^(<[^>]+>) ', re.MULTILINE)
 # Compiled regular expression that matches strings we want to convert. Used to
 # separate all special strings and literal output in a single pass (this allows
 # us to properly encode the output without resorting to nasty hacks).
-TOKEN_PATTERN = re.compile('''
+TOKEN_PATTERN = re.compile(r'''
     # Wrap the pattern in a capture group so that re.split() includes the
     # substrings that match the pattern in the resulting list of strings.
     (
