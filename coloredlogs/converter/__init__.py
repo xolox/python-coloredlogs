@@ -139,7 +139,7 @@ def convert(text, code=True, tabsize=4):
     for token in TOKEN_PATTERN.split(text):
         if token.startswith(('http://', 'https://', 'www.')):
             url = token if '://' in token else ('http://' + token)
-            token = u'<a href="%s" style="color:inherit">%s</a>' % (html_encode(url), html_encode(token))
+            token = u'<a href="{}" style="color:inherit">{}</a>'.format(html_encode(url), html_encode(token))
         elif token.startswith(ANSI_CSI):
             ansi_codes = token[len(ANSI_CSI):-1].split(';')
             if all(c.isdigit() for c in ansi_codes):

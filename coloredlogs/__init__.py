@@ -1392,7 +1392,7 @@ class NameNormalizer(object):
 
     def __init__(self):
         """Initialize a :class:`NameNormalizer` object."""
-        self.aliases = dict((k.lower(), v.lower()) for k, v in find_level_aliases().items())
+        self.aliases = {k.lower(): v.lower() for k, v in find_level_aliases().items()}
 
     def normalize_name(self, name):
         """
@@ -1431,7 +1431,7 @@ class NameNormalizer(object):
         :param value: The dictionary to normalize.
         :returns: A dictionary with normalized keys.
         """
-        return dict((self.normalize_name(k), v) for k, v in value.items())
+        return {self.normalize_name(k): v for k, v in value.items()}
 
     def get(self, normalized_dict, name):
         """
