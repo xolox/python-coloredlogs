@@ -127,7 +127,7 @@ def generate_screenshots():
         # Add the command that should run inside the terminal.
         urxvt_command.extend(('-e', 'sh', '-c', 'setterm -cursor off; %s' % quote(command_line)))
         # Launch urxvt.
-        execute(*urxvt_command, async=True)
+        execute(*urxvt_command, asynchronous=True)
         # Make sure we close the urxvt window.
         try:
             # Wait for urxvt to start up. If I were to improve this I could
