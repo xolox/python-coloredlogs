@@ -367,7 +367,7 @@ class ColoredLogsTestCase(TestCase):
         stream = StringIO()
         install(reconfigure=True, stream=stream, datefmt='%Y-%m-%dT%H:%M:%S.%f%z')
         logging.info("This should be timestamped according to #45.")
-        assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{4}\s', stream.getvalue())
+        assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{4}\s', stream.getvalue())
 
     def test_plain_text_output_format(self):
         """Inspect the plain text output of coloredlogs."""
