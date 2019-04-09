@@ -210,7 +210,7 @@ from humanfriendly.text import format, split
 WINDOWS = sys.platform.startswith('win')
 
 # Optional external dependency (only needed on Windows).
-NEED_COLORAMA = WINDOWS
+NEED_COLORAMA = WINDOWS and 'ANSICON' not in os.environ
 
 # Semi-standard module versioning.
 __version__ = '10.0'
