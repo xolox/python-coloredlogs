@@ -450,6 +450,10 @@ def install(level=None, **kw):
             elif use_colors is None:
                 # Auto-detect terminal support on other platforms.
                 use_colors = terminal_supports_colors(stream)
+            if use_colors and WINDOWS:
+                import ctypes
+                ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), 7)
+                ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-12), 7)
         # Create a stream handler.
         handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
         handler.setLevel(level)
