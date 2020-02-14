@@ -1,1 +1,1 @@
-humanfriendly >= 4.7
+humanfriendly >= 6.1

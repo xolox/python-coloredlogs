@@ -11,6 +11,48 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 11.0`_ (2020-02-14)
+----------------------------
+
+This is a maintenance release that drops Python 2.6 support, adds Python 3.7
+support and merges quite a few minor pull requests. The major version number
+was bumped because of the compatibility changes.
+
+**Merged pull requests:**
+
+- `#58`_: Don't import :mod:`coloredlogs` if ``$COLOREDLOGS_AUTO_INSTALL`` is
+  set but empty.
+
+- `#60`_: Fix :pypi:`flake8` messages to help stabilize Travis CI builds.
+
+- `#61`_: Drop support for Python 2.6 to help stabilize Travis CI builds.
+
+- `#62`_: Use SVG badge in README for consistency.
+
+- `#69`_: Handle negative-offset timezones in tests.
+
+- `#70`_: Use :func:`subprocess.check_call()` in the test suite to ensure that
+  external commands succeed.
+
+- `#74`_: Fix :exc:`~exceptions.TypeError` on MacOS on Python 3 in the
+  :mod:`~coloredlogs.converter` module.
+
+**Other changes:**
+
+- Start testing on Python 3.7 (and document compatibility).
+- Workaround Python 3.7 regression in test suite.
+- Update ``Makefile`` to use Python 3 for local development.
+- Merge MacOS on Travis CI fixes from :pypi:`humanfriendly`.
+
+.. _Release 11.0: https://github.com/xolox/python-coloredlogs/compare/10.0...11.0
+.. _#58: https://github.com/xolox/python-coloredlogs/pull/58
+.. _#60: https://github.com/xolox/python-coloredlogs/pull/60
+.. _#61: https://github.com/xolox/python-coloredlogs/pull/61
+.. _#62: https://github.com/xolox/python-coloredlogs/pull/62
+.. _#69: https://github.com/xolox/python-coloredlogs/pull/69
+.. _#70: https://github.com/xolox/python-coloredlogs/pull/70
+.. _#74: https://github.com/xolox/python-coloredlogs/pull/74
+
 `Release 10.0`_ (2018-05-13)
 ----------------------------
 
