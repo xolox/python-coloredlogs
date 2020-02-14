@@ -491,14 +491,14 @@ class ColoredLogsTestCase(TestCase):
         # Sanity check that log messages aren't enabled by default.
         with CaptureOutput() as capturer:
             os.environ['COLOREDLOGS_AUTO_INSTALL'] = 'false'
-            subprocess.call(command_line)
+            subprocess.check_call(command_line)
             output = capturer.get_text()
         assert needle not in output
         # Test that the $COLOREDLOGS_AUTO_INSTALL environment variable can be
         # used to automatically call coloredlogs.install() during initialization.
         with CaptureOutput() as capturer:
             os.environ['COLOREDLOGS_AUTO_INSTALL'] = 'true'
-            subprocess.call(command_line)
+            subprocess.check_call(command_line)
             output = capturer.get_text()
         assert needle in output
 
