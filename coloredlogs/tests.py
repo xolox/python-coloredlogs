@@ -386,6 +386,14 @@ class ColoredLogsTestCase(TestCase):
                                  (logger.warning, 'WARNING'),
                                  (logger.error, 'ERROR'),
                                  (logger.critical, 'CRITICAL')):
+            # XXX Workaround for a regression in Python 3.7 caused by the
+            # Logger.isEnabledFor() method using stale cache entries. If we
+            # don't clear the cache then logger.isEnabledFor(logging.DEBUG)
+            # returns False and no DEBUG message is emitted.
+            try:
+                logger._cache.clear()
+            except AttributeError:
+                pass
             # Prepare the text.
             text = "This is a message with severity %r." % severity.lower()
             # Log the message with the given severity.
