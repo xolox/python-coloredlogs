@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: April 29, 2018
+# Last Change: February 14, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -342,10 +342,10 @@ class ColoredLogsTestCase(TestCase):
         parent_name = random_string()
         parent = logging.getLogger(parent_name)
         # Create a child logger.
-        child_name = '{}.{}'.format(parent_name, random_string())
+        child_name = '%s.%s' % (parent_name, random_string())
         child = logging.getLogger(child_name)
         # Create a grand child logger.
-        grand_child_name = '{}.{}'.format(child_name, random_string())
+        grand_child_name = '%s.%s' % (child_name, random_string())
         grand_child = logging.getLogger(grand_child_name)
         return root, parent, child, grand_child
 
@@ -441,7 +441,7 @@ class ColoredLogsTestCase(TestCase):
         # Check conversion of URLs.
         for sample_text in 'www.python.org', 'http://coloredlogs.rtfd.org', 'https://coloredlogs.rtfd.org':
             sample_url = sample_text if '://' in sample_text else ('http://' + sample_text)
-            expected_html = '<code><a href="{}" style="color:inherit">{}</a></code>'.format(sample_url, sample_text)
+            expected_html = '<code><a href="%s" style="color:inherit">%s</a></code>' % (sample_url, sample_text)
             self.assertEquals(expected_html, convert(sample_text))
         # Check that the capture pattern for URLs doesn't match ANSI escape
         # sequences and also check that the short hand for the 0 reset code is
@@ -449,7 +449,7 @@ class ColoredLogsTestCase(TestCase):
         # coloredlogs <= 8.0.
         reset_short_hand = '\x1b[0m'
         blue_underlined = ansi_style(color='blue', underline=True)
-        ansi_encoded_text = '<{}https://coloredlogs.readthedocs.io{}>'.format(blue_underlined, reset_short_hand)
+        ansi_encoded_text = '<%shttps://coloredlogs.readthedocs.io%s>' % (blue_underlined, reset_short_hand)
         expected_html = (
             '<code>&lt;<span style="color:#006FB8;text-decoration:underline">'
             '<a href="https://coloredlogs.readthedocs.io" style="color:inherit">'
