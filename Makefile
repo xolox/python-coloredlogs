@@ -1,17 +1,19 @@
-# Makefile for the `coloredlogs' package.
+# Makefile for the 'coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: January 14, 2018
+# Last Change: February 14, 2020
 # URL: https://coloredlogs.readthedocs.io
 
+PACKAGE_NAME = coloredlogs
 WORKON_HOME ?= $(HOME)/.virtualenvs
-VIRTUAL_ENV ?= $(WORKON_HOME)/coloredlogs
+VIRTUAL_ENV ?= $(WORKON_HOME)/$(PACKAGE_NAME)
+PYTHON ?= python3
 PATH := $(VIRTUAL_ENV)/bin:$(PATH)
 MAKE := $(MAKE) --no-print-directory
 SHELL = bash
 
 default:
-	@echo 'Makefile for coloredlogs'
+	@echo "Makefile for $(PACKAGE_NAME)"
 	@echo
 	@echo 'Usage:'
 	@echo
@@ -28,20 +30,19 @@ default:
 
 install:
 	@test -d "$(VIRTUAL_ENV)" || mkdir -p "$(VIRTUAL_ENV)"
-	@test -x "$(VIRTUAL_ENV)/bin/python" || virtualenv --quiet "$(VIRTUAL_ENV)"
-	@test -x "$(VIRTUAL_ENV)/bin/pip" || easy_install pip
+	@test -x "$(VIRTUAL_ENV)/bin/python" || virtualenv --python=$(PYTHON) --quiet "$(VIRTUAL_ENV)"
 	@pip install --quiet --requirement=requirements.txt
-	@pip uninstall --yes coloredlogs &>/dev/null || true
+	@pip uninstall --yes $(PACKAGE_NAME) &>/dev/null || true
 	@pip install --quiet --no-deps --ignore-installed .
 
 reset:
-	$(MAKE) clean
-	rm -Rf "$(VIRTUAL_ENV)"
-	$(MAKE) install
+	@$(MAKE) clean
+	@rm -Rf "$(VIRTUAL_ENV)"
+	@$(MAKE) install
 
 check: install
 	@pip install --upgrade --quiet --requirement=requirements-checks.txt
-	flake8
+	@flake8
 
 test: install
 	@pip install --quiet --requirement=requirements-tests.txt
@@ -49,7 +50,8 @@ test: install
 	@coverage report --fail-under=90
 
 tox: install
-	@pip install --quiet tox && tox
+	@pip install --quiet tox
+	@tox
 
 docs: install
 	@pip install --quiet sphinx
@@ -60,12 +62,12 @@ screenshots: install
 	@python scripts/generate-screenshots.py
 
 publish: install
-	git push origin && git push --tags origin
-	$(MAKE) clean
-	pip install --quiet twine wheel
-	python setup.py sdist bdist_wheel
-	twine upload dist/*
-	$(MAKE) clean
+	@git push origin && git push --tags origin
+	@$(MAKE) clean
+	@pip install --quiet twine wheel
+	@python setup.py sdist bdist_wheel
+	@twine upload dist/*
+	@$(MAKE) clean
 
 clean:
 	@rm -Rf *.egg .cache .coverage .tox build dist docs/build htmlcov
