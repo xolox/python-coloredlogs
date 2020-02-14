@@ -4,8 +4,8 @@ coloredlogs: Colored terminal output for Python's logging module
 .. image:: https://travis-ci.org/xolox/python-coloredlogs.svg?branch=master
    :target: https://travis-ci.org/xolox/python-coloredlogs
 
-.. image:: https://coveralls.io/repos/xolox/python-coloredlogs/badge.png?branch=master
-   :target: https://coveralls.io/r/xolox/python-coloredlogs?branch=master
+.. image:: https://coveralls.io/repos/github/xolox/python-coloredlogs/badge.svg?branch=master
+   :target: https://coveralls.io/github/xolox/python-coloredlogs?branch=master
 
 The `coloredlogs` package enables colored terminal output for Python's logging_
 module. The ColoredFormatter_ class inherits from `logging.Formatter`_ and uses
