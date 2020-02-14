@@ -483,8 +483,8 @@ def install(level=None, **kw):
         # [2] https://github.com/xolox/python-coloredlogs/issues/16
         if kw.get('milliseconds'):
             parser = FormatStringParser(style=style)
-            if not (parser.contains_field(formatter_options['fmt'], 'msecs') or
-                    '%f' in formatter_options['datefmt']):
+            if not (parser.contains_field(formatter_options['fmt'], 'msecs')
+                    or '%f' in formatter_options['datefmt']):
                 pattern = parser.get_pattern('asctime')
                 replacements = {'%': '%(msecs)03d', '{': '{msecs:03}', '$': '${msecs}'}
                 formatter_options['fmt'] = pattern.sub(
@@ -802,9 +802,9 @@ def find_program_name():
               3. The string 'python'.
     """
     # Gotcha: sys.argv[0] is '-c' if Python is started with the -c option.
-    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '') or
-            (os.path.basename(sys.executable) if sys.executable else '') or
-            'python')
+    return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '')
+            or (os.path.basename(sys.executable) if sys.executable else '')
+            or 'python')
 
 
 def replace_handler(logger, match_handler, reconfigure):
@@ -881,8 +881,8 @@ def match_stream_handler(handler, streams=[]):
 
     This function can be used as a callback for :func:`find_handler()`.
     """
-    return (isinstance(handler, logging.StreamHandler) and
-            getattr(handler, 'stream') in (streams or (sys.stdout, sys.stderr)))
+    return (isinstance(handler, logging.StreamHandler)
+            and getattr(handler, 'stream') in (streams or (sys.stdout, sys.stderr)))
 
 
 def walk_propagation_tree(logger):
