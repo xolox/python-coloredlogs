@@ -169,17 +169,12 @@ def connect_to_syslog(address=None, facility=None, level=None):
 
     The process of connecting to the system logging daemon goes as follows:
 
-    - If :class:`~logging.handlers.SysLogHandler` supports the `socktype`
-      option (it does since Python 2.7) the following two socket types are
-      tried (in decreasing preference):
+    - The following two socket types are tried (in decreasing preference):
 
        1. :data:`~socket.SOCK_RAW` avoids truncation of log messages but may
           not be supported.
        2. :data:`~socket.SOCK_STREAM` (TCP) supports longer messages than the
           default (which is UDP).
-
-    - If socket types are not supported Python's (2.6) defaults are used to
-      connect to the selected `address`.
     """
     if not address:
         address = find_syslog_address()
@@ -193,11 +188,9 @@ def connect_to_syslog(address=None, facility=None, level=None):
             kw['socktype'] = socktype
         try:
             handler = logging.handlers.SysLogHandler(**kw)
-        except (IOError, TypeError):
-            # The socktype argument was added in Python 2.7 and its use will raise a
-            # TypeError exception on Python 2.6. IOError is a superclass of socket.error
-            # (since Python 2.6) which can be raised if the system logging daemon is
-            # unavailable.
+        except IOError:
+            # IOError is a superclass of socket.error which can be raised if the system
+            # logging daemon is unavailable.
             pass
         else:
             handler.setLevel(level_to_number(level))

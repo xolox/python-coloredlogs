@@ -1,9 +1,6 @@
-sudo: required
 language: python
 matrix:
   include:
-  - os: linux
-    python: "2.6"
   - os: linux
     python: "2.7"
   - os: linux

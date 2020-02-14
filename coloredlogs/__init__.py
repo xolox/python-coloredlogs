@@ -676,9 +676,7 @@ def level_to_number(value):
     :param value: A logging level (integer or string).
     :returns: The number of the log level (an integer).
 
-    This function translates log level names into their numeric values. The
-    :mod:`logging` module does this for us on Python 2.7 and 3.4 but fails to
-    do so on Python 2.6 which :mod:`coloredlogs` still supports.
+    This function translates log level names into their numeric values..
     """
     if is_string(value):
         try:
@@ -1116,15 +1114,8 @@ class ColoredFormatter(BasicFormatter):
         return logging.Formatter.format(self, record)
 
 
-if sys.version_info[:2] <= (2, 6):
-    # On Python 2.6 the logging.LogRecord class is an old-style class
-    # which means our empty class also needs to be an old-style class.
-    class Empty:
-        """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
-else:
-    # On Python 2.7 and up logging.LogRecord is a new-style class.
-    class Empty(object):
-        """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
+class Empty(object):
+    """An empty class used to copy :class:`~logging.LogRecord` objects without reinitializing them."""
 
 
 class HostNameFilter(logging.Filter):
@@ -1401,7 +1392,7 @@ class NameNormalizer(object):
 
     def __init__(self):
         """Initialize a :class:`NameNormalizer` object."""
-        self.aliases = dict((k.lower(), v.lower()) for k, v in find_level_aliases().items())
+        self.aliases = {k.lower(): v.lower() for k, v in find_level_aliases().items()}
 
     def normalize_name(self, name):
         """
@@ -1440,7 +1431,7 @@ class NameNormalizer(object):
         :param value: The dictionary to normalize.
         :returns: A dictionary with normalized keys.
         """
-        return dict((self.normalize_name(k), v) for k, v in value.items())
+        return {self.normalize_name(k): v for k, v in value.items()}
 
     def get(self, normalized_dict, name):
         """
