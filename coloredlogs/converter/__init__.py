@@ -92,7 +92,7 @@ def capture(command, encoding='UTF-8'):
             try:
                 command_line = ['script', '-q', temporary_file] + list(command)
                 subprocess.Popen(command_line, stdout=dev_null, stderr=dev_null).wait()
-                with codecs.open(temporary_file, 'r', encoding) as handle:
+                with codecs.open(temporary_file, 'rb') as handle:
                     output = handle.read()
             finally:
                 os.unlink(temporary_file)
@@ -112,6 +112,7 @@ def capture(command, encoding='UTF-8'):
             # [1] https://en.wikipedia.org/wiki/End-of-file
             if output.startswith(b'^D'):
                 output = output[2:]
+            output = output.decode(encoding)
     # Clean up backspace and carriage return characters and the 'erase line'
     # ANSI escape sequence and return the output as a Unicode string.
     return u'\n'.join(clean_terminal_output(output))
