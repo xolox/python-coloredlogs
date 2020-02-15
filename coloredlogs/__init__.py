@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 14, 2020
+# Last Change: February 15, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -213,7 +213,7 @@ WINDOWS = sys.platform.startswith('win')
 NEED_COLORAMA = WINDOWS
 
 # Semi-standard module versioning.
-__version__ = '11.0'
+__version__ = '11.2'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
@@ -981,10 +981,6 @@ class ColoredFormatter(BasicFormatter):
         initializer of the base class.
         """
         self.nn = NameNormalizer()
-        # The use of the logging.getLogRecordFactory() is preferable over
-        # logging.LogRecord in Python 3, but this function isn't available in
-        # Python 2. We'll check the existence of the function just once now.
-        self.log_record_factory = getattr(logging, 'getLogRecordFactory', None)
         # The default values of the following arguments are defined here so
         # that Sphinx doesn't embed the default values in the generated
         # documentation (because the result is awkward to read).
@@ -1102,11 +1098,7 @@ class ColoredFormatter(BasicFormatter):
             # For more details refer to issue 29 on GitHub:
             # https://github.com/xolox/python-coloredlogs/issues/29
             copy = Empty()
-            copy.__class__ = (
-                self.log_record_factory()
-                if self.log_record_factory is not None
-                else logging.LogRecord
-            )
+            copy.__class__ = record.__class__
             copy.__dict__.update(record.__dict__)
             copy.msg = ansi_wrap(coerce_string(record.msg), **style)
             record = copy

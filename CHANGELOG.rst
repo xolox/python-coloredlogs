@@ -11,6 +11,31 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 11.2`_ (2020-02-15)
+----------------------------
+
+Merge pull request `#79`_ which adds support for Python 3.8.
+
+.. _Release 11.2: https://github.com/xolox/python-coloredlogs/compare/11.1...11.2
+.. _#79: https://github.com/xolox/python-coloredlogs/pull/79
+
+`Release 11.1`_ (2020-02-15)
+----------------------------
+
+Starting with the previous release I've resolved to try and tackle the large
+number of open issues after an unplanned hiatus from the development and
+maintenance of my open source projects, so here are some more bug fixes:
+
+- Fix support for custom log record factories and add a test to avoid
+  regressions (`#47`_, `#59`_).
+
+- Change ``make screenshots`` to be Python 3 compatible and document
+  additional requirements (`#65`_).
+
+.. _Release 11.1: https://github.com/xolox/python-coloredlogs/compare/11.0...11.1
+.. _#59: https://github.com/xolox/python-coloredlogs/issues/59
+.. _#65: https://github.com/xolox/python-coloredlogs/issues/65
+
 `Release 11.0`_ (2020-02-14)
 ----------------------------
 
