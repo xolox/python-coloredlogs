@@ -11,6 +11,19 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 11.3`_ (2020-02-15)
+----------------------------
+
+- Add support for the ``%(username)s`` field (requested in `#76`_) and properly
+  document the supported custom fields in the readme.
+
+- Consistently use ``console`` highlighting in documentation.
+
+- Fix a broken link in the readme.
+
+.. _Release 11.3: https://github.com/xolox/python-coloredlogs/compare/11.2...11.3
+.. _#76: https://github.com/xolox/python-coloredlogs/issues/76
+
 `Release 11.2`_ (2020-02-15)
 ----------------------------
 
