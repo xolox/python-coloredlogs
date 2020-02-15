@@ -548,6 +548,9 @@ class ColoredLogsTestCase(TestCase):
         exceptions so that we can tell after it was called whether any
         exceptions occurred (despite the exceptions not propagating).
         """
+        if not hasattr(logging, 'getLogRecordFactory'):
+            return self.skipTest("this test requires Python >= 3.2")
+
         exceptions = []
         original_method = ColoredFormatter.format
         original_factory = logging.getLogRecordFactory()
