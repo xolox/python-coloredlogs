@@ -36,6 +36,7 @@ from coloredlogs import (
     find_handler,
     find_hostname,
     find_program_name,
+    find_username,
     get_level,
     increase_verbosity,
     install,
@@ -159,6 +160,14 @@ class ColoredLogsTestCase(TestCase):
             logging.info("A truly insignificant message ..")
             output = capturer.get_text()
             assert find_program_name() in output
+
+    def test_username_filter(self):
+        """Make sure :func:`install()` integrates with :class:`~coloredlogs.UserNameFilter()`."""
+        install(fmt='%(username)s')
+        with CaptureOutput() as capturer:
+            logging.info("A truly insignificant message ..")
+            output = capturer.get_text()
+            assert find_username() in output
 
     def test_colorama_enabled(self):
         """Test that colorama is enabled (through mocking)."""

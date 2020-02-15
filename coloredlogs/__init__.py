@@ -240,8 +240,10 @@ DEFAULT_FIELD_STYLES = dict(
     asctime=dict(color='green'),
     hostname=dict(color='magenta'),
     levelname=dict(color='black', bold=CAN_USE_BOLD_FONT),
+    name=dict(color='blue'),
     programname=dict(color='cyan'),
-    name=dict(color='blue'))
+    username=dict(color='yellow'),
+)
 """Mapping of log format names to default font styles."""
 
 DEFAULT_LEVEL_STYLES = dict(
@@ -253,7 +255,8 @@ DEFAULT_LEVEL_STYLES = dict(
     warning=dict(color='yellow'),
     success=dict(color='green', bold=CAN_USE_BOLD_FONT),
     error=dict(color='red'),
-    critical=dict(color='red', bold=CAN_USE_BOLD_FONT))
+    critical=dict(color='red', bold=CAN_USE_BOLD_FONT),
+)
 """Mapping of log level names to default font styles."""
 
 DEFAULT_FORMAT_STYLE = '%'
@@ -351,6 +354,7 @@ def install(level=None, **kw):
                         the previous configuration.
     :param use_chroot: Refer to :class:`HostNameFilter`.
     :param programname: Refer to :class:`ProgramNameFilter`.
+    :param username: Refer to :class:`UserNameFilter`.
     :param syslog: If :data:`True` then :func:`.enable_system_logging()` will
                    be called without arguments (defaults to :data:`False`). The
                    `syslog` argument may also be a number or string, in this
@@ -381,8 +385,9 @@ def install(level=None, **kw):
        with the `fmt` and `datefmt` keyword arguments (or their computed
        defaults).
 
-    4. :func:`HostNameFilter.install()` and :func:`ProgramNameFilter.install()`
-       are called to enable the use of additional fields in the log format.
+    4. :func:`HostNameFilter.install()`, :func:`ProgramNameFilter.install()`
+       and :func:`UserNameFilter.install()` are called to enable the use of
+       additional fields in the log format.
 
     5. If the logger's level is too restrictive it is relaxed (refer to `notes
        about log levels`_ for details).
@@ -503,6 +508,13 @@ def install(level=None, **kw):
             fmt=formatter_options['fmt'],
             handler=handler,
             programname=kw.get('programname'),
+            style=style,
+        )
+        # Do we need to make %(username) available to the formatter?
+        UserNameFilter.install(
+            fmt=formatter_options['fmt'],
+            handler=handler,
+            username=kw.get('username'),
             style=style,
         )
         # Inject additional formatter arguments specific to ColoredFormatter?
@@ -803,6 +815,26 @@ def find_program_name():
     return ((os.path.basename(sys.argv[0]) if sys.argv and sys.argv[0] != '-c' else '')
             or (os.path.basename(sys.executable) if sys.executable else '')
             or 'python')
+
+
+def find_username():
+    """
+    Find the username to include in log messages.
+
+    :returns: A suitable username (a string).
+
+    On UNIX systems this uses the :mod:`pwd` module which means ``root`` will
+    be reported when :man:`sudo` is used (as it should). If this fails (for
+    example on Windows) then :func:`getpass.getuser()` is used as a fall back.
+    """
+    try:
+        import pwd
+        uid = os.getuid()
+        entry = pwd.getpwuid(uid)
+        return entry.pw_name
+    except Exception:
+        import getpass
+        return getpass.getuser()
 
 
 def replace_handler(logger, match_handler, reconfigure):
@@ -1228,6 +1260,60 @@ class ProgramNameFilter(logging.Filter):
         return 1
 
 
+class UserNameFilter(logging.Filter):
+
+    """
+    Log filter to enable the ``%(username)s`` format.
+
+    Python's :mod:`logging` module doesn't expose the username of the currently
+    logged in user as requested in `#76`_. Given that :class:`HostNameFilter`
+    and :class:`ProgramNameFilter` are already provided by `coloredlogs` it
+    made sense to provide :class:`UserNameFilter` as well.
+
+    Refer to :class:`HostNameFilter` for an example of how to manually install
+    these log filters.
+
+    .. _#76: https://github.com/xolox/python-coloredlogs/issues/76
+    """
+
+    @classmethod
+    def install(cls, handler, fmt, username=None, style=DEFAULT_FORMAT_STYLE):
+        """
+        Install the :class:`UserNameFilter` (only if needed).
+
+        :param fmt: The log format string to check for ``%(username)``.
+        :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
+                      :data:`DEFAULT_FORMAT_STYLE`).
+        :param handler: The logging handler on which to install the filter.
+        :param username: Refer to :func:`__init__()`.
+
+        If `fmt` is given the filter will only be installed if `fmt` uses the
+        ``username`` field. If `fmt` is not given the filter is installed
+        unconditionally.
+        """
+        if fmt:
+            parser = FormatStringParser(style=style)
+            if not parser.contains_field(fmt, 'username'):
+                return
+        handler.addFilter(cls(username))
+
+    def __init__(self, username=None):
+        """
+        Initialize a :class:`UserNameFilter` object.
+
+        :param username: The username to use (defaults to the
+                         result of :func:`find_username()`).
+        """
+        self.username = username or find_username()
+
+    def filter(self, record):
+        """Set each :class:`~logging.LogRecord`'s `username` field."""
+        # Modify the record.
+        record.username = self.username
+        # Don't filter the record.
+        return 1
+
+
 class StandardErrorHandler(logging.StreamHandler):
 
     """
@@ -1236,9 +1322,9 @@ class StandardErrorHandler(logging.StreamHandler):
     The :class:`StandardErrorHandler` class enables `monkey patching of
     sys.stderr <https://github.com/xolox/python-coloredlogs/pull/31>`_. It's
     basically the same as the ``logging._StderrHandler`` class present in
-    Python 3 but it will available regardless of Python version. This handler
-    is used by :func:`coloredlogs.install()` to improve compatibility with the
-    Python standard library.
+    Python 3 but it will be available regardless of Python version. This
+    handler is used by :func:`coloredlogs.install()` to improve compatibility
+    with the Python standard library.
     """
 
     def __init__(self, level=logging.NOTSET):
