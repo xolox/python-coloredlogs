@@ -90,7 +90,7 @@ Changing the log format
 The simplest customization is to change the log format, for example:
 
 .. literalinclude:: examples/custom-log-format.txt
-   :language: sh
+   :language: console
 
 Here's what that looks like in a terminal (I always work in terminals with a
 black background and white text):
@@ -105,7 +105,7 @@ You can also change the date/time format, for example you can remove the date
 part and leave only the time:
 
 .. literalinclude:: examples/custom-datetime-format.txt
-   :language: sh
+   :language: console
 
 Here's what it looks like in a terminal:
 
@@ -118,7 +118,7 @@ Changing the colors/styles
 Finally you can customize the colors and text styles that are used:
 
 .. literalinclude:: examples/custom-colors.txt
-   :language: sh
+   :language: console
 
 Here's an explanation of the features used here:
 
