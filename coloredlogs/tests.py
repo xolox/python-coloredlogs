@@ -416,42 +416,42 @@ class ColoredLogsTestCase(TestCase):
                 '<code>plain text followed by <span style="color:{css}">{name}</span> text</code>',
                 css=EIGHT_COLOR_PALETTE[ansi_code], name=color_name,
             )
-            self.assertEquals(expected_html, convert(ansi_encoded_text))
+            self.assertEqual(expected_html, convert(ansi_encoded_text))
         # Check conversion of bright colored text.
         expected_html = '<code><span style="color:#FF0">bright yellow</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('bright yellow', color='yellow', bright=True)))
+        self.assertEqual(expected_html, convert(ansi_wrap('bright yellow', color='yellow', bright=True)))
         # Check conversion of text with a background color.
         expected_html = '<code><span style="background-color:#DE382B">red background</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('red background', background='red')))
+        self.assertEqual(expected_html, convert(ansi_wrap('red background', background='red')))
         # Check conversion of text with a bright background color.
         expected_html = '<code><span style="background-color:#F00">bright red background</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('bright red background', background='red', bright=True)))
+        self.assertEqual(expected_html, convert(ansi_wrap('bright red background', background='red', bright=True)))
         # Check conversion of text that uses the 256 color mode palette as a foreground color.
         expected_html = '<code><span style="color:#FFAF00">256 color mode foreground</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('256 color mode foreground', color=214)))
+        self.assertEqual(expected_html, convert(ansi_wrap('256 color mode foreground', color=214)))
         # Check conversion of text that uses the 256 color mode palette as a background color.
         expected_html = '<code><span style="background-color:#AF0000">256 color mode background</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('256 color mode background', background=124)))
+        self.assertEqual(expected_html, convert(ansi_wrap('256 color mode background', background=124)))
         # Check that invalid 256 color mode indexes don't raise exceptions.
         expected_html = '<code>plain text expected</code>'
-        self.assertEquals(expected_html, convert('\x1b[38;5;256mplain text expected\x1b[0m'))
+        self.assertEqual(expected_html, convert('\x1b[38;5;256mplain text expected\x1b[0m'))
         # Check conversion of bold text.
         expected_html = '<code><span style="font-weight:bold">bold text</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('bold text', bold=True)))
+        self.assertEqual(expected_html, convert(ansi_wrap('bold text', bold=True)))
         # Check conversion of underlined text.
         expected_html = '<code><span style="text-decoration:underline">underlined text</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('underlined text', underline=True)))
+        self.assertEqual(expected_html, convert(ansi_wrap('underlined text', underline=True)))
         # Check conversion of strike-through text.
         expected_html = '<code><span style="text-decoration:line-through">strike-through text</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('strike-through text', strike_through=True)))
+        self.assertEqual(expected_html, convert(ansi_wrap('strike-through text', strike_through=True)))
         # Check conversion of inverse text.
         expected_html = '<code><span style="background-color:#FFC706;color:#000">inverse</span></code>'
-        self.assertEquals(expected_html, convert(ansi_wrap('inverse', color='yellow', inverse=True)))
+        self.assertEqual(expected_html, convert(ansi_wrap('inverse', color='yellow', inverse=True)))
         # Check conversion of URLs.
         for sample_text in 'www.python.org', 'http://coloredlogs.rtfd.org', 'https://coloredlogs.rtfd.org':
             sample_url = sample_text if '://' in sample_text else ('http://' + sample_text)
             expected_html = '<code><a href="%s" style="color:inherit">%s</a></code>' % (sample_url, sample_text)
-            self.assertEquals(expected_html, convert(sample_text))
+            self.assertEqual(expected_html, convert(sample_text))
         # Check that the capture pattern for URLs doesn't match ANSI escape
         # sequences and also check that the short hand for the 0 reset code is
         # supported. These are tests for regressions of bugs found in
@@ -465,7 +465,7 @@ class ColoredLogsTestCase(TestCase):
             'https://coloredlogs.readthedocs.io'
             '</a></span>&gt;</code>'
         )
-        self.assertEquals(expected_html, convert(ansi_encoded_text))
+        self.assertEqual(expected_html, convert(ansi_encoded_text))
 
     def test_output_interception(self):
         """Test capturing of output from external commands."""
