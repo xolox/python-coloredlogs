@@ -11,6 +11,14 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 11.2`_ (2020-02-15)
+----------------------------
+
+Merge pull request `#79`_ which adds support for Python 3.8.
+
+.. _Release 11.2: https://github.com/xolox/python-coloredlogs/compare/11.1...11.2
+.. _#79: https://github.com/xolox/python-coloredlogs/pull/79
+
 `Release 11.1`_ (2020-02-15)
 ----------------------------
 
