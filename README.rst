@@ -120,6 +120,19 @@ tell it to. There are three ways to do that:
    to the date/time format, it will be replaced by the value of ``%(msecs)03d``.
    Support for the ``%f`` directive was added to `release 9.3`_ (due to `#45`_).
 
+Custom logging fields
+~~~~~~~~~~~~~~~~~~~~~
+
+The following custom log format fields are supported:
+
+- ``%(hostname)s`` provides the hostname of the local system.
+- ``%(programname)s`` provides the name of the currently running program.
+- ``%(username)s`` provides the username of the currently logged in user.
+
+When `coloredlogs.install()`_ detects that any of these fields are used in the
+format string the applicable logging.Filter_ subclasses are automatically
+registered to populate the relevant log record fields.
+
 Changing text styles and colors
 -------------------------------
 
@@ -201,6 +214,7 @@ This software is licensed under the `MIT license`_.
 .. _cron: https://en.wikipedia.org/wiki/Cron
 .. _GitHub: https://github.com/xolox/python-coloredlogs
 .. _logging.basicConfig(): https://docs.python.org/2/library/logging.html#logging.basicConfig
+.. _logging.Filter: https://docs.python.org/3/library/logging.html#filter-objects
 .. _logging.Formatter: https://docs.python.org/2/library/logging.html#logging.Formatter
 .. _logging: https://docs.python.org/2/library/logging.html
 .. _MIT license: https://en.wikipedia.org/wiki/MIT_License
