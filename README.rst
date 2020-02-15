@@ -124,7 +124,7 @@ Changing text styles and colors
 -------------------------------
 
 The online documentation contains `an example of customizing the text styles and
-colors <https://coloredlogs.readthedocs.io/en/latest/#changing-the-colors-styles>`_.
+colors <https://coloredlogs.readthedocs.io/en/latest/api.html#changing-the-colors-styles>`_.
 
 Colored output from cron
 ------------------------
