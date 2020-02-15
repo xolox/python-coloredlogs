@@ -1,14 +1,13 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 15, 2020
+# Last Change: February 16, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
 
 # Standard library modules.
 import contextlib
-import imp
 import logging
 import logging.handlers
 import os
@@ -16,6 +15,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import types
 
 # External dependencies.
 from humanfriendly.compat import StringIO
@@ -615,7 +615,7 @@ def mocked_colorama_module(init_function):
     """Context manager to ease testing of colorama integration."""
     module_name = 'colorama'
     # Create a fake module shadowing colorama.
-    fake_module = imp.new_module(module_name)
+    fake_module = types.ModuleType(module_name)
     setattr(fake_module, 'init', init_function)
     # Temporarily reconfigure coloredlogs to use colorama.
     need_colorama = coloredlogs.NEED_COLORAMA
