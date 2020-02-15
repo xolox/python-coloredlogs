@@ -1,7 +1,7 @@
 # Makefile for the 'coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 14, 2020
+# Last Change: February 15, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 PACKAGE_NAME = coloredlogs
@@ -58,7 +58,7 @@ docs: install
 	@cd docs && sphinx-build -nb html -d build/doctrees . build/html
 
 screenshots: install
-	@pip install --quiet executor
+	@pip install --quiet --requirement=requirements-screenshots.txt
 	@python scripts/generate-screenshots.py
 
 publish: install
