@@ -992,7 +992,7 @@ class ColoredFormatter(BasicFormatter):
               when you call :func:`coloredlogs.install()`.
     """
 
-    def __init__(self, fmt=None, datefmt=None, level_styles=None, field_styles=None, style=DEFAULT_FORMAT_STYLE):
+    def __init__(self, fmt=None, datefmt=None, style=DEFAULT_FORMAT_STYLE, level_styles=None, field_styles=None):
         """
         Initialize a :class:`ColoredFormatter` object.
 
