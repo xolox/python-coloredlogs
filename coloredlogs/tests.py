@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 14, 2020
+# Last Change: February 15, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -20,7 +20,7 @@ import tempfile
 # External dependencies.
 from humanfriendly.compat import StringIO
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_style, ansi_wrap
-from humanfriendly.testing import PatchedItem, TestCase, retry
+from humanfriendly.testing import PatchedAttribute, PatchedItem, TestCase, retry
 from humanfriendly.text import format, random_string
 from mock import MagicMock
 
@@ -46,6 +46,7 @@ from coloredlogs import (
     set_level,
     walk_propagation_tree,
 )
+from coloredlogs.demo import demonstrate_colored_logging
 from coloredlogs.syslog import SystemLogging, match_syslog_handler
 from coloredlogs.converter import (
     ColoredCronMailer,
@@ -537,6 +538,41 @@ class ColoredLogsTestCase(TestCase):
     def test_explicit_usage_message(self):
         """Test that the usage message is shown when ``--help`` is given."""
         assert 'Usage:' in main('coloredlogs', '--help', capture=True)
+
+    def test_custom_record_factory(self):
+        """
+        Test that custom LogRecord factories are supported.
+
+        This test is a bit convoluted because the logging module suppresses
+        exceptions. We monkey patch the method suspected of encountering
+        exceptions so that we can tell after it was called whether any
+        exceptions occurred (despite the exceptions not propagating).
+        """
+        exceptions = []
+        original_method = ColoredFormatter.format
+        original_factory = logging.getLogRecordFactory()
+
+        def custom_factory(*args, **kwargs):
+            record = original_factory(*args, **kwargs)
+            record.custom_attribute = 0xdecafbad
+            return record
+
+        def custom_method(*args, **kw):
+            try:
+                return original_method(*args, **kw)
+            except Exception as e:
+                exceptions.append(e)
+                raise
+
+        with PatchedAttribute(ColoredFormatter, 'format', custom_method):
+            logging.setLogRecordFactory(custom_factory)
+            try:
+                demonstrate_colored_logging()
+            finally:
+                logging.setLogRecordFactory(original_factory)
+
+        # Ensure that no exceptions were triggered.
+        assert not exceptions
 
 
 def check_contents(filename, contents, match):
