@@ -143,15 +143,17 @@ def generate_screenshots():
             execute('wmctrl', '-c', random_title)
 
 
-def interpret_script(shell_script):
+def interpret_script(shell_script, encoding='UTF-8'):
     """Make it appear as if commands are typed into the terminal."""
     with CaptureOutput() as capturer:
         shell = subprocess.Popen(['bash', '-'], stdin=subprocess.PIPE)
-        with open(shell_script) as handle:
-            for line in handle:
-                sys.stdout.write(ansi_wrap('$', color='green') + ' ' + line)
+        with open(shell_script, 'rb') as handle:
+            for encoded_line in handle:
+                decoded_line = encoded_line.decode(encoding)
+                decorated_line = ansi_wrap('$', color='green') + ' ' + decoded_line
+                sys.stdout.write(decorated_line)
                 sys.stdout.flush()
-                shell.stdin.write(line)
+                shell.stdin.write(encoded_line)
                 shell.stdin.flush()
             shell.stdin.close()
         time.sleep(12)
