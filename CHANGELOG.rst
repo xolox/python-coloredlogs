@@ -11,11 +11,29 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 12.0`_ (2020-02-16)
+----------------------------
+
+Two backwards incompatible changes prompted another major version bump:
+
+- Merged pull request `#80`_ that drops support for Python 3.4 which
+  has gone end-of-life and now represents less than 1% of PyPI downloads.
+
+- Improved compatibility with the Python standard library by changing
+  the order of positional arguments received by the initializer of the
+  :class:`~coloredlogs.ColoredFormatter` class (as suggested in `#64`_
+  and `#75`_).
+
+.. _Release 12.0: https://github.com/xolox/python-coloredlogs/compare/11.3...12.0
+.. _#80: https://github.com/xolox/python-coloredlogs/pull/80
+.. _#64: https://github.com/xolox/python-coloredlogs/issues/64
+.. _#75: https://github.com/xolox/python-coloredlogs/issues/75
+
 `Release 11.3`_ (2020-02-15)
 ----------------------------
 
 - Add support for the ``%(username)s`` field (requested in `#76`_) and properly
-  document the supported custom fields in the readme.
+  document supported custom fields.
 
 - Consistently use ``console`` highlighting in documentation.
 
