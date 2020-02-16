@@ -15,14 +15,12 @@ import re
 import subprocess
 import sys
 import tempfile
-import types
 
 # External dependencies.
 from humanfriendly.compat import StringIO
 from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_style, ansi_wrap
 from humanfriendly.testing import PatchedAttribute, PatchedItem, TestCase, retry
 from humanfriendly.text import format, random_string
-from mock import MagicMock
 
 # The module we're testing.
 import coloredlogs
@@ -168,31 +166,6 @@ class ColoredLogsTestCase(TestCase):
             logging.info("A truly insignificant message ..")
             output = capturer.get_text()
             assert find_username() in output
-
-    def test_colorama_enabled(self):
-        """Test that colorama is enabled (through mocking)."""
-        init_function = MagicMock()
-        with mocked_colorama_module(init_function):
-            # Configure logging to the terminal.
-            coloredlogs.install()
-            # Ensure that our mock method was called.
-            assert init_function.called
-
-    def test_colorama_missing(self):
-        """Test that colorama is missing (through mocking)."""
-        def init_function():
-            raise ImportError
-        with mocked_colorama_module(init_function):
-            # Configure logging to the terminal. It is expected that internally
-            # an ImportError is raised, but the exception is caught and colored
-            # output is disabled.
-            coloredlogs.install()
-            # Find the handler that was created by coloredlogs.install().
-            handler, logger = find_handler(logging.getLogger(), match_stream_handler)
-            # Make sure that logging to the terminal was initialized.
-            assert isinstance(handler.formatter, logging.Formatter)
-            # Make sure colored logging is disabled.
-            assert not isinstance(handler.formatter, ColoredFormatter)
 
     def test_system_logging(self):
         """Make sure the :class:`coloredlogs.syslog.SystemLogging` context manager works."""
@@ -608,30 +581,6 @@ def main(*arguments, **options):
     finally:
         sys.argv = saved_argv
         sys.stdout = saved_stdout
-
-
-@contextlib.contextmanager
-def mocked_colorama_module(init_function):
-    """Context manager to ease testing of colorama integration."""
-    module_name = 'colorama'
-    # Create a fake module shadowing colorama.
-    fake_module = types.ModuleType(module_name)
-    setattr(fake_module, 'init', init_function)
-    # Temporarily reconfigure coloredlogs to use colorama.
-    need_colorama = coloredlogs.NEED_COLORAMA
-    coloredlogs.NEED_COLORAMA = True
-    # Install the fake colorama module.
-    saved_module = sys.modules.get(module_name, None)
-    sys.modules[module_name] = fake_module
-    # We've finished setting up, yield control.
-    yield
-    # Restore the original setting.
-    coloredlogs.NEED_COLORAMA = need_colorama
-    # Clean up the mock module.
-    if saved_module is not None:
-        sys.modules[module_name] = saved_module
-    else:
-        sys.modules.pop(module_name, None)
 
 
 @contextlib.contextmanager
