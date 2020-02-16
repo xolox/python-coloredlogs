@@ -771,7 +771,7 @@ changes during merging:
 - Vim syntax mode for colored logs!
 
 .. _Release 0.2: https://github.com/xolox/python-coloredlogs/compare/0.1...0.2
-.. _verboselogs: https://pypi.python.org/pypi/verboselogs
+.. _verboselogs: https://pypi.org/project/verboselogs
 
 `Release 0.1`_ (2013-05-16)
 ---------------------------

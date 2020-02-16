@@ -13,7 +13,7 @@ module. The ColoredFormatter_ class inherits from `logging.Formatter`_ and uses
 standard colors so it should work on any UNIX terminal. It's currently tested
 on Python 2.7, 3.5+ and PyPy. On Windows `coloredlogs` automatically tries to
 enable native ANSI support (on up-to-date Windows 10 installations) and falls
-back on using Colorama_ (if installed). Here is a screen shot of the demo that
+back on using colorama_ (if installed). Here is a screen shot of the demo that
 is printed when the command ``coloredlogs --demo`` is executed:
 
 .. image:: https://coloredlogs.readthedocs.io/en/latest/_images/defaults.png
@@ -46,13 +46,13 @@ Optional dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
 Native ANSI support on Windows requires an up-to-date Windows 10 installation.
-If this is not working for you then consider installing the Colorama_ package:
+If this is not working for you then consider installing the colorama_ package:
 
 .. code-block:: console
 
    $ pip install colorama
 
-Once Colorama_ is installed it will be used automatically.
+Once colorama_ is installed it will be used automatically.
 
 Usage
 -----
@@ -217,9 +217,9 @@ This software is licensed under the `MIT license`_.
 .. _#16: https://github.com/xolox/python-coloredlogs/issues/16
 .. _#45: https://github.com/xolox/python-coloredlogs/issues/45
 .. _ANSI escape sequences: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-.. _capturer: https://pypi.python.org/pypi/capturer
+.. _capturer: https://pypi.org/project/capturer
 .. _changelog: https://coloredlogs.readthedocs.org/en/latest/changelog.html
-.. _Colorama: https://pypi.python.org/pypi/colorama
+.. _colorama: https://pypi.org/project/colorama
 .. _ColoredCronMailer: https://coloredlogs.readthedocs.io/en/latest/api.html#coloredlogs.converter.ColoredCronMailer
 .. _ColoredFormatter: https://coloredlogs.readthedocs.io/en/latest/api.html#coloredlogs.ColoredFormatter
 .. _coloredlogs.install(): https://coloredlogs.readthedocs.io/en/latest/api.html#coloredlogs.install
@@ -233,10 +233,10 @@ This software is licensed under the `MIT license`_.
 .. _online documentation: https://coloredlogs.readthedocs.io/
 .. _per user site-packages directory: https://www.python.org/dev/peps/pep-0370/
 .. _peter@peterodding.com: peter@peterodding.com
-.. _PyPI: https://pypi.python.org/pypi/coloredlogs
+.. _PyPI: https://pypi.org/project/coloredlogs
 .. _release 3.0: https://coloredlogs.readthedocs.io/en/latest/changelog.html#release-3-0-2015-10-23
 .. _release 7.1: https://coloredlogs.readthedocs.io/en/latest/changelog.html#release-7-1-2017-07-15
 .. _release 9.3: https://coloredlogs.readthedocs.io/en/latest/changelog.html#release-9-3-2018-04-29
 .. _to include 'msecs': https://stackoverflow.com/questions/6290739/python-logging-use-milliseconds-in-time-format
-.. _verboselogs: https://pypi.python.org/pypi/verboselogs
+.. _verboselogs: https://pypi.org/project/verboselogs
 .. _virtual environments: http://docs.python-guide.org/en/latest/dev/virtualenvs/
