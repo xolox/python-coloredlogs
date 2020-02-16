@@ -11,6 +11,34 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 14.0`_ (2020-02-16)
+----------------------------
+
+Integrate native Windows 10 support for ANSI escape sequences (`#71`_, `#72`_).
+
+Native support for ANSI escape sequences was added to Windows 10 after its
+initial release, specifically in release 10.0.14393. I've now updated
+:pypi:`coloredlogs` and :pypi:`humanfriendly` to detect and enable this "new"
+native support.
+
+Windows 10 seems to comprise the majority of Windows installations worldwide so
+in the interest of "looking forward" I've decided to drop the :pypi:`colorama`
+requirement, given that it has now become a minority use case.
+
+Hopefully most existing users will not experience any regression because they
+previously installed :pypi:`colorama` already, and when available it will still
+be used. However new installations on older Windows systems now require users
+to install :pypi:`colorama` separately. This has been documented in the readme
+in an attempt to minimize resulting confusion.
+
+PS. In case anyone is wondering: I decided that giving a major Windows support
+update in :pypi:`coloredlogs` the version 13.0 was asking for trouble, so I
+decided not to do that 😇.
+
+.. _Release 14.0: https://github.com/xolox/python-coloredlogs/compare/12.0...14.0
+.. _#71: https://github.com/xolox/python-coloredlogs/issues/71
+.. _#72: https://github.com/xolox/python-coloredlogs/pull/72
+
 `Release 12.0`_ (2020-02-16)
 ----------------------------
 
