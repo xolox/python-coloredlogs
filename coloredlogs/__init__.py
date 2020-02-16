@@ -202,15 +202,9 @@ import sys
 
 # External dependencies.
 from humanfriendly import coerce_boolean
-from humanfriendly.compat import coerce_string, is_string
-from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, terminal_supports_colors
+from humanfriendly.compat import coerce_string, is_string, on_windows
+from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, enable_ansi_support, terminal_supports_colors
 from humanfriendly.text import format, split
-
-# Windows requires special handling and the first step is detecting it :-).
-WINDOWS = sys.platform.startswith('win')
-
-# Optional external dependency (only needed on Windows).
-NEED_COLORAMA = WINDOWS
 
 # Semi-standard module versioning.
 __version__ = '12.0'
@@ -227,19 +221,10 @@ DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 CHROOT_FILES = ['/etc/debian_chroot']
 """A list of filenames that indicate a chroot and contain the name of the chroot."""
 
-CAN_USE_BOLD_FONT = (not NEED_COLORAMA)
-"""
-Whether bold fonts can be used in default styles (a boolean).
-
-This is disabled on Windows because in my (admittedly limited) experience the
-ANSI escape sequence for bold font is simply not translated by Colorama,
-instead it's printed to the terminal without any translation.
-"""
-
 DEFAULT_FIELD_STYLES = dict(
     asctime=dict(color='green'),
     hostname=dict(color='magenta'),
-    levelname=dict(color='black', bold=CAN_USE_BOLD_FONT),
+    levelname=dict(color='black', bold=True),
     name=dict(color='blue'),
     programname=dict(color='cyan'),
     username=dict(color='yellow'),
@@ -253,9 +238,9 @@ DEFAULT_LEVEL_STYLES = dict(
     info=dict(),
     notice=dict(color='magenta'),
     warning=dict(color='yellow'),
-    success=dict(color='green', bold=CAN_USE_BOLD_FONT),
+    success=dict(color='green', bold=True),
     error=dict(color='red'),
-    critical=dict(color='red', bold=CAN_USE_BOLD_FONT),
+    critical=dict(color='red', bold=True),
 )
 """Mapping of log level names to default font styles."""
 
@@ -428,7 +413,7 @@ def install(level=None, **kw):
         # that SysLogHandler isn't intended to be used on Windows; I've had
         # reports of coloredlogs spewing extremely verbose errno 10057 warning
         # messages to the console (once for each log message I suppose).
-        if syslog_enabled not in (None, False) and not WINDOWS:
+        if syslog_enabled not in (None, False) and not on_windows():
             from coloredlogs.syslog import enable_system_logging
             if syslog_enabled is True:
                 # If the caller passed syslog=True then we leave the choice of
@@ -441,19 +426,11 @@ def install(level=None, **kw):
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
         if use_colors or use_colors is None:
-            if NEED_COLORAMA:
-                try:
-                    # On Windows we can only use ANSI escape
-                    # sequences if Colorama is available.
-                    import colorama
-                    colorama.init()
-                    use_colors = True
-                except ImportError:
-                    # If Colorama isn't available then we specifically
-                    # shouldn't emit ANSI escape sequences!
-                    use_colors = False
-            elif use_colors is None:
-                # Auto-detect terminal support on other platforms.
+            # Try to enable Windows native ANSI support or Colorama.
+            if on_windows():
+                use_colors = enable_ansi_support()
+            # Disable ANSI escape sequences if 'stream' isn't connected to a terminal.
+            if use_colors or use_colors is None:
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
         handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
@@ -988,8 +965,8 @@ class ColoredFormatter(BasicFormatter):
     the use of ``%f`` for millisecond formatting in date/time strings.
 
     .. note:: If you want to use :class:`ColoredFormatter` on Windows then you
-              may need to call :func:`colorama.init()`. This is done for you
-              when you call :func:`coloredlogs.install()`.
+              need to call :func:`~humanfriendly.terminal.enable_ansi_support()`.
+              This is done for you when you call :func:`coloredlogs.install()`.
     """
 
     def __init__(self, fmt=None, datefmt=None, style=DEFAULT_FORMAT_STYLE, level_styles=None, field_styles=None):
