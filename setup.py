@@ -3,7 +3,7 @@
 # Setup script for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 14, 2020
+# Last Change: February 16, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -43,24 +43,6 @@ def get_version(*args):
     return metadata['version']
 
 
-def get_install_requires():
-    """Add conditional dependencies for Windows (when creating source distributions)."""
-    install_requires = get_requirements('requirements.txt')
-    if 'bdist_wheel' not in sys.argv:
-        if sys.platform == 'win32':
-            install_requires.append('colorama')
-    return sorted(install_requires)
-
-
-def get_extras_require():
-    """Add conditional dependencies for Windows (when creating wheel distributions)."""
-    extras_require = dict(cron='capturer>=2.4')
-    if have_environment_marker_support():
-        expression = ':sys_platform == "win32"'
-        extras_require[expression] = 'colorama'
-    return extras_require
-
-
 def get_requirements(*args):
     """Get requirements from pip requirement files."""
     requirements = set()
@@ -77,21 +59,6 @@ def get_requirements(*args):
 def get_absolute_path(*args):
     """Transform relative pathnames into absolute pathnames."""
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), *args)
-
-
-def have_environment_marker_support():
-    """
-    Check whether setuptools has support for PEP-426 environment marker support.
-
-    Based on the ``setup.py`` script of the ``pytest`` package:
-    https://bitbucket.org/pytest-dev/pytest/src/default/setup.py
-    """
-    try:
-        from pkg_resources import parse_version
-        from setuptools import __version__
-        return parse_version(__version__) >= parse_version('0.7.2')
-    except Exception:
-        return False
 
 
 def find_pth_directory():
@@ -133,8 +100,8 @@ setup(name='coloredlogs',
           'coloredlogs = coloredlogs.cli:main',
       ]),
       test_suite='coloredlogs.tests',
-      install_requires=get_install_requires(),
-      extras_require=get_extras_require(),
+      install_requires=get_requirements('requirements.txt'),
+      extras_require=dict(cron='capturer>=2.4'),
       tests_require=get_requirements('requirements-tests.txt'),
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
       classifiers=[
