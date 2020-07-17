@@ -425,17 +425,18 @@ def install(level=None, **kw):
                 enable_system_logging(level=syslog_enabled)
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
-        isatty = use_colors 
+        force_color = use_colors
         if use_colors or use_colors is None:
             # Try to enable Windows native ANSI support or Colorama.
             if on_windows():
                 use_colors = enable_ansi_support()
             # Disable ANSI escape sequences if 'stream' isn't connected to a terminal.
             if use_colors or use_colors is None:
-                if isatty:
-                  use_colors = True
-                else:  
-                  use_colors = terminal_supports_colors(stream)
+                use_colors = terminal_supports_colors(stream)
+        # isatty should force color, not ask again if the terminal reports back if it is capable
+        # this leads to no color in travis and jupyter !
+        if force_color:
+            use_colors = True
         # Create a stream handler.
         handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
         handler.setLevel(level)
