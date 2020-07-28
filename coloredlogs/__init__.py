@@ -1081,7 +1081,6 @@ class ColoredFormatter(BasicFormatter):
         into the :func:`~logging.Formatter.format()` method of the base
         class.
         """
-
         output = ""
         for line in str(record.msg).splitlines():
             style = self.nn.get(self.level_styles, record.levelname)
