@@ -1114,7 +1114,7 @@ class ColoredFormatter(BasicFormatter):
                 copy.msg = ansi_wrap(coerce_string(line), **style)
                 record = copy
             # Delegate the remaining formatting to the base formatter.
-            output += super().format(record) + "\n"
+            output += logging.Formatter.format(self, record) + "\n"
         return output[:-1]
 
 
