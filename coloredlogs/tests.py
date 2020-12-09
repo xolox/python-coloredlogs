@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: December 8, 2020
+# Last Change: December 10, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -388,6 +388,20 @@ class ColoredLogsTestCase(TestCase):
             assert text in last_line
             assert severity in last_line
             assert PLAIN_TEXT_PATTERN.match(last_line)
+
+    def test_force_enable(self):
+        """
+        Make sure ANSI escape sequences can be forced (bypassing auto-detection).
+        """
+        interpreter = subprocess.Popen([
+            sys.executable, "-c", ";".join([
+                "import coloredlogs, logging",
+                "coloredlogs.install(isatty=True)",
+                "logging.info('Hello world')",
+            ]),
+        ], stderr=subprocess.PIPE)
+        stdout, stderr = interpreter.communicate()
+        assert ANSI_CSI in stderr.decode('UTF-8')
 
     def test_auto_disable(self):
         """

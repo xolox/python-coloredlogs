@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: December 8, 2020
+# Last Change: December 10, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -429,8 +429,9 @@ def install(level=None, **kw):
             # Try to enable Windows native ANSI support or Colorama.
             if on_windows():
                 use_colors = enable_ansi_support()
-            # Disable ANSI escape sequences if 'stream' isn't connected to a terminal.
-            if use_colors or use_colors is None:
+            # Disable ANSI escape sequences if 'stream' isn't connected
+            # to a terminal and no override (isatty=True) is used.
+            if use_colors is None:
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.
         handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
