@@ -1,7 +1,7 @@
 # Colored terminal output for Python's logging module.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 16, 2020
+# Last Change: December 8, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """
@@ -384,7 +384,7 @@ def install(level=None, **kw):
     """
     logger = kw.get('logger') or logging.getLogger()
     reconfigure = kw.get('reconfigure', True)
-    stream = kw.get('stream', None)
+    stream = kw.get('stream', sys.stderr)
     style = check_style(kw.get('style') or DEFAULT_FORMAT_STYLE)
     # Get the log level from an argument, environment variable or default and
     # convert the names of log levels to numbers to enable numeric comparison.

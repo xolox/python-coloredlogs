@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: February 16, 2020
+# Last Change: December 8, 2020
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -18,7 +18,7 @@ import tempfile
 
 # External dependencies.
 from humanfriendly.compat import StringIO
-from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_style, ansi_wrap
+from humanfriendly.terminal import ANSI_COLOR_CODES, ANSI_CSI, ansi_style, ansi_wrap
 from humanfriendly.testing import PatchedAttribute, PatchedItem, TestCase, retry
 from humanfriendly.text import format, random_string
 
@@ -388,6 +388,35 @@ class ColoredLogsTestCase(TestCase):
             assert text in last_line
             assert severity in last_line
             assert PLAIN_TEXT_PATTERN.match(last_line)
+
+    def test_auto_disable(self):
+        """
+        Make sure ANSI escape sequences are not emitted when logging output is being redirected.
+
+        This is a regression test for https://github.com/xolox/python-coloredlogs/issues/100.
+
+        It works as follows:
+
+        1. We mock an interactive terminal using 'capturer' to ensure that this
+           test works inside test drivers that capture output (like pytest).
+
+        2. We launch a subprocess (to ensure a clean process state) where
+           stderr is captured but stdout is not, emulating issue #100.
+
+        3. The output captured on stderr contained ANSI escape sequences after
+           this test was written and before the issue was fixed, so now this
+           serves as a regression test for issue #100.
+        """
+        with CaptureOutput():
+            interpreter = subprocess.Popen([
+                sys.executable, "-c", ";".join([
+                    "import coloredlogs, logging",
+                    "coloredlogs.install()",
+                    "logging.info('Hello world')",
+                ]),
+            ], stderr=subprocess.PIPE)
+            stdout, stderr = interpreter.communicate()
+            assert ANSI_CSI not in stderr.decode('UTF-8')
 
     def test_html_conversion(self):
         """Check the conversion from ANSI escape sequences to HTML."""
