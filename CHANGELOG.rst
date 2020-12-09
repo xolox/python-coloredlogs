@@ -11,6 +11,26 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 14.1`_ (2020-12-10)
+----------------------------
+
+**Bug fixes:**
+
+- Don't allow interactive terminal detection to disable colored text when
+  colored text is being forced by the caller (reported in issue `#84`_).
+
+- Automatically disable colored text when logging output is being redirected to
+  a file in such a way that it actually works 😬 (reported in issue `#100`_).
+
+**Other changes:**
+
+- Start testing on PyPy 3 (because why not?)
+
+.. _Release 14.1: https://github.com/xolox/python-coloredlogs/compare/14.0...14.1
+.. _#84: https://github.com/xolox/python-coloredlogs/issues/84
+.. _#100: https://github.com/xolox/python-coloredlogs/issues/100
+
+
 `Release 14.0`_ (2020-02-16)
 ----------------------------
 
