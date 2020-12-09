@@ -427,8 +427,12 @@ def install(level=None, **kw):
         use_colors = kw.get('isatty', None)
         if use_colors or use_colors is None:
             # Try to enable Windows native ANSI support or Colorama.
-            if on_windows():
-                use_colors = enable_ansi_support()
+            if on_windows() and not enable_ansi_support():
+                # This can fail, in which case ANSI escape sequences would end
+                # up being printed to the terminal in raw form. This is very
+                # user hostile, so to avoid this happening we disable color
+                # support on failure.
+                use_colors = False
             # Disable ANSI escape sequences if 'stream' isn't connected
             # to a terminal and no override (isatty=True) is used.
             if use_colors is None:
