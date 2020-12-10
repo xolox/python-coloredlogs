@@ -418,12 +418,7 @@ def install(level=None, **kw):
         # We ignore the value `None' because it means the caller didn't opt in
         # to system logging and `False' because it means the caller explicitly
         # opted out of system logging.
-        #
-        # We never enable system logging on Windows because it is my impression
-        # that SysLogHandler isn't intended to be used on Windows; I've had
-        # reports of coloredlogs spewing extremely verbose errno 10057 warning
-        # messages to the console (once for each log message I suppose).
-        if syslog_enabled not in (None, False) and not on_windows():
+        if syslog_enabled not in (None, False):
             from coloredlogs.syslog import enable_system_logging
             if syslog_enabled is True:
                 # If the caller passed syslog=True then we leave the choice of

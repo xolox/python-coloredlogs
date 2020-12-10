@@ -46,7 +46,7 @@ from coloredlogs import (
     walk_propagation_tree,
 )
 from coloredlogs.demo import demonstrate_colored_logging
-from coloredlogs.syslog import SystemLogging, match_syslog_handler
+from coloredlogs.syslog import SystemLogging, is_syslog_supported, match_syslog_handler
 from coloredlogs.converter import (
     ColoredCronMailer,
     EIGHT_COLOR_PALETTE,
@@ -184,6 +184,13 @@ class ColoredLogsTestCase(TestCase):
         # appears to be needed on MacOS workers on Travis CI, see:
         # https://travis-ci.org/xolox/python-coloredlogs/jobs/325245853
         retry(lambda: check_contents(system_log_file, expected_message, True))
+
+    def test_system_logging_override(self):
+        """Make sure the :class:`coloredlogs.syslog.is_syslog_supported` respects the override."""
+        with PatchedItem(os.environ, 'COLOREDLOGS_SYSLOG', 'true'):
+            assert is_syslog_supported() is True
+        with PatchedItem(os.environ, 'COLOREDLOGS_SYSLOG', 'false'):
+            assert is_syslog_supported() is False
 
     def test_syslog_shortcut_simple(self):
         """Make sure that ``coloredlogs.install(syslog=True)`` works."""
@@ -390,9 +397,7 @@ class ColoredLogsTestCase(TestCase):
             assert PLAIN_TEXT_PATTERN.match(last_line)
 
     def test_force_enable(self):
-        """
-        Make sure ANSI escape sequences can be forced (bypassing auto-detection).
-        """
+        """Make sure ANSI escape sequences can be forced (bypassing auto-detection)."""
         interpreter = subprocess.Popen([
             sys.executable, "-c", ";".join([
                 "import coloredlogs, logging",

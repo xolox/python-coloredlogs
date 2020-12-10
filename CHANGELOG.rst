@@ -11,6 +11,18 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 15.0`_ (2020-12-10)
+----------------------------
+
+Don't enable system logging on MacOS and Windows anymore.
+
+This is backwards incompatible (which is why I'm bumping the major version
+number) however the old behavior has been reported to be rather problematic
+(see :func:`~coloredlogs.syslog.is_syslog_supported()` for details) so this
+seems like the best choice.
+
+.. _Release 15.0: https://github.com/xolox/python-coloredlogs/compare/14.2...15.0
+
 `Release 14.3`_ (2020-12-10)
 ----------------------------
 
