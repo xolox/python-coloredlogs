@@ -455,9 +455,13 @@ def install(level=None, **kw):
             # support if 'stream' is connected to a terminal.
             if use_colors is None:
                 use_colors = terminal_supports_colors(stream)
-        # Create a stream handler.
+        # Create a stream handler and make sure to preserve any filters
+        # the current handler may have (if an existing handler is found).
+        filters = handler.filters if handler else None
         handler = logging.StreamHandler(stream) if stream else StandardErrorHandler()
         handler.setLevel(level)
+        if filters:
+            handler.filters = filters
         # Prepare the arguments to the formatter, allowing the caller to
         # customize the values of `fmt', `datefmt' and `style' as desired.
         formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
