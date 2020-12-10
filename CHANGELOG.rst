@@ -11,6 +11,15 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 14.3`_ (2020-12-10)
+----------------------------
+
+Merged pull request `#89`_ which enhances :func:`coloredlogs.install()` to
+preserve the filters on handlers that are replaced by :pypi:`coloredlogs`.
+
+.. _Release 14.3: https://github.com/xolox/python-coloredlogs/compare/14.2...14.3
+.. _#89: https://github.com/xolox/python-coloredlogs/pull/89
+
 `Release 14.2`_ (2020-12-10)
 ----------------------------
 
