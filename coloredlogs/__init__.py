@@ -214,7 +214,7 @@ from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, enable_ansi_supp
 from humanfriendly.text import format, split
 
 # Semi-standard module versioning.
-__version__ = '14.3'
+__version__ = '15.0'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
