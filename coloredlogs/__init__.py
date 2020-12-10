@@ -45,6 +45,13 @@ Environment variable           Default value                 Type of value
 ``$COLOREDLOGS_FIELD_STYLES``  :data:`DEFAULT_FIELD_STYLES`  see :func:`parse_encoded_styles()`
 =============================  ============================  ==================================
 
+If the environment variable `$NO_COLOR`_ is set (the value doesn't matter, even
+an empty string will do) then :func:`coloredlogs.install()` will take this as a
+hint that colors should not be used (unless the ``isatty=True`` override was
+passed by the caller).
+
+.. _$NO_COLOR: https://no-color.org/
+
 Examples of customization
 =========================
 
@@ -207,7 +214,7 @@ from humanfriendly.terminal import ANSI_COLOR_CODES, ansi_wrap, enable_ansi_supp
 from humanfriendly.text import format, split
 
 # Semi-standard module versioning.
-__version__ = '14.1'
+__version__ = '14.2'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 """The default log level for :mod:`coloredlogs` (:data:`logging.INFO`)."""
@@ -370,6 +377,9 @@ def install(level=None, **kw):
        with the `fmt` and `datefmt` keyword arguments (or their computed
        defaults).
 
+       The environment variable ``$NO_COLOR`` is taken as a hint by
+       auto-detection that colors should not be used.
+
     4. :func:`HostNameFilter.install()`, :func:`ProgramNameFilter.install()`
        and :func:`UserNameFilter.install()` are called to enable the use of
        additional fields in the log format.
@@ -425,16 +435,24 @@ def install(level=None, **kw):
                 enable_system_logging(level=syslog_enabled)
         # Figure out whether we can use ANSI escape sequences.
         use_colors = kw.get('isatty', None)
-        if use_colors or use_colors is None:
-            # Try to enable Windows native ANSI support or Colorama.
-            if on_windows() and not enable_ansi_support():
+        # In the following indented block the expression (use_colors is None)
+        # can be read as "auto detect is enabled and no reason has yet been
+        # found to automatically disable color support".
+        if use_colors or (use_colors is None):
+            # Respect the user's choice not to have colors.
+            if use_colors is None and 'NO_COLOR' in os.environ:
+                # For details on this see https://no-color.org/.
+                use_colors = False
+            # Try to enable Windows native ANSI support or Colorama?
+            if (use_colors or use_colors is None) and on_windows():
                 # This can fail, in which case ANSI escape sequences would end
                 # up being printed to the terminal in raw form. This is very
                 # user hostile, so to avoid this happening we disable color
                 # support on failure.
-                use_colors = False
-            # Disable ANSI escape sequences if 'stream' isn't connected
-            # to a terminal and no override (isatty=True) is used.
+                use_colors = enable_ansi_support()
+            # When auto detection is enabled, and so far we encountered no
+            # reason to disable color support, then we will enable color
+            # support if 'stream' is connected to a terminal.
             if use_colors is None:
                 use_colors = terminal_supports_colors(stream)
         # Create a stream handler.

@@ -432,6 +432,20 @@ class ColoredLogsTestCase(TestCase):
             stdout, stderr = interpreter.communicate()
             assert ANSI_CSI not in stderr.decode('UTF-8')
 
+    def test_env_disable(self):
+        """Make sure ANSI escape sequences can be disabled using ``$NO_COLOR``."""
+        with PatchedItem(os.environ, 'NO_COLOR', 'I like monochrome'):
+            with CaptureOutput() as capturer:
+                subprocess.check_call([
+                    sys.executable, "-c", ";".join([
+                        "import coloredlogs, logging",
+                        "coloredlogs.install()",
+                        "logging.info('Hello world')",
+                    ]),
+                ])
+                output = capturer.get_text()
+                assert ANSI_CSI not in output
+
     def test_html_conversion(self):
         """Check the conversion from ANSI escape sequences to HTML."""
         # Check conversion of colored text.

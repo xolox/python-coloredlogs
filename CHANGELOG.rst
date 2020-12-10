@@ -11,6 +11,14 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 14.2`_ (2020-12-10)
+----------------------------
+
+Honor the ``$NO_COLOR`` environment variable as suggested in issue `#88`_.
+
+.. _Release 14.2: https://github.com/xolox/python-coloredlogs/compare/14.1...14.2
+.. _#88: https://github.com/xolox/python-coloredlogs/issues/88
+
 `Release 14.1`_ (2020-12-10)
 ----------------------------
 
