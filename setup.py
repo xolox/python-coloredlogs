@@ -66,9 +66,9 @@ def find_pth_directory():
     Determine the correct directory pathname for installing ``*.pth`` files.
 
     To install a ``*.pth`` file using a source distribution archive (created
-    when ``python setup.py sdist`` is called) the relative directory pathname
-    ``lib/pythonX.Y/site-packages`` needs to be passed to the ``data_files``
-    option to ``setup()``.
+    when ``python setup.py sdist`` is called) the directory pathname
+    ``/usr/lib/pythonX.Y/site-packages`` needs to be passed to the ``data_files``
+    option of ``setup()``.
 
     Unfortunately this breaks universal wheel archives (created when ``python
     setup.py bdist_wheel --universal`` is called) because a specific Python
@@ -81,7 +81,7 @@ def find_pth_directory():
     directory without hard coding its location.
     """
     return ('/' if 'bdist_wheel' in sys.argv
-            else os.path.relpath(distutils.sysconfig.get_python_lib(), sys.prefix))
+            else distutils.sysconfig.get_python_lib())
 
 
 setup(name='coloredlogs',
