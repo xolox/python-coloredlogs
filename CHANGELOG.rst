@@ -11,6 +11,19 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 15.0.1`_ (2021-06-11)
+------------------------------
+
+Bug fix: Restore :class:`.StandardErrorHandler` functionality
+
+The :class:`.StandardErrorHandler` class is responsible for dynamically
+resolving (looking up the value of) sys.stderr for each logged message instead
+of once when :func:`coloredlogs.install()` is called.
+
+This was unintentionally broken by changes in `release 14.1`_.
+
+.. _Release 15.0.1: https://github.com/xolox/python-coloredlogs/compare/15.0...15.0.1
+
 `Release 15.0`_ (2020-12-10)
 ----------------------------
 
