@@ -1,7 +1,7 @@
 # Automated tests for the `coloredlogs' package.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: December 10, 2020
+# Last Change: June 11, 2021
 # URL: https://coloredlogs.readthedocs.io
 
 """Automated tests for the `coloredlogs` package."""
@@ -395,6 +395,22 @@ class ColoredLogsTestCase(TestCase):
             assert text in last_line
             assert severity in last_line
             assert PLAIN_TEXT_PATTERN.match(last_line)
+
+    def test_dynamic_stderr_lookup(self):
+        """Make sure coloredlogs.install() uses StandardErrorHandler when possible."""
+        coloredlogs.install()
+        # Redirect sys.stderr to a temporary buffer.
+        initial_stream = StringIO()
+        initial_text = "Which stream will receive this text?"
+        with PatchedAttribute(sys, 'stderr', initial_stream):
+            logging.info(initial_text)
+        assert initial_text in initial_stream.getvalue()
+        # Redirect sys.stderr again, to a different destination.
+        subsequent_stream = StringIO()
+        subsequent_text = "And which stream will receive this other text?"
+        with PatchedAttribute(sys, 'stderr', subsequent_stream):
+            logging.info(subsequent_text)
+        assert subsequent_text in subsequent_stream.getvalue()
 
     def test_force_enable(self):
         """Make sure ANSI escape sequences can be forced (bypassing auto-detection)."""
