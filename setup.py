@@ -21,7 +21,7 @@ Setup script for the `coloredlogs` package.
 
 # Standard library modules.
 import codecs
-import distutils.sysconfig
+import sysconfig
 import os
 import re
 import sys
@@ -81,7 +81,7 @@ def find_pth_directory():
     directory without hard coding its location.
     """
     return ('/' if 'bdist_wheel' in sys.argv
-            else os.path.relpath(distutils.sysconfig.get_python_lib(), sys.prefix))
+            else os.path.relpath(sysconfig.get_path("purelib"), sys.prefix))
 
 
 setup(name='coloredlogs',
@@ -123,6 +123,10 @@ setup(name='coloredlogs',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: 3.8',
+          'Programming Language :: Python :: 3.9',
+          'Programming Language :: Python :: 3.10',
+          'Programming Language :: Python :: 3.11',
+          'Programming Language :: Python :: 3.12',
           'Programming Language :: Python :: Implementation :: CPython',
           'Programming Language :: Python :: Implementation :: PyPy',
           'Topic :: Communications',
