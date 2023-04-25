@@ -11,6 +11,12 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 15.1`_ (2023-04-25)
+----------------------------
+
+Enable use with Python version 3.9 - 3.12: path for site-packages is found via
+sysconfig instead of distutils.
+
 `Release 15.0.1`_ (2021-06-11)
 ------------------------------
 
