@@ -327,6 +327,8 @@ def install(level=None, **kw):
                   :data:`DEFAULT_FORMAT_STYLE`). See the documentation of the
                   :class:`python3:logging.Formatter` class in Python 3.2+. On
                   older Python versions only ``%`` is supported.
+    :param validate: :data:`True` to validate the logging format (the default) in Python 3.8+.
+    :param defaults: A dictionary with default values for custom fields in Python 3.10+.
     :param milliseconds: :data:`True` to show milliseconds like :mod:`logging`
                          does by default, :data:`False` to hide milliseconds
                          (the default is :data:`False`, see `#16`_).
@@ -462,7 +464,13 @@ def install(level=None, **kw):
             handler.filters = filters
         # Prepare the arguments to the formatter, allowing the caller to
         # customize the values of `fmt', `datefmt' and `style' as desired.
-        formatter_options = dict(fmt=kw.get('fmt'), datefmt=kw.get('datefmt'))
+        # For `validate' and `defaults', use the `logging' defaults.
+        formatter_options = dict(
+            fmt=kw.get('fmt'),
+            datefmt=kw.get('datefmt'),
+            validate=kw.get('validate', True),
+            defaults=kw.get('defaults'),
+        )
         # Only pass the `style' argument to the formatter when the caller
         # provided an alternative logging format style. This prevents
         # TypeError exceptions on Python versions before 3.2.
@@ -994,7 +1002,8 @@ class ColoredFormatter(BasicFormatter):
               This is done for you when you call :func:`coloredlogs.install()`.
     """
 
-    def __init__(self, fmt=None, datefmt=None, style=DEFAULT_FORMAT_STYLE, level_styles=None, field_styles=None):
+    def __init__(self, fmt=None, datefmt=None, style=DEFAULT_FORMAT_STYLE, validate=True,
+                 defaults=None, level_styles=None, field_styles=None):
         """
         Initialize a :class:`ColoredFormatter` object.
 
@@ -1004,6 +1013,8 @@ class ColoredFormatter(BasicFormatter):
                         :func:`BasicFormatter.formatTime()`).
         :param style: One of the characters ``%``, ``{`` or ``$`` (defaults to
                       :data:`DEFAULT_FORMAT_STYLE`)
+        :param validate: :data:`True` to validate the logging format (the default) in Python 3.8+.
+        :param defaults: A dictionary with default values for custom fields in Python 3.10+.
         :param level_styles: A dictionary with custom level styles
                              (defaults to :data:`DEFAULT_LEVEL_STYLES`).
         :param field_styles: A dictionary with custom field styles
@@ -1023,6 +1034,11 @@ class ColoredFormatter(BasicFormatter):
         self.field_styles = self.nn.normalize_keys(DEFAULT_FIELD_STYLES if field_styles is None else field_styles)
         # Rewrite the format string to inject ANSI escape sequences.
         kw = dict(fmt=self.colorize_format(fmt, style), datefmt=datefmt)
+        # Conditionally add `validate' and `defaults' on more recent Python versions
+        if sys.version_info[:2] >= (3, 8):
+            kw['validate'] = validate
+        if sys.version_info[:2] >= (3, 10):
+            kw['defaults'] = defaults
         # If we were given a non-default logging format style we pass it on
         # to our superclass. At this point check_style() will have already
         # complained that the use of alternative logging format styles
