@@ -9,10 +9,14 @@
 # Standard library modules.
 import codecs
 import os
-import pipes
 import re
 import subprocess
 import tempfile
+
+try:
+    from shlex import quote  # Python 3
+except ImportError:
+    from pipes import quote  # Python 2 (removed in 3.13)
 
 # External dependencies.
 from humanfriendly.terminal import (
@@ -75,7 +79,7 @@ def capture(command, encoding='UTF-8'):
         #
         # [1] http://man7.org/linux/man-pages/man1/script.1.html
         # [2] https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/script.1.html
-        command_line = ['script', '-qc', ' '.join(map(pipes.quote, command)), '/dev/null']
+        command_line = ['script', '-qc', ' '.join(map(quote, command)), '/dev/null']
         script = subprocess.Popen(command_line, stdout=subprocess.PIPE, stderr=dev_null)
         stdout, stderr = script.communicate()
         if script.returncode == 0:
