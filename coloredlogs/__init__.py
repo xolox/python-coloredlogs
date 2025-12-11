@@ -231,7 +231,7 @@ CHROOT_FILES = ['/etc/debian_chroot']
 DEFAULT_FIELD_STYLES = dict(
     asctime=dict(color='green'),
     hostname=dict(color='magenta'),
-    levelname=dict(color='black', bold=True),
+    levelname=dict(color='black', bold=True, bright=True),
     name=dict(color='blue'),
     programname=dict(color='cyan'),
     username=dict(color='yellow'),
