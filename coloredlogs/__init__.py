@@ -1319,7 +1319,7 @@ class UserNameFilter(logging.Filter):
 class StandardErrorHandler(logging.StreamHandler):
 
     """
-    A :class:`~logging.StreamHandler` that gets the value of :data:`sys.stderr` for each log message.
+    A :class:`~logging.StreamHandler` that looks up :data:`sys.stderr` for each message by default.
 
     The :class:`StandardErrorHandler` class enables `monkey patching of
     sys.stderr <https://github.com/xolox/python-coloredlogs/pull/31>`_. It's
@@ -1327,6 +1327,10 @@ class StandardErrorHandler(logging.StreamHandler):
     Python 3 but it will be available regardless of Python version. This
     handler is used by :func:`coloredlogs.install()` to improve compatibility
     with the Python standard library.
+
+    Assigning :attr:`stream`, including through :meth:`~logging.StreamHandler.setStream`
+    on Python 3.7 and newer, selects an explicit destination instead of looking up
+    :data:`sys.stderr` for subsequent messages.
     """
 
     def __init__(self, level=logging.NOTSET):
@@ -1335,8 +1339,13 @@ class StandardErrorHandler(logging.StreamHandler):
 
     @property
     def stream(self):
-        """Get the value of :data:`sys.stderr` (a file-like object)."""
-        return sys.stderr
+        """Get the explicit destination, or the current :data:`sys.stderr`."""
+        return getattr(self, '_stream', sys.stderr)
+
+    @stream.setter
+    def stream(self, value):
+        """Select an explicit output destination."""
+        self._stream = value
 
 
 class FormatStringParser(object):
